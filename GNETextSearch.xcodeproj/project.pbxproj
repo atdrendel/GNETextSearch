@@ -9,7 +9,14 @@
 /* Begin PBXBuildFile section */
 		5711A7ED1B949E440088910A /* GNETextSearch.h in Headers */ = {isa = PBXBuildFile; fileRef = 5711A7EC1B949E440088910A /* GNETextSearch.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5711A7F41B949E440088910A /* GNETextSearch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5711A7E91B949E440088910A /* GNETextSearch.framework */; settings = {ASSET_TAGS = (); }; };
-		5711A7F91B949E440088910A /* GNETextSearchTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 5711A7F81B949E440088910A /* GNETextSearchTests.m */; };
+		5711A8061B949E960088910A /* GNETernaryTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 5711A8041B949E960088910A /* GNETernaryTree.h */; settings = {ASSET_TAGS = (); }; };
+		5711A8071B949E960088910A /* GNETernaryTree.c in Sources */ = {isa = PBXBuildFile; fileRef = 5711A8051B949E960088910A /* GNETernaryTree.c */; settings = {ASSET_TAGS = (); }; };
+		5711A80A1B94B29F0088910A /* GNETernaryTreeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 5711A8091B94B29F0088910A /* GNETernaryTreeTests.m */; settings = {ASSET_TAGS = (); }; };
+		57CF09F71BA2F35200E0F0EC /* GNEIntegerArray.c in Sources */ = {isa = PBXBuildFile; fileRef = 57CF09F51BA2F35200E0F0EC /* GNEIntegerArray.c */; settings = {ASSET_TAGS = (); }; };
+		57CF09F81BA2F35200E0F0EC /* GNEIntegerArray.c in Sources */ = {isa = PBXBuildFile; fileRef = 57CF09F51BA2F35200E0F0EC /* GNEIntegerArray.c */; settings = {ASSET_TAGS = (); }; };
+		57CF09F91BA2F35200E0F0EC /* GNEIntegerArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 57CF09F61BA2F35200E0F0EC /* GNEIntegerArray.h */; settings = {ASSET_TAGS = (); }; };
+		57CF09FB1BA2FB7600E0F0EC /* GNECommon.h in Headers */ = {isa = PBXBuildFile; fileRef = 57CF09FA1BA2FAB600E0F0EC /* GNECommon.h */; settings = {ASSET_TAGS = (); }; };
+		57CF09FD1BA5F89C00E0F0EC /* GNEIntegerArrayTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 57CF09FC1BA5F89C00E0F0EC /* GNEIntegerArrayTests.m */; settings = {ASSET_TAGS = (); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,8 +34,14 @@
 		5711A7EC1B949E440088910A /* GNETextSearch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GNETextSearch.h; sourceTree = "<group>"; };
 		5711A7EE1B949E440088910A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5711A7F31B949E440088910A /* GNETextSearchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GNETextSearchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		5711A7F81B949E440088910A /* GNETextSearchTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GNETextSearchTests.m; sourceTree = "<group>"; };
 		5711A7FA1B949E440088910A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5711A8041B949E960088910A /* GNETernaryTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNETernaryTree.h; sourceTree = "<group>"; };
+		5711A8051B949E960088910A /* GNETernaryTree.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GNETernaryTree.c; sourceTree = "<group>"; };
+		5711A8091B94B29F0088910A /* GNETernaryTreeTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNETernaryTreeTests.m; sourceTree = "<group>"; };
+		57CF09F51BA2F35200E0F0EC /* GNEIntegerArray.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GNEIntegerArray.c; sourceTree = "<group>"; };
+		57CF09F61BA2F35200E0F0EC /* GNEIntegerArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEIntegerArray.h; sourceTree = "<group>"; };
+		57CF09FA1BA2FAB600E0F0EC /* GNECommon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GNECommon.h; sourceTree = "<group>"; };
+		57CF09FC1BA5F89C00E0F0EC /* GNEIntegerArrayTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEIntegerArrayTests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +84,7 @@
 		5711A7EB1B949E440088910A /* GNETextSearch */ = {
 			isa = PBXGroup;
 			children = (
+				5711A8031B949E780088910A /* Tree */,
 				5711A7EC1B949E440088910A /* GNETextSearch.h */,
 				5711A7EE1B949E440088910A /* Info.plist */,
 			);
@@ -80,10 +94,23 @@
 		5711A7F71B949E440088910A /* GNETextSearchTests */ = {
 			isa = PBXGroup;
 			children = (
-				5711A7F81B949E440088910A /* GNETextSearchTests.m */,
+				5711A8091B94B29F0088910A /* GNETernaryTreeTests.m */,
+				57CF09FC1BA5F89C00E0F0EC /* GNEIntegerArrayTests.m */,
 				5711A7FA1B949E440088910A /* Info.plist */,
 			);
 			path = GNETextSearchTests;
+			sourceTree = "<group>";
+		};
+		5711A8031B949E780088910A /* Tree */ = {
+			isa = PBXGroup;
+			children = (
+				5711A8041B949E960088910A /* GNETernaryTree.h */,
+				5711A8051B949E960088910A /* GNETernaryTree.c */,
+				57CF09F61BA2F35200E0F0EC /* GNEIntegerArray.h */,
+				57CF09F51BA2F35200E0F0EC /* GNEIntegerArray.c */,
+				57CF09FA1BA2FAB600E0F0EC /* GNECommon.h */,
+			);
+			path = Tree;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -93,7 +120,10 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				57CF09FB1BA2FB7600E0F0EC /* GNECommon.h in Headers */,
 				5711A7ED1B949E440088910A /* GNETextSearch.h in Headers */,
+				57CF09F91BA2F35200E0F0EC /* GNEIntegerArray.h in Headers */,
+				5711A8061B949E960088910A /* GNETernaryTree.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -193,6 +223,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5711A8071B949E960088910A /* GNETernaryTree.c in Sources */,
+				57CF09F71BA2F35200E0F0EC /* GNEIntegerArray.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -200,7 +232,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5711A7F91B949E440088910A /* GNETextSearchTests.m in Sources */,
+				5711A80A1B94B29F0088910A /* GNETernaryTreeTests.m in Sources */,
+				57CF09F81BA2F35200E0F0EC /* GNEIntegerArray.c in Sources */,
+				57CF09FD1BA5F89C00E0F0EC /* GNEIntegerArrayTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -375,6 +409,7 @@
 				5711A7FF1B949E440088910A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		5711A8001B949E440088910A /* Build configuration list for PBXNativeTarget "GNETextSearchTests" */ = {
 			isa = XCConfigurationList;
@@ -383,6 +418,7 @@
 				5711A8021B949E440088910A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

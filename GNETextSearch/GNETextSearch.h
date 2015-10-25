@@ -14,6 +14,8 @@ FOUNDATION_EXPORT double GNETextSearchVersionNumber;
 //! Project version string for GNETextSearch.
 FOUNDATION_EXPORT const unsigned char GNETextSearchVersionString[];
 
-// In this header, you should import all the public headers of your framework using statements like #import <GNETextSearch/PublicHeader.h>
-
+#ifndef GNETernaryTree_h
+#define GNETernaryTree_h
+    #import <GNETextSearch/GNETernaryTree.h>
+#endif
 
