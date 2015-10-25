@@ -17,7 +17,8 @@ typedef struct GNETernaryTreeNode GNETernaryTreeNode;
 
 extern void GNETernaryTreeDestroy(GNETernaryTreePtr ptr);
 extern GNETernaryTreePtr GNETernaryTreeInsert(GNETernaryTreePtr ptr, const char *newCharacter, GNEInteger documentID);
-/// Returns a pointer to the node corresponding to the 
+/// Returns a pointer to the node corresponding to the GNEIntegerArray containing the
+/// IDs of the documents containing the target.
 extern GNEIntegerArrayPtr GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target);
 /// Copies all words contained in the tree into outResults (which much be freed by the caller).
 extern int GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t *outLength);
