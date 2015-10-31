@@ -40,7 +40,7 @@ GNEIntegerArrayPtr GNEIntegerArrayCreate(void)
 
 GNEIntegerArrayPtr GNEIntegerArrayCreateWithCapacity(size_t capacity)
 {
-    GNEIntegerArrayPtr ptr = malloc(sizeof(GNEIntegerArray));
+    GNEIntegerArrayPtr ptr = calloc(1, sizeof(GNEIntegerArray));
     if (ptr == NULL) { return NULL; }
 
     ptr->buffer = NULL;
@@ -48,7 +48,7 @@ GNEIntegerArrayPtr GNEIntegerArrayCreateWithCapacity(size_t capacity)
     ptr->count = 0;
 
     size_t bufferLength = capacity * sizeof(GNEInteger);
-    GNEInteger *buffer = malloc(bufferLength);
+    GNEInteger *buffer = calloc(capacity, sizeof(GNEInteger));
     if (buffer == NULL)
     {
         GNEIntegerArrayDestroy(ptr);
