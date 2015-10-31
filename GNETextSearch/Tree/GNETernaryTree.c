@@ -17,6 +17,7 @@
 #define FALSE 0
 #define TRUE 1
 
+GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target);
 int _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t *outLength, size_t *outBufferLength);
 int _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, char **outResults, size_t *outLength, size_t *outBufferLength);
 int _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr);
@@ -100,27 +101,21 @@ GNETernaryTreePtr GNETernaryTreeInsert(GNETernaryTreePtr ptr, const char *newCha
 
 GNEIntegerArrayPtr GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target)
 {
-    if (ptr == NULL) { return NULL; }
+    GNETernaryTreePtr foundPtr = _GNETernaryTreeSearch(ptr, target);
 
-    if (*target < ptr->character)
-    {
-        return GNETernaryTreeSearch(ptr->lower, target);
-    }
-    else if (*target > ptr->character)
-    {
-        return GNETernaryTreeSearch(ptr->higher, target);
-    }
-    else
-    {
-        if ('\0' == *target)
-        {
-            return ptr->documentIDs;
-        }
-        else
-        {
-            return GNETernaryTreeSearch(ptr->same, (target + 1));
-        }
-    }
+    return (foundPtr != NULL) ? foundPtr->documentIDs : NULL;
+}
+
+
+GNEIntegerArrayPtr GNETernaryTreeSearchWithPrefix(GNETernaryTreePtr ptr, const char *prefix)
+{
+    GNETernaryTreePtr foundPtr = _GNETernaryTreeSearch(ptr, prefix);
+
+    if (foundPtr == NULL) { return NULL; }
+
+    GNEIntegerArrayPtr resultsPtr = (foundPtr->documentIDs != NULL) ? foundPtr->documentIDs : GNEIntegerArrayCreate();
+
+    return (resultsPtr != NULL && GNEIntegerArrayGetCount(resultsPtr) > 0) ? resultsPtr : NULL;
 }
 
 
@@ -158,6 +153,32 @@ int GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private
 // ------------------------------------------------------------------------------------------
+GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target)
+{
+    if (ptr == NULL) { return NULL; }
+
+    if (*target < ptr->character)
+    {
+        return _GNETernaryTreeSearch(ptr->lower, target);
+    }
+    else if (*target > ptr->character)
+    {
+        return _GNETernaryTreeSearch(ptr->higher, target);
+    }
+    else
+    {
+        if ('\0' == *target)
+        {
+            return ptr;
+        }
+        else
+        {
+            return _GNETernaryTreeSearch(ptr->same, (target + 1));
+        }
+    }
+}
+
+
 int _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr,
                         char **outResults,
                         size_t *outLength,
