@@ -204,7 +204,7 @@ int _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, char **outResults, size_t *ou
 
     size_t wordLength = _GNETernaryTreeGetWordLength(ptr); // Does not include \0
     if (wordLength == 0) { return SUCCESS; }
-    char *word = malloc(sizeof(char) * wordLength);
+    char *word = malloc(sizeof(char) * (wordLength + 1));
 
     size_t characterIndex = wordLength - 1;
     while (ptr != NULL)
