@@ -20,6 +20,8 @@ typedef struct GNEIntegerArray
     size_t count;
 } GNEIntegerArray;
 
+int _GNEIntegerArrayIncreaseCapacityBy(GNEIntegerArrayPtr ptr, size_t increase);
+
 
 // ------------------------------------------------------------------------------------------
 
@@ -146,6 +148,35 @@ typedef struct GNEIntegerArray
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Add Integers From Array
+// ------------------------------------------------------------------------------------------
+- (void)testAddIntegersFromArray_TenPlusTen_TwentyAtCorrectIndexes
+{
+    GNEIntegerArrayPtr ptr1 = GNEIntegerArrayCreateWithCapacity(10);
+    GNEIntegerArrayPtr ptr2 = GNEIntegerArrayCreateWithCapacity(10);
+
+    [self addIntegers:10 toIntegerArray:ptr1];
+    [self addIntegers:10 startingAt:10 toIntegerArray:ptr2];
+
+    XCTAssertEqual(10, ptr1->count);
+    XCTAssertEqual(10, ptr2->count);
+
+    XCTAssertEqual(1, GNEIntegerArrayAddIntegersFromArray(ptr1, ptr2));
+
+    XCTAssertEqual(20, ptr1->count);
+    XCTAssertEqual(10, ptr2->count);
+
+    for (size_t i = 0; i < ptr1->count; i++)
+    {
+        XCTAssertEqual((GNEInteger)i, GNEIntegerArrayGetIntegerAtIndex(ptr1, i));
+    }
+
+    GNEIntegerArrayDestroy(ptr1);
+    GNEIntegerArrayDestroy(ptr2);
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Get Integer Tests
 // ------------------------------------------------------------------------------------------
 - (void)testAddInteger_Empty_ReturnSizeMax
@@ -158,7 +189,7 @@ typedef struct GNEIntegerArray
 // ------------------------------------------------------------------------------------------
 #pragma mark - Resize Buffer Tests
 // ------------------------------------------------------------------------------------------
-- (void)testResizeBuffer_AddTenIntegers_BufferLengthIs100
+- (void)testResizeBuffer_AddTenIntegers_CapacityIs20
 {
     XCTAssertEqual(0, GNEIntegerArrayGetCount(_arrayPtr));
 
@@ -167,7 +198,20 @@ typedef struct GNEIntegerArray
     XCTAssertEqual(10 * sizeof(GNEInteger), _arrayPtr->bufferLength);
 
     XCTAssertEqual(1, GNEIntegerArrayAddInteger(_arrayPtr, 9));
-    XCTAssertEqual(100 * sizeof(GNEInteger), _arrayPtr->bufferLength);
+    XCTAssertEqual(20 * sizeof(GNEInteger), _arrayPtr->bufferLength);
+}
+
+
+- (void)testResizeBuffer_IncreaseCapacityFrom10To37_Increased
+{
+    GNEInteger start = 10;
+    GNEInteger end = 37;
+
+    XCTAssertEqual(0, GNEIntegerArrayGetCount(_arrayPtr));
+    XCTAssertEqual(start * sizeof(GNEInteger), _arrayPtr->bufferLength);
+
+    XCTAssertEqual(1, _GNEIntegerArrayIncreaseCapacityBy(_arrayPtr, end - start));
+    XCTAssertEqual(end * sizeof(GNEInteger), _arrayPtr->bufferLength);
 }
 
 
@@ -176,9 +220,15 @@ typedef struct GNEIntegerArray
 // ------------------------------------------------------------------------------------------
 - (void)addIntegers:(size_t)count toIntegerArray:(GNEIntegerArrayPtr)ptr
 {
+    [self addIntegers:count startingAt:0 toIntegerArray:ptr];
+}
+
+
+- (void)addIntegers:(size_t)count startingAt:(size_t)start toIntegerArray:(GNEIntegerArrayPtr)ptr
+{
     for (size_t i = 0; i < count; i++)
     {
-        XCTAssertEqual(1, GNEIntegerArrayAddInteger(ptr, i));
+        XCTAssertEqual(1, GNEIntegerArrayAddInteger(ptr, (GNEInteger)(i + start)));
     }
 }
 

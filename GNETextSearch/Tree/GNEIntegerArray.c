@@ -17,7 +17,8 @@
 #define FALSE 0
 #define TRUE 1
 
-int _GNEIntegerArrayIncreaseBufferLengthIfNeeded(GNEIntegerArrayPtr ptr);
+int _GNEIntegerArrayIncreaseCapacityBy(GNEIntegerArrayPtr ptr, size_t increase);
+int _GNEIntegerArrayIncreaseCapacityIfNeeded(GNEIntegerArrayPtr ptr);
 
 
 // ------------------------------------------------------------------------------------------
@@ -84,11 +85,38 @@ size_t GNEIntegerArrayGetCount(GNEIntegerArrayPtr ptr)
 
 int GNEIntegerArrayAddInteger(GNEIntegerArrayPtr ptr, GNEInteger integer)
 {
-    if (ptr == NULL || _GNEIntegerArrayIncreaseBufferLengthIfNeeded(ptr) == FAILURE) { return FALSE; }
+    if (ptr == NULL || _GNEIntegerArrayIncreaseCapacityIfNeeded(ptr) == FAILURE) { return FAILURE; }
 
     size_t count = ptr->count;
     ptr->buffer[count] = integer;
     ptr->count = count + 1;
+
+    return SUCCESS;
+}
+
+
+int GNEIntegerArrayAddIntegersFromArray(GNEIntegerArrayPtr ptr, GNEIntegerArrayPtr otherPtr)
+{
+    if (ptr == NULL || otherPtr == NULL) { return FAILURE; }
+
+    size_t otherCapacity = otherPtr->bufferLength / sizeof(GNEInteger);
+    if (otherCapacity == 0) { return SUCCESS; }
+
+    if (_GNEIntegerArrayIncreaseCapacityBy(ptr, otherCapacity) == FAILURE) { return FAILURE; }
+
+    GNEInteger *buffer = ptr->buffer;
+    size_t offset = ptr->count;
+    GNEInteger *dstBuffer = &buffer[offset];
+    GNEInteger *srcBuffer = otherPtr->buffer;
+    size_t length = otherPtr->bufferLength;
+    if (memcpy(dstBuffer, srcBuffer, length) == NULL)
+    {
+        GNEIntegerArrayDestroy(ptr);
+        GNEIntegerArrayDestroy(otherPtr);
+        return FAILURE;
+    }
+
+    ptr->count = (ptr->count) + (otherPtr->count);
 
     return SUCCESS;
 }
@@ -108,7 +136,33 @@ GNEInteger GNEIntegerArrayGetIntegerAtIndex(GNEIntegerArrayPtr ptr, size_t index
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private
 // ------------------------------------------------------------------------------------------
-int _GNEIntegerArrayIncreaseBufferLengthIfNeeded(GNEIntegerArrayPtr ptr)
+/// Increases the number of integers the specified array can contain by the
+/// specified number.
+int _GNEIntegerArrayIncreaseCapacityBy(GNEIntegerArrayPtr ptr, size_t increase)
+{
+    if (ptr == NULL) { return FAILURE; }
+
+    size_t bufferLength = ptr->bufferLength;
+    size_t maxCount = bufferLength / sizeof(GNEInteger);
+    size_t newCount = maxCount + increase;
+    size_t newBufferLength = newCount * sizeof(GNEInteger);
+    GNEInteger *newBuffer = realloc(ptr->buffer, newBufferLength);
+    if (newBuffer == NULL)
+    {
+        GNEIntegerArrayDestroy(ptr);
+        return FAILURE;
+    }
+
+    ptr->buffer = newBuffer;
+    ptr->bufferLength = newBufferLength;
+
+    return SUCCESS;
+}
+
+
+/// Doubles the number of integers the specified array can contain if the array
+/// only has one free space remaining. Otherwise, this method does nothing.
+int _GNEIntegerArrayIncreaseCapacityIfNeeded(GNEIntegerArrayPtr ptr)
 {
     if (ptr == NULL) { return FAILURE; }
 
@@ -120,16 +174,7 @@ int _GNEIntegerArrayIncreaseBufferLengthIfNeeded(GNEIntegerArrayPtr ptr)
     if (emptySpacesRemaining == 1)
     {
         size_t previousMaxCount = count + emptySpacesRemaining;
-        size_t newBufferLength = (2 * previousMaxCount) * sizeof(GNEInteger);
-        GNEInteger *newBuffer = realloc(ptr->buffer, newBufferLength);
-        if (newBuffer == NULL)
-        {
-            GNEIntegerArrayDestroy(ptr);
-            return FAILURE;
-        }
-
-        ptr->buffer = newBuffer;
-        ptr->bufferLength = newBufferLength;
+        return _GNEIntegerArrayIncreaseCapacityBy(ptr, previousMaxCount); // Double the size.
     }
 
     return SUCCESS;

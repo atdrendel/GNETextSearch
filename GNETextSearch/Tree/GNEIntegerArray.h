@@ -23,6 +23,8 @@ extern GNEIntegerArrayPtr GNEIntegerArrayCreateWithCapacity(size_t capacity);
 extern void GNEIntegerArrayDestroy(GNEIntegerArrayPtr ptr);
 extern size_t GNEIntegerArrayGetCount(GNEIntegerArrayPtr ptr);
 extern int GNEIntegerArrayAddInteger(GNEIntegerArrayPtr ptr, GNEInteger integer);
+extern int GNEIntegerArrayAddIntegersFromArray(GNEIntegerArrayPtr ptr, GNEIntegerArrayPtr otherPtr);
+
 /// Returns the integer at the specified index or SIZE_MAX if the index is invalid.
 extern GNEInteger GNEIntegerArrayGetIntegerAtIndex(GNEIntegerArrayPtr ptr, size_t index);
 
