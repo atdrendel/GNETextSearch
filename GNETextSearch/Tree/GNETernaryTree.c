@@ -115,7 +115,7 @@ GNEIntegerArrayPtr GNETernaryTreeSearchWithPrefix(GNETernaryTreePtr ptr, const c
 
     if (foundPtr == NULL) { return NULL; }
 
-    GNEIntegerArrayPtr resultsPtr = (foundPtr->documentIDs != NULL) ? foundPtr->documentIDs : GNEIntegerArrayCreate();
+    GNEIntegerArrayPtr resultsPtr = GNEIntegerArrayCreate();
 
     if (resultsPtr == NULL) { return NULL; }
 

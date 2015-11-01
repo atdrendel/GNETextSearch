@@ -186,6 +186,14 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 }
 
 
+- (void)testPrefixSearch_AddSixWordsInOrderThatProducesDuplicates_ThreeResults
+{
+    NSArray *words = @[@"aw", @"anthony", @"awful", @"awesome", @"Anthony", @"Aw"];
+    XCTAssertNoThrow([self insertWords:words intoTree:&_treePtr]);
+    [self assertResultsInTree:_treePtr matchingPrefix:@"aw" equalWords:@[@"awesome", @"awful", @"aw"]];
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private Tests
 // ------------------------------------------------------------------------------------------
@@ -311,9 +319,6 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 
     XCTAssert((words.count == 0 && resultsPtr == NULL) ||
               (words.count == GNEIntegerArrayGetCount(resultsPtr)));
-
-    GNEIntegerArrayPrint(resultsPtr);
-    NSParameterAssert(words.count == GNEIntegerArrayGetCount(resultsPtr));
 
     NSMutableArray *unmatchedWords = [words mutableCopy];
     NSUInteger count = (NSUInteger)GNEIntegerArrayGetCount(resultsPtr);
