@@ -12,10 +12,11 @@
 // ------------------------------------------------------------------------------------------
 
 
-#define FAILURE 0
 #define SUCCESS 1
-#define FALSE 0
+#define FAILURE 0
+
 #define TRUE 1
+#define FALSE 0
 
 GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target);
 int _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerArrayPtr results);

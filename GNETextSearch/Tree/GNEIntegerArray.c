@@ -12,10 +12,11 @@
 // ------------------------------------------------------------------------------------------
 
 
-#define FAILURE 0
 #define SUCCESS 1
-#define FALSE 0
+#define FAILURE 0
+
 #define TRUE 1
+#define FALSE 0
 
 int _GNEIntegerArrayIncreaseCapacityBy(GNEIntegerArrayPtr ptr, size_t increase);
 int _GNEIntegerArrayIncreaseCapacityIfNeeded(GNEIntegerArrayPtr ptr);

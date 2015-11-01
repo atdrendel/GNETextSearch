@@ -110,7 +110,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 }
 
 
-- (void)testSearch_Add12Words_CanFind
+- (void)testSearch_AddTwelveWords_CanFind
 {
     NSArray *words = @[@"as", @"at", @"be", @"by", @"he", @"in",
                        @"is", @"it", @"of", @"on", @"or", @"to"];
