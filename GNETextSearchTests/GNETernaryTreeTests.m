@@ -194,6 +194,81 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 }
 
 
+- (void)testPrefixSearch_LMN_TwoResultsForLaw
+{
+    NSString *prefix = @"law";
+
+    NSArray *words = [self wordsBeginningWithLMN];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:&_treePtr]);
+
+    NSArray *expectedWords = [self wordsInArray:randomizedWords withPrefix:prefix];
+    [self assertResultsInTree:_treePtr matchingPrefix:prefix equalWords:expectedWords];
+}
+
+
+- (void)testPrefixSearch_LMN_EightResultsForMen
+{
+    NSString *prefix = @"men";
+
+    NSArray *words = [self wordsBeginningWithLMN];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:&_treePtr]);
+
+    NSArray *expectedWords = [self wordsInArray:randomizedWords withPrefix:prefix];
+    [self assertResultsInTree:_treePtr matchingPrefix:prefix equalWords:expectedWords];
+}
+
+
+- (void)testPrefixSearch_LMN_ZeroResultsForOns
+{
+    NSString *prefix = @"ons";
+
+    NSArray *words = [self wordsBeginningWithLMN];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:&_treePtr]);
+
+    NSArray *expectedWords = [self wordsInArray:randomizedWords withPrefix:prefix];
+    [self assertResultsInTree:_treePtr matchingPrefix:prefix equalWords:expectedWords];
+}
+
+
+- (void)testPrefixSearch_Emoji_OneResult
+{
+    NSArray *words = @[@"😊", @"😄", @"👹", @"✨", @"🇺🇸"];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:&_treePtr]);
+
+    [self assertResultsInTree:_treePtr matchingPrefix:@"😄" equalWords:@[@"😄"]];
+}
+
+
+- (void)testPrefixSearch_Emoji_FourResultsForSharedEmojPrefix
+{
+    NSArray *words = @[@"😊", @"😄", @"👹", @"✨", @"🇺🇸"];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:&_treePtr]);
+
+    GNEIntegerArrayPtr resultsPtr = GNETernaryTreeSearchWithPrefix(_treePtr, "\xF0\x9F\0");
+    XCTAssertTrue(resultsPtr != NULL);
+    size_t count = GNEIntegerArrayGetCount(resultsPtr);
+    XCTAssertEqual((size_t)4, count);
+
+    NSMutableArray *resultsArray = [NSMutableArray array];
+    for (size_t i = 0; i < count; i++)
+    {
+        [resultsArray addObject:@((NSUInteger)GNEIntegerArrayGetIntegerAtIndex(resultsPtr, i))];
+    }
+
+    NSArray *expectedResults = @[@(@"😄".hash), @(@"😊".hash), @(@"👹".hash), @(@"🇺🇸".hash)];
+
+    NSSet *resultsSet = [NSSet setWithArray:resultsArray];
+    NSSet *expectedResultsSet = [NSSet setWithArray:expectedResults];
+
+    XCTAssertEqualObjects(expectedResultsSet, resultsSet);
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private Tests
 // ------------------------------------------------------------------------------------------
@@ -379,6 +454,21 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     }
 
     return [randomized copy];
+}
+
+
+- (NSArray *)wordsInArray:(NSArray *)words withPrefix:(NSString *)prefix
+{
+    NSMutableArray *wordsWithPrefix = [NSMutableArray array];
+    for (NSString *word in words)
+    {
+        if ([word hasPrefix:prefix])
+        {
+            [wordsWithPrefix addObject:word];
+        }
+    }
+
+    return [wordsWithPrefix copy];
 }
 
 
