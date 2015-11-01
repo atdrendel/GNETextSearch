@@ -121,6 +121,18 @@ GNEInteger GNEIntegerArrayGetIntegerAtIndex(GNEIntegerArrayPtr ptr, size_t index
 }
 
 
+void GNEIntegerArrayPrint(GNEIntegerArrayPtr ptr)
+{
+    size_t count = GNEIntegerArrayGetCount(ptr);
+    printf("<GNEIntegerArray, %p> %lld integers\n{\n", ptr, (long long)count);
+    for (size_t i = 0; i < count; i++)
+    {
+        printf("\t%lld\n", (long long)GNEIntegerArrayGetIntegerAtIndex(ptr, i));
+    }
+    printf("}\n");
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private
 // ------------------------------------------------------------------------------------------

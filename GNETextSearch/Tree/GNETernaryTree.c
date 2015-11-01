@@ -150,6 +150,21 @@ int GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t 
 }
 
 
+void GNETernaryTreePrint(GNETernaryTreePtr ptr)
+{
+    char *results = NULL;
+    size_t length = 0;
+
+    GNETernaryTreeCopyContents(ptr, &results, &length);
+
+    printf("<GNETernaryTree, %p>\n", ptr);
+    printf("%s", results);
+    printf("\n");
+
+    if (results) { free(results); results = NULL; }
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private
 // ------------------------------------------------------------------------------------------

@@ -28,4 +28,6 @@ extern int GNEIntegerArrayAddIntegersFromArray(GNEIntegerArrayPtr ptr, GNEIntege
 /// Returns the integer at the specified index or SIZE_MAX if the index is invalid.
 extern GNEInteger GNEIntegerArrayGetIntegerAtIndex(GNEIntegerArrayPtr ptr, size_t index);
 
+extern void GNEIntegerArrayPrint(GNEIntegerArrayPtr ptr);
+
 #endif /* GNEIntegerArray_h */
