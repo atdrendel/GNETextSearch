@@ -18,6 +18,7 @@
 #define TRUE 1
 
 GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target);
+int _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerArrayPtr results);
 int _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t *outLength, size_t *outBufferLength);
 int _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, char **outResults, size_t *outLength, size_t *outBufferLength);
 int _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr);
@@ -115,7 +116,11 @@ GNEIntegerArrayPtr GNETernaryTreeSearchWithPrefix(GNETernaryTreePtr ptr, const c
 
     GNEIntegerArrayPtr resultsPtr = (foundPtr->documentIDs != NULL) ? foundPtr->documentIDs : GNEIntegerArrayCreate();
 
-    return (resultsPtr != NULL && GNEIntegerArrayGetCount(resultsPtr) > 0) ? resultsPtr : NULL;
+    if (resultsPtr == NULL) { return NULL; }
+
+    if (_GNETernaryTreeSearchFromNode(foundPtr, resultsPtr) == FAILURE) { return NULL; }
+
+    return (GNEIntegerArrayGetCount(resultsPtr) > 0) ? resultsPtr : NULL;
 }
 
 
@@ -172,25 +177,44 @@ GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *targe
 {
     if (ptr == NULL) { return NULL; }
 
-    if (*target < ptr->character)
+    const char targetCharacter = *target;
+
+    if (targetCharacter != '\0' && targetCharacter < ptr->character)
     {
         return _GNETernaryTreeSearch(ptr->lower, target);
     }
-    else if (*target > ptr->character)
+    else if (targetCharacter != '\0' && targetCharacter > ptr->character)
     {
         return _GNETernaryTreeSearch(ptr->higher, target);
     }
     else
     {
-        if ('\0' == *target)
+        if (targetCharacter == '\0')
         {
             return ptr;
         }
         else
         {
-            return _GNETernaryTreeSearch(ptr->same, (target + 1));
+            return _GNETernaryTreeSearch(ptr->same, ++target);
         }
     }
+}
+
+
+int _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerArrayPtr results)
+{
+    if (ptr == NULL) { return SUCCESS; }
+
+    if (_GNETernaryTreeSearchFromNode(ptr->lower, results) == FAILURE) { return FAILURE; }
+
+    if (ptr->documentIDs != NULL)
+    {
+        if (GNEIntegerArrayAddIntegersFromArray(results, ptr->documentIDs) == FAILURE) { return FAILURE; }
+    }
+
+    if (_GNETernaryTreeSearchFromNode(ptr->same, results) == FAILURE) { return FAILURE; }
+
+    return _GNETernaryTreeSearchFromNode(ptr->higher, results);
 }
 
 
