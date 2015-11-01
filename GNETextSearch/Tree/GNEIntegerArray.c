@@ -99,24 +99,12 @@ int GNEIntegerArrayAddIntegersFromArray(GNEIntegerArrayPtr ptr, GNEIntegerArrayP
 {
     if (ptr == NULL || otherPtr == NULL) { return FAILURE; }
 
-    size_t otherCapacity = otherPtr->bufferLength / sizeof(GNEInteger);
-    if (otherCapacity == 0) { return SUCCESS; }
-
-    if (_GNEIntegerArrayIncreaseCapacityBy(ptr, otherCapacity) == FAILURE) { return FAILURE; }
-
-    GNEInteger *buffer = ptr->buffer;
-    size_t offset = ptr->count;
-    GNEInteger *dstBuffer = &buffer[offset];
-    GNEInteger *srcBuffer = otherPtr->buffer;
-    size_t length = otherPtr->bufferLength;
-    if (memcpy(dstBuffer, srcBuffer, length) == NULL)
+    size_t otherCount = GNEIntegerArrayGetCount(otherPtr);
+    for (size_t i = 0; i < otherCount; i++)
     {
-        GNEIntegerArrayDestroy(ptr);
-        GNEIntegerArrayDestroy(otherPtr);
-        return FAILURE;
+        GNEInteger integer = GNEIntegerArrayGetIntegerAtIndex(otherPtr, i);
+        if (GNEIntegerArrayAddInteger(ptr, integer) == FAILURE) { return FAILURE;}
     }
-
-    ptr->count = (ptr->count) + (otherPtr->count);
 
     return SUCCESS;
 }
