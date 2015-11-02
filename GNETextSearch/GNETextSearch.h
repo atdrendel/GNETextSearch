@@ -14,8 +14,6 @@ FOUNDATION_EXPORT double GNETextSearchVersionNumber;
 //! Project version string for GNETextSearch.
 FOUNDATION_EXPORT const unsigned char GNETextSearchVersionString[];
 
-#ifndef GNETernaryTree_h
-#define GNETernaryTree_h
-    #import <GNETextSearch/GNETernaryTree.h>
-#endif
+#import <GNETextSearch/GNETernaryTree.h>
+#import <GNETextSearch/GNEIntegerArray.h>
 
