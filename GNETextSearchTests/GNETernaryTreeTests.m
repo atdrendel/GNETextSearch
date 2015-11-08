@@ -110,7 +110,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 }
 
 
-- (void)testSearch_Add12Words_CanFind
+- (void)testSearch_AddTwelveWords_CanFind
 {
     NSArray *words = @[@"as", @"at", @"be", @"by", @"he", @"in",
                        @"is", @"it", @"of", @"on", @"or", @"to"];
@@ -139,6 +139,133 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     [self assertCanFindWords:words inTree:_treePtr];
     XCTAssertTrue(NULL == GNETernaryTreeSearch(_treePtr, @"magicia".UTF8String));
     [self assertResultsInTree:_treePtr equalWords:words];
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Prefix Search Tests
+// ------------------------------------------------------------------------------------------
+- (void)testPrefixSearch_AddTwelveWords_TwoResultsForA
+{
+    NSArray *words = @[@"as", @"at", @"be", @"by", @"he", @"in",
+                       @"is", @"it", @"of", @"on", @"or", @"to"];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:&_treePtr]);
+    [self assertResultsInTree:_treePtr matchingPrefix:@"a" equalWords:@[@"as", @"at"]];
+}
+
+
+- (void)testPrefixSearch_AddTwelveWords_ThreeResultsForI
+{
+    NSArray *words = @[@"as", @"at", @"be", @"by", @"he", @"in",
+                       @"is", @"it", @"of", @"on", @"or", @"to"];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:&_treePtr]);
+    [self assertResultsInTree:_treePtr matchingPrefix:@"i" equalWords:@[@"in", @"is", @"it"]];
+}
+
+
+- (void)testPrefixSearch_AddTwelveWords_NoResultsForC
+{
+    NSArray *words = @[@"as", @"at", @"be", @"by", @"he", @"in",
+                       @"is", @"it", @"of", @"on", @"or", @"to"];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:&_treePtr]);
+
+    GNEIntegerArrayPtr resultsPtr = GNETernaryTreeSearchWithPrefix(_treePtr, @"c".UTF8String);
+    XCTAssertTrue(resultsPtr == NULL);
+}
+
+
+- (void)testPrefixSearch_AddSixWords_ThreeResultsForAw
+{
+    NSArray *words = @[@"anthony", @"awesome", @"awful", @"aw", @"Anthony", @"Aw"];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:&_treePtr]);
+    [self assertResultsInTree:_treePtr matchingPrefix:@"aw" equalWords:@[@"awesome", @"awful", @"aw"]];
+}
+
+
+- (void)testPrefixSearch_AddSixWordsInOrderThatProducesDuplicates_ThreeResults
+{
+    NSArray *words = @[@"aw", @"anthony", @"awful", @"awesome", @"Anthony", @"Aw"];
+    XCTAssertNoThrow([self insertWords:words intoTree:&_treePtr]);
+    [self assertResultsInTree:_treePtr matchingPrefix:@"aw" equalWords:@[@"awesome", @"awful", @"aw"]];
+}
+
+
+- (void)testPrefixSearch_LMN_TwoResultsForLaw
+{
+    NSString *prefix = @"law";
+
+    NSArray *words = [self wordsBeginningWithLMN];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:&_treePtr]);
+
+    NSArray *expectedWords = [self wordsInArray:randomizedWords withPrefix:prefix];
+    [self assertResultsInTree:_treePtr matchingPrefix:prefix equalWords:expectedWords];
+}
+
+
+- (void)testPrefixSearch_LMN_EightResultsForMen
+{
+    NSString *prefix = @"men";
+
+    NSArray *words = [self wordsBeginningWithLMN];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:&_treePtr]);
+
+    NSArray *expectedWords = [self wordsInArray:randomizedWords withPrefix:prefix];
+    [self assertResultsInTree:_treePtr matchingPrefix:prefix equalWords:expectedWords];
+}
+
+
+- (void)testPrefixSearch_LMN_ZeroResultsForOns
+{
+    NSString *prefix = @"ons";
+
+    NSArray *words = [self wordsBeginningWithLMN];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:&_treePtr]);
+
+    NSArray *expectedWords = [self wordsInArray:randomizedWords withPrefix:prefix];
+    [self assertResultsInTree:_treePtr matchingPrefix:prefix equalWords:expectedWords];
+}
+
+
+- (void)testPrefixSearch_Emoji_OneResult
+{
+    NSArray *words = @[@"😊", @"😄", @"👹", @"✨", @"🇺🇸"];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:&_treePtr]);
+
+    [self assertResultsInTree:_treePtr matchingPrefix:@"😄" equalWords:@[@"😄"]];
+}
+
+
+- (void)testPrefixSearch_Emoji_FourResultsForSharedEmojPrefix
+{
+    NSArray *words = @[@"😊", @"😄", @"👹", @"✨", @"🇺🇸"];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:&_treePtr]);
+
+    GNEIntegerArrayPtr resultsPtr = GNETernaryTreeSearchWithPrefix(_treePtr, "\xF0\x9F\0");
+    XCTAssertTrue(resultsPtr != NULL);
+    size_t count = GNEIntegerArrayGetCount(resultsPtr);
+    XCTAssertEqual((size_t)4, count);
+
+    NSMutableArray *resultsArray = [NSMutableArray array];
+    for (size_t i = 0; i < count; i++)
+    {
+        [resultsArray addObject:@((NSUInteger)GNEIntegerArrayGetIntegerAtIndex(resultsPtr, i))];
+    }
+
+    NSArray *expectedResults = @[@(@"😄".hash), @(@"😊".hash), @(@"👹".hash), @(@"🇺🇸".hash)];
+
+    NSSet *resultsSet = [NSSet setWithArray:resultsArray];
+    NSSet *expectedResultsSet = [NSSet setWithArray:expectedResults];
+
+    XCTAssertEqualObjects(expectedResultsSet, resultsSet);
 }
 
 
@@ -259,6 +386,37 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 }
 
 
+- (void)assertResultsInTree:(GNETernaryTreePtr)ptr
+             matchingPrefix:(NSString *)prefix
+                 equalWords:(NSArray *)words
+{
+    GNEIntegerArrayPtr resultsPtr = GNETernaryTreeSearchWithPrefix(ptr, prefix.UTF8String);
+
+    XCTAssert((words.count == 0 && resultsPtr == NULL) ||
+              (words.count == GNEIntegerArrayGetCount(resultsPtr)));
+
+    NSMutableArray *unmatchedWords = [words mutableCopy];
+    NSUInteger count = (NSUInteger)GNEIntegerArrayGetCount(resultsPtr);
+    for (NSUInteger i = 0; i < count; i++)
+    {
+        NSUInteger documentID = (NSUInteger)GNEIntegerArrayGetIntegerAtIndex(resultsPtr, (size_t)i);
+        BOOL didFind = NO;
+        for (NSString *word in words)
+        {
+            if (word.hash == documentID)
+            {
+                [unmatchedWords removeObject:word];
+                didFind = YES;
+                break;
+            }
+        }
+        XCTAssertTrue(didFind);
+    }
+
+    XCTAssertEqual(0, unmatchedWords.count);
+}
+
+
 - (NSArray *)resultsInTree:(GNETernaryTreePtr)ptr
 {
     NSString *resultsStr = @"";
@@ -296,6 +454,21 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     }
 
     return [randomized copy];
+}
+
+
+- (NSArray *)wordsInArray:(NSArray *)words withPrefix:(NSString *)prefix
+{
+    NSMutableArray *wordsWithPrefix = [NSMutableArray array];
+    for (NSString *word in words)
+    {
+        if ([word hasPrefix:prefix])
+        {
+            [wordsWithPrefix addObject:word];
+        }
+    }
+
+    return [wordsWithPrefix copy];
 }
 
 

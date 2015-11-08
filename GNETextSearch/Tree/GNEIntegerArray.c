@@ -7,15 +7,19 @@
 //
 
 #include "GNEIntegerArray.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <stddef.h>
 
 
 // ------------------------------------------------------------------------------------------
 
 
-#define FAILURE 0
 #define SUCCESS 1
-#define FALSE 0
+#define FAILURE 0
+
 #define TRUE 1
+#define FALSE 0
 
 int _GNEIntegerArrayIncreaseCapacityBy(GNEIntegerArrayPtr ptr, size_t increase);
 int _GNEIntegerArrayIncreaseCapacityIfNeeded(GNEIntegerArrayPtr ptr);
@@ -40,7 +44,7 @@ GNEIntegerArrayPtr GNEIntegerArrayCreate(void)
 
 GNEIntegerArrayPtr GNEIntegerArrayCreateWithCapacity(size_t capacity)
 {
-    GNEIntegerArrayPtr ptr = malloc(sizeof(GNEIntegerArray));
+    GNEIntegerArrayPtr ptr = calloc(1, sizeof(GNEIntegerArray));
     if (ptr == NULL) { return NULL; }
 
     ptr->buffer = NULL;
@@ -48,7 +52,7 @@ GNEIntegerArrayPtr GNEIntegerArrayCreateWithCapacity(size_t capacity)
     ptr->count = 0;
 
     size_t bufferLength = capacity * sizeof(GNEInteger);
-    GNEInteger *buffer = malloc(bufferLength);
+    GNEInteger *buffer = calloc(capacity, sizeof(GNEInteger));
     if (buffer == NULL)
     {
         GNEIntegerArrayDestroy(ptr);
@@ -99,24 +103,12 @@ int GNEIntegerArrayAddIntegersFromArray(GNEIntegerArrayPtr ptr, GNEIntegerArrayP
 {
     if (ptr == NULL || otherPtr == NULL) { return FAILURE; }
 
-    size_t otherCapacity = otherPtr->bufferLength / sizeof(GNEInteger);
-    if (otherCapacity == 0) { return SUCCESS; }
-
-    if (_GNEIntegerArrayIncreaseCapacityBy(ptr, otherCapacity) == FAILURE) { return FAILURE; }
-
-    GNEInteger *buffer = ptr->buffer;
-    size_t offset = ptr->count;
-    GNEInteger *dstBuffer = &buffer[offset];
-    GNEInteger *srcBuffer = otherPtr->buffer;
-    size_t length = otherPtr->bufferLength;
-    if (memcpy(dstBuffer, srcBuffer, length) == NULL)
+    size_t otherCount = GNEIntegerArrayGetCount(otherPtr);
+    for (size_t i = 0; i < otherCount; i++)
     {
-        GNEIntegerArrayDestroy(ptr);
-        GNEIntegerArrayDestroy(otherPtr);
-        return FAILURE;
+        GNEInteger integer = GNEIntegerArrayGetIntegerAtIndex(otherPtr, i);
+        if (GNEIntegerArrayAddInteger(ptr, integer) == FAILURE) { return FAILURE;}
     }
-
-    ptr->count = (ptr->count) + (otherPtr->count);
 
     return SUCCESS;
 }
@@ -130,6 +122,18 @@ GNEInteger GNEIntegerArrayGetIntegerAtIndex(GNEIntegerArrayPtr ptr, size_t index
     }
 
     return (ptr->buffer)[index];
+}
+
+
+void GNEIntegerArrayPrint(GNEIntegerArrayPtr ptr)
+{
+    size_t count = GNEIntegerArrayGetCount(ptr);
+    printf("<GNEIntegerArray, %p> %lld integers\n{\n", ptr, (long long)count);
+    for (size_t i = 0; i < count; i++)
+    {
+        printf("\t%lld\n", (long long)GNEIntegerArrayGetIntegerAtIndex(ptr, i));
+    }
+    printf("}\n");
 }
 
 
