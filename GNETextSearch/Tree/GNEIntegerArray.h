@@ -9,7 +9,7 @@
 #ifndef GNEIntegerArray_h
 #define GNEIntegerArray_h
 
-#include "GNECommon.h"
+#include <stdint.h>
 
 #ifndef GNEInteger
     #define GNEInteger int64_t

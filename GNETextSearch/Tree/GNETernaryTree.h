@@ -10,7 +10,6 @@
 #define GNETernaryTree_h
 
 #include "GNEIntegerArray.h"
-#include "GNECommon.h"
 
 typedef struct GNETernaryTreeNode *GNETernaryTreePtr;
 typedef struct GNETernaryTreeNode GNETernaryTreeNode;
