@@ -23,6 +23,8 @@ extern GNEIntegerArrayPtr GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char
 /// Returns a pointer to an GNEIntegerArray with the IDs of the documents containing the target prefix.
 extern GNEIntegerArrayPtr GNETernaryTreeSearchWithPrefix(GNETernaryTreePtr ptr, const char *prefix);
 
+extern GNEIntegerArrayPtr GNETernaryTreeSearchWithWildcard(GNETernaryTreePtr ptr, const char *target, const char wildcard);
+
 /// Copies all words contained in the tree into outResults (which much be freed by the caller).
 extern int GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t *outLength);
 
