@@ -41,6 +41,22 @@ typedef struct GNETernaryTreeNode
 } GNETernaryTreeNode;
 
 
+GNETernaryTreePtr GNETernaryTreeCreate(void)
+{
+    GNETernaryTreePtr ptr = calloc(1, sizeof(GNETernaryTreeNode));
+    if (ptr == NULL) { return ptr; }
+
+    ptr->character = '\0';
+    ptr->parent = NULL;
+    ptr->lower = NULL;
+    ptr->same = NULL;
+    ptr->higher = NULL;
+    ptr->documentIDs = NULL;
+
+    return ptr;
+}
+
+
 void GNETernaryTreeDestroy(GNETernaryTreePtr ptr)
 {
     if (ptr != NULL)
@@ -70,6 +86,10 @@ GNETernaryTreePtr GNETernaryTreeInsert(GNETernaryTreePtr ptr, const char *newCha
         ptr->same = NULL;
         ptr->higher = NULL;
         ptr->documentIDs = NULL;
+    }
+    else if (ptr->character == '\0') // Created by GNETernaryTreeCreate()
+    {
+        ptr->character = *newCharacter;
     }
 
     if (*newCharacter < ptr->character)

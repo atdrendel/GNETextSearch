@@ -40,6 +40,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 - (void)setUp
 {
     [super setUp];
+    _treePtr = GNETernaryTreeCreate();
 }
 
 - (void)tearDown
