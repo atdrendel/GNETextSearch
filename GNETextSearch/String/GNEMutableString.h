@@ -40,4 +40,6 @@ extern int GNEMutableStringAppendCString(GNEMutableStringPtr ptr, const char *cS
 /// The returned char array must be freed by the caller.
 extern const char * GNEMutableStringCopyContents(GNEMutableStringPtr ptr);
 
+extern void GNEMutableStringPrint(GNEMutableStringPtr ptr);
+
 #endif /* GNEMutableString_h */

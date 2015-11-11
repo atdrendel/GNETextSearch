@@ -142,6 +142,16 @@ const char * GNEMutableStringCopyContents(GNEMutableStringPtr ptr)
 }
 
 
+void GNEMutableStringPrint(GNEMutableStringPtr ptr)
+{
+    if (ptr == NULL) { printf("%p is NULL", ptr); }
+
+    const char *contents = GNEMutableStringCopyContents(ptr);
+    printf("<GNEMutableString, %p> %s\n", ptr, contents);
+    free((void *)contents);
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private
 // ------------------------------------------------------------------------------------------
