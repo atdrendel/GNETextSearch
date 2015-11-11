@@ -472,17 +472,9 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 
 - (void)assertResultsInTree:(GNETernaryTreePtr)ptr equalWords:(NSArray *)words
 {
-//    NSArray *results = [self resultsInTree:ptr];
-//    XCTAssertEqual(results.count, words.count);
-//
-//    if (words.count != results.count) { return; }
-//    NSUInteger count = words.count;
-//    for (NSUInteger i = 0; i < count; i++)
-//    {
-//        NSString *word = words[i];
-//        NSString *result = results[i];
-//        XCTAssertTrue([word isEqualToString:result]);
-//    }
+    NSArray *results = [self resultsInTree:ptr];
+    XCTAssertEqual(results.count, words.count);
+    XCTAssertEqualObjects([NSSet setWithArray:words], [NSSet setWithArray:results]);
 }
 
 

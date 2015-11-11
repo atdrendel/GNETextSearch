@@ -12,7 +12,6 @@
 #include "GNEIntegerArray.h"
 
 typedef struct GNETernaryTreeNode *GNETernaryTreePtr;
-typedef struct GNETernaryTreeNode GNETernaryTreeNode;
 
 extern GNETernaryTreePtr GNETernaryTreeCreate(void);
 extern void GNETernaryTreeDestroy(GNETernaryTreePtr ptr);

@@ -7,6 +7,7 @@
 //
 
 #include "GNETernaryTree.h"
+#include "GNEMutableString.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -22,8 +23,8 @@
 
 GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target);
 int _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerArrayPtr results);
-int _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t *outLength, size_t *outBufferLength);
-int _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, char **outResults, size_t *outLength, size_t *outBufferLength);
+int _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr);
+int _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr);
 int _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr);
 size_t _GNETernaryTreeGetWordLength(GNETernaryTreePtr ptr);
 int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength, size_t amount);
@@ -132,28 +133,15 @@ int GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t 
 {
     if (ptr == NULL || outResults == NULL || outLength == NULL) { return FAILURE; }
 
-    size_t length = 0;
-    size_t resultsCapacity = 100;
-    char *results = calloc(resultsCapacity, sizeof(char));
-    if (results == NULL)
-    {
-        *outLength = 0;
-        return FAILURE;
-    }
+    GNEMutableStringPtr contentsPtr = GNEMutableStringCreate();
 
-    int ret = _GNETernaryTreeCopyContents(ptr, &results, &length, &resultsCapacity);
-    if (ret == SUCCESS)
-    {
-        results[length] = '\0';
-        length = length + 1;
-        *outResults = results;
-        *outLength = length;
-    }
-    else
-    {
-        free(results);
-        *outLength = 0;
-    }
+    int ret = _GNETernaryTreeCopyContents(ptr, contentsPtr);
+    if (ret == SUCCESS) {
+        *outResults = (char *)GNEMutableStringCopyContents(contentsPtr);
+        *outLength = GNEMutableStringGetLength(contentsPtr);
+    } else { *outLength = 0; }
+
+    GNEMutableStringDestroy(contentsPtr);
 
     return ret;
 }
@@ -170,7 +158,8 @@ void GNETernaryTreePrint(GNETernaryTreePtr ptr)
     printf("%s", results);
     printf("\n");
 
-    if (results) { free(results); results = NULL; }
+    free(results);
+    results = NULL;
 }
 
 
@@ -209,83 +198,61 @@ int _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerArrayPtr resu
 }
 
 
-int _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr,
-                        char **outResults,
-                        size_t *outLength,
-                        size_t *outResultsCapacity)
+int _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr)
 {
-    if (outResults == NULL || outLength == NULL || outResultsCapacity == NULL) { return FAILURE; }
+    if (contentsPtr == NULL) { return FAILURE; }
 
     if (ptr == NULL) { return SUCCESS; }
 
     // We've found the end of a word. Append it to the results array.
-    if (ptr->documentIDs != NULL)
-    {
-        if (_GNETernaryTreeCopyWord(ptr, outResults, outLength, outResultsCapacity) == FAILURE) { return FAILURE; }
+    if (ptr->documentIDs != NULL) {
+        if (_GNETernaryTreeCopyWord(ptr, contentsPtr) == FAILURE) { return FAILURE; }
     }
 
     // First, go down the left branches of the tree.
-    if (_GNETernaryTreeCopyContents(ptr->lower, outResults, outLength, outResultsCapacity) == FAILURE)
-    {
+    if (_GNETernaryTreeCopyContents(ptr->lower, contentsPtr) == FAILURE) {
         return FAILURE;
     }
 
     // Proceed down the middle path to discover entries.
-    if (_GNETernaryTreeCopyContents(ptr->same, outResults, outLength, outResultsCapacity) == FAILURE)
-    {
+    if (_GNETernaryTreeCopyContents(ptr->same, contentsPtr) == FAILURE) {
         return FAILURE;
     }
 
     // Last, go down the right branches of the tree.
-    return _GNETernaryTreeCopyContents(ptr->higher, outResults, outLength, outResultsCapacity);
+    return _GNETernaryTreeCopyContents(ptr->higher, contentsPtr);
 }
 
 
-int _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, char **outResults, size_t *outLength, size_t *outResultsCapacity)
+int _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr)
 {
     if (ptr == NULL) { return SUCCESS; }
 
-    size_t wordLength = _GNETernaryTreeGetWordLength(ptr); // Does not include \0
-    if (wordLength == 0) { return SUCCESS; }
-    char *word = calloc((wordLength + 1), sizeof(char));
+    size_t wordLength = _GNETernaryTreeGetWordLength(ptr) + 1; // Add one for the newline.
+    if (wordLength == 1) { return SUCCESS; }
+    char *word = calloc((wordLength), sizeof(char));
 
     size_t characterIndex = wordLength - 1;
-    while (ptr != NULL)
-    {
-        if (ptr->parent == NULL || ptr->parent->same == ptr)
-        {
-            word[characterIndex] = ptr->character;
+    word[characterIndex] = '\n';
+    characterIndex -= 1;
+
+    word[characterIndex] = ptr->character;
+    characterIndex -= 1;
+
+    while (ptr != NULL) {
+        if (ptr->parent != NULL && ptr->parent->same == ptr) {
+            word[characterIndex] = ptr->parent->character;
             if (characterIndex == 0) { break; }
-            characterIndex = characterIndex - 1;
+            characterIndex -= 1;
         }
+
         ptr = ptr->parent;
     }
 
-    // Separate words with new lines.
-    word[wordLength] = '\n';
-    wordLength = wordLength + 1;
+    int ret = GNEMutableStringAppendCString(contentsPtr, word, wordLength);
+    free((void *)word);
 
-    // If the results buffer isn't long enough to accomodate the word, increase its capacity.
-    if ((*outResultsCapacity) < ((*outLength) + wordLength) &&
-        _GNETernaryTreeIncreaseCharBuffer(outResults, outResultsCapacity, *outResultsCapacity) == FAILURE)
-    {
-        free(word);
-
-        return FAILURE;
-    }
-
-    char *results = *outResults;
-    size_t length = *outLength;
-    for (size_t i = 0; i < wordLength; i++)
-    {
-        results[length + i] = word[i];
-    }
-    length += wordLength;
-    *outResults = results;
-    *outLength = length;
-    free(word);
-
-    return SUCCESS;
+    return ret;
 }
 
 
@@ -305,14 +272,12 @@ int _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr)
 /// The length does NOT include the trailing null terminator.
 size_t _GNETernaryTreeGetWordLength(GNETernaryTreePtr ptr)
 {
-    if (ptr == NULL) { return 0; }
+    if (ptr == NULL || ptr->documentIDs == NULL) { return 0; }
 
-    size_t length = 0;
+    size_t length = 1;
 
-    while (ptr != NULL)
-    {
-        if (_GNETernaryTreeIsLeaf(ptr) || ptr->parent == NULL || ptr->parent->same == ptr)
-        {
+    while (ptr != NULL) {
+        if (ptr->parent != NULL && ptr->parent->same == ptr) {
             length = length + 1;
         }
         ptr = ptr->parent;
