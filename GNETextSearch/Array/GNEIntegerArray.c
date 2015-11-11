@@ -11,9 +11,7 @@
 #include <stdio.h>
 #include <stddef.h>
 
-
 // ------------------------------------------------------------------------------------------
-
 
 #define SUCCESS 1
 #define FAILURE 0
@@ -23,7 +21,6 @@
 
 int _GNEIntegerArrayIncreaseCapacityBy(GNEIntegerArrayPtr ptr, size_t increase);
 int _GNEIntegerArrayIncreaseCapacityIfNeeded(GNEIntegerArrayPtr ptr);
-
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Array

@@ -16,7 +16,6 @@
 #endif
 
 typedef struct GNEIntegerArray *GNEIntegerArrayPtr;
-typedef struct GNEIntegerArray GNEIntegerArray;
 
 extern GNEIntegerArrayPtr GNEIntegerArrayCreate(void);
 extern GNEIntegerArrayPtr GNEIntegerArrayCreateWithCapacity(size_t capacity);
