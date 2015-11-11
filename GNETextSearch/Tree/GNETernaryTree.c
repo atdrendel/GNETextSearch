@@ -59,8 +59,7 @@ GNETernaryTreePtr GNETernaryTreeCreate(void)
 
 void GNETernaryTreeDestroy(GNETernaryTreePtr ptr)
 {
-    if (ptr != NULL)
-    {
+    if (ptr != NULL) {
         ptr->parent = NULL;
         GNETernaryTreeDestroy(ptr->lower);
         GNETernaryTreeDestroy(ptr->same);
@@ -75,46 +74,25 @@ GNETernaryTreePtr GNETernaryTreeInsert(GNETernaryTreePtr ptr, const char *newCha
 {
     if (newCharacter == NULL) { return ptr; }
 
-    if (ptr == NULL)
-    {
-        ptr = calloc(1, sizeof(GNETernaryTreeNode));
+    if (ptr == NULL) {
+        ptr = GNETernaryTreeCreate();
         if (ptr == NULL) { return ptr; }
-
-        ptr->character = *newCharacter;
-        ptr->parent = NULL;
-        ptr->lower = NULL;
-        ptr->same = NULL;
-        ptr->higher = NULL;
-        ptr->documentIDs = NULL;
-    }
-    else if (ptr->character == '\0') // Created by GNETernaryTreeCreate()
-    {
-        ptr->character = *newCharacter;
     }
 
-    if (*newCharacter < ptr->character)
-    {
+    if (ptr->character == '\0') { ptr->character = *newCharacter; } // GNETernaryTreeCreate()
+
+    if (*newCharacter < ptr->character) {
         ptr->lower = GNETernaryTreeInsert(ptr->lower, newCharacter, documentID);
         ptr->lower->parent = ptr;
-    }
-    else if (*newCharacter == ptr->character)
-    {
-        if ('\0' == *newCharacter)
-        {
-            if (ptr->documentIDs == NULL)
-            {
-                ptr->documentIDs = GNEIntegerArrayCreate();
-            }
+    } else if (*newCharacter == ptr->character) {
+        if ('\0' == *(newCharacter + 1)) {
+            if (ptr->documentIDs == NULL) { ptr->documentIDs = GNEIntegerArrayCreate(); }
             GNEIntegerArrayAddInteger(ptr->documentIDs, documentID);
-        }
-        else
-        {
+        } else {
             ptr->same = GNETernaryTreeInsert(ptr->same, (newCharacter + 1), documentID);
             ptr->same->parent = ptr;
         }
-    }
-    else
-    {
+    } else {
         ptr->higher = GNETernaryTreeInsert(ptr->higher, newCharacter, documentID);
         ptr->higher->parent = ptr;
     }
@@ -126,7 +104,6 @@ GNETernaryTreePtr GNETernaryTreeInsert(GNETernaryTreePtr ptr, const char *newCha
 GNEIntegerArrayPtr GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target)
 {
     GNETernaryTreePtr foundPtr = _GNETernaryTreeSearch(ptr, target);
-
     return (foundPtr != NULL) ? foundPtr->documentIDs : NULL;
 }
 
@@ -141,7 +118,11 @@ GNEIntegerArrayPtr GNETernaryTreeSearchWithPrefix(GNETernaryTreePtr ptr, const c
 
     if (resultsPtr == NULL) { return NULL; }
 
-    if (_GNETernaryTreeSearchFromNode(foundPtr, resultsPtr) == FAILURE) { return NULL; }
+    if (foundPtr->documentIDs) {
+        GNEIntegerArrayAddIntegersFromArray(resultsPtr, foundPtr->documentIDs);
+    }
+
+    if (_GNETernaryTreeSearchFromNode(foundPtr->same, resultsPtr) == FAILURE) { return NULL; }
 
     return (GNEIntegerArrayGetCount(resultsPtr) > 0) ? resultsPtr : NULL;
 }
@@ -202,24 +183,13 @@ GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *targe
 
     const char targetCharacter = *target;
 
-    if (targetCharacter != '\0' && targetCharacter < ptr->character)
-    {
+    if (targetCharacter != '\0' && targetCharacter < ptr->character) {
         return _GNETernaryTreeSearch(ptr->lower, target);
-    }
-    else if (targetCharacter != '\0' && targetCharacter > ptr->character)
-    {
+    } else if (targetCharacter != '\0' && targetCharacter > ptr->character) {
         return _GNETernaryTreeSearch(ptr->higher, target);
-    }
-    else
-    {
-        if (targetCharacter == '\0')
-        {
-            return ptr;
-        }
-        else
-        {
-            return _GNETernaryTreeSearch(ptr->same, ++target);
-        }
+    } else {
+        if (*(target + 1) == '\0') { return ptr; }
+        else { return _GNETernaryTreeSearch(ptr->same, ++target); }
     }
 }
 
@@ -229,13 +199,11 @@ int _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerArrayPtr resu
     if (ptr == NULL) { return SUCCESS; }
 
     if (_GNETernaryTreeSearchFromNode(ptr->lower, results) == FAILURE) { return FAILURE; }
+    if (_GNETernaryTreeSearchFromNode(ptr->same, results) == FAILURE) { return FAILURE; }
 
-    if (ptr->documentIDs != NULL)
-    {
+    if (ptr->documentIDs != NULL) {
         if (GNEIntegerArrayAddIntegersFromArray(results, ptr->documentIDs) == FAILURE) { return FAILURE; }
     }
-
-    if (_GNETernaryTreeSearchFromNode(ptr->same, results) == FAILURE) { return FAILURE; }
 
     return _GNETernaryTreeSearchFromNode(ptr->higher, results);
 }
@@ -250,24 +218,16 @@ int _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr,
 
     if (ptr == NULL) { return SUCCESS; }
 
-    // We are at a leaf node. Print out the word by walking up the tree.
-    if (ptr->lower == NULL && ptr->same == NULL && ptr->higher == NULL)
+    // We've found the end of a word. Append it to the results array.
+    if (ptr->documentIDs != NULL)
     {
         if (_GNETernaryTreeCopyWord(ptr, outResults, outLength, outResultsCapacity) == FAILURE) { return FAILURE; }
-
-        return SUCCESS;
     }
 
     // First, go down the left branches of the tree.
     if (_GNETernaryTreeCopyContents(ptr->lower, outResults, outLength, outResultsCapacity) == FAILURE)
     {
         return FAILURE;
-    }
-
-    // We've found the end of a word. Append it to the results array.
-    if (ptr->documentIDs != NULL)
-    {
-        if (_GNETernaryTreeCopyWord(ptr, outResults, outLength, outResultsCapacity) == FAILURE) { return FAILURE; }
     }
 
     // Proceed down the middle path to discover entries.
@@ -292,14 +252,10 @@ int _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, char **outResults, size_t *ou
     size_t characterIndex = wordLength - 1;
     while (ptr != NULL)
     {
-        if (_GNETernaryTreeIsLeaf(ptr) && ptr->character != '\0')
+        if (ptr->parent == NULL || ptr->parent->same == ptr)
         {
             word[characterIndex] = ptr->character;
-            characterIndex = characterIndex - 1;
-        }
-        else if (ptr->parent != NULL && ptr->parent->same == ptr)
-        {
-            word[characterIndex] = ptr->parent->character;
+            if (characterIndex == 0) { break; }
             characterIndex = characterIndex - 1;
         }
         ptr = ptr->parent;
@@ -341,7 +297,6 @@ int _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr)
     {
         return TRUE;
     }
-
     return FALSE;
 }
 
@@ -356,10 +311,7 @@ size_t _GNETernaryTreeGetWordLength(GNETernaryTreePtr ptr)
 
     while (ptr != NULL)
     {
-        // If the node is a leaf node or is the same as the node's parent's 'same' pointer,
-        // then the character is part of the word.
-        if (_GNETernaryTreeIsLeaf(ptr) ||
-            (ptr->parent != NULL && ptr->parent->same == ptr))
+        if (_GNETernaryTreeIsLeaf(ptr) || ptr->parent == NULL || ptr->parent->same == ptr)
         {
             length = length + 1;
         }
