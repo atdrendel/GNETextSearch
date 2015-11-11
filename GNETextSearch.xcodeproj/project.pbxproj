@@ -17,6 +17,7 @@
 		57A46B0E1BF3604B008809A3 /* GNEMutableString.c in Sources */ = {isa = PBXBuildFile; fileRef = 57A46B0C1BF3604B008809A3 /* GNEMutableString.c */; };
 		57A46B0F1BF3604B008809A3 /* GNEMutableString.h in Headers */ = {isa = PBXBuildFile; fileRef = 57A46B0D1BF3604B008809A3 /* GNEMutableString.h */; };
 		57A46B111BF37456008809A3 /* GNEMutableStringTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 57A46B101BF37456008809A3 /* GNEMutableStringTests.m */; };
+		57A46B151BF3B926008809A3 /* words-beginning-with-A.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 57A46B121BF3B5F8008809A3 /* words-beginning-with-A.txt */; };
 		57CF09FD1BA5F89C00E0F0EC /* GNEIntegerArrayTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 57CF09FC1BA5F89C00E0F0EC /* GNEIntegerArrayTests.m */; };
 /* End PBXBuildFile section */
 
@@ -29,6 +30,19 @@
 			remoteInfo = GNETextSearch;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		57A46B141BF3B91B008809A3 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				57A46B151BF3B926008809A3 /* words-beginning-with-A.txt in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		5711A7E91B949E440088910A /* GNETextSearch.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GNETextSearch.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -44,6 +58,7 @@
 		57A46B0C1BF3604B008809A3 /* GNEMutableString.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GNEMutableString.c; sourceTree = "<group>"; };
 		57A46B0D1BF3604B008809A3 /* GNEMutableString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEMutableString.h; sourceTree = "<group>"; };
 		57A46B101BF37456008809A3 /* GNEMutableStringTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEMutableStringTests.m; sourceTree = "<group>"; };
+		57A46B121BF3B5F8008809A3 /* words-beginning-with-A.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "words-beginning-with-A.txt"; sourceTree = "<group>"; };
 		57CF09FC1BA5F89C00E0F0EC /* GNEIntegerArrayTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEIntegerArrayTests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -103,6 +118,7 @@
 				57A46B101BF37456008809A3 /* GNEMutableStringTests.m */,
 				5711A8091B94B29F0088910A /* GNETernaryTreeTests.m */,
 				5711A7FA1B949E440088910A /* Info.plist */,
+				57A46B121BF3B5F8008809A3 /* words-beginning-with-A.txt */,
 			);
 			path = GNETextSearchTests;
 			sourceTree = "<group>";
@@ -176,6 +192,7 @@
 				5711A7EF1B949E440088910A /* Sources */,
 				5711A7F01B949E440088910A /* Frameworks */,
 				5711A7F11B949E440088910A /* Resources */,
+				57A46B141BF3B91B008809A3 /* CopyFiles */,
 			);
 			buildRules = (
 			);
