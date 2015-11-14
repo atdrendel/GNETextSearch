@@ -12,6 +12,8 @@
 		5711A8061B949E960088910A /* GNETernaryTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 5711A8041B949E960088910A /* GNETernaryTree.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5711A8071B949E960088910A /* GNETernaryTree.c in Sources */ = {isa = PBXBuildFile; fileRef = 5711A8051B949E960088910A /* GNETernaryTree.c */; };
 		5711A80A1B94B29F0088910A /* GNETernaryTreeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 5711A8091B94B29F0088910A /* GNETernaryTreeTests.m */; };
+		57633FC11BF79A2B006B1541 /* GNEIntegerCountedSet.c in Sources */ = {isa = PBXBuildFile; fileRef = 57633FBF1BF79A2B006B1541 /* GNEIntegerCountedSet.c */; };
+		57633FC21BF79A2B006B1541 /* GNEIntegerCountedSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 57633FC01BF79A2B006B1541 /* GNEIntegerCountedSet.h */; };
 		57A46B0A1BF36022008809A3 /* GNEIntegerArray.c in Sources */ = {isa = PBXBuildFile; fileRef = 57A46B081BF36022008809A3 /* GNEIntegerArray.c */; };
 		57A46B0B1BF36022008809A3 /* GNEIntegerArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 57A46B091BF36022008809A3 /* GNEIntegerArray.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		57A46B0E1BF3604B008809A3 /* GNEMutableString.c in Sources */ = {isa = PBXBuildFile; fileRef = 57A46B0C1BF3604B008809A3 /* GNEMutableString.c */; };
@@ -53,6 +55,8 @@
 		5711A8041B949E960088910A /* GNETernaryTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNETernaryTree.h; sourceTree = "<group>"; };
 		5711A8051B949E960088910A /* GNETernaryTree.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GNETernaryTree.c; sourceTree = "<group>"; };
 		5711A8091B94B29F0088910A /* GNETernaryTreeTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNETernaryTreeTests.m; sourceTree = "<group>"; };
+		57633FBF1BF79A2B006B1541 /* GNEIntegerCountedSet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GNEIntegerCountedSet.c; sourceTree = "<group>"; };
+		57633FC01BF79A2B006B1541 /* GNEIntegerCountedSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEIntegerCountedSet.h; sourceTree = "<group>"; };
 		57633FC31BF79A74006B1541 /* GNETextSearchPrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GNETextSearchPrivate.h; sourceTree = "<group>"; };
 		57A46B081BF36022008809A3 /* GNEIntegerArray.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GNEIntegerArray.c; sourceTree = "<group>"; };
 		57A46B091BF36022008809A3 /* GNEIntegerArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEIntegerArray.h; sourceTree = "<group>"; };
@@ -104,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				57A46B061BF36001008809A3 /* Array */,
+				57633FBE1BF79A0D006B1541 /* Set */,
 				57A46B071BF36001008809A3 /* String */,
 				5711A8031B949E780088910A /* Tree */,
 				5711A7EC1B949E440088910A /* GNETextSearch.h */,
@@ -134,6 +139,15 @@
 			path = Tree;
 			sourceTree = "<group>";
 		};
+		57633FBE1BF79A0D006B1541 /* Set */ = {
+			isa = PBXGroup;
+			children = (
+				57633FC01BF79A2B006B1541 /* GNEIntegerCountedSet.h */,
+				57633FBF1BF79A2B006B1541 /* GNEIntegerCountedSet.c */,
+			);
+			path = Set;
+			sourceTree = "<group>";
+		};
 		57A46B061BF36001008809A3 /* Array */ = {
 			isa = PBXGroup;
 			children = (
@@ -160,6 +174,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5711A7ED1B949E440088910A /* GNETextSearch.h in Headers */,
+				57633FC21BF79A2B006B1541 /* GNEIntegerCountedSet.h in Headers */,
 				57A46B0B1BF36022008809A3 /* GNEIntegerArray.h in Headers */,
 				5711A8061B949E960088910A /* GNETernaryTree.h in Headers */,
 				57A46B0F1BF3604B008809A3 /* GNEMutableString.h in Headers */,
@@ -264,6 +279,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5711A8071B949E960088910A /* GNETernaryTree.c in Sources */,
+				57633FC11BF79A2B006B1541 /* GNEIntegerCountedSet.c in Sources */,
 				57A46B0E1BF3604B008809A3 /* GNEMutableString.c in Sources */,
 				57A46B0A1BF36022008809A3 /* GNEIntegerArray.c in Sources */,
 			);
