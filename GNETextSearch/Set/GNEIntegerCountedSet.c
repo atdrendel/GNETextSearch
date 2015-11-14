@@ -13,6 +13,7 @@
 
 size_t _GNEIntegerCountedSetIndexForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 size_t _GNEIntegerCountedSetInsertionIndexForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
+int _GNEIntegerCountedSetIncreaseValuesBufferIfNeeded(GNEIntegerCountedSetPtr ptr);
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Counted Set
@@ -63,8 +64,7 @@ GNEIntegerCountedSetPtr GNEIntegerCountedSetCreateWithInteger(GNEInteger integer
 
 void GNEIntegerCountedSetDestroy(GNEIntegerCountedSetPtr ptr)
 {
-    if (ptr != NULL)
-    {
+    if (ptr != NULL) {
         free(ptr->values);
         ptr->values = NULL;
         ptr->valuesCapacity = 0;
@@ -91,10 +91,27 @@ size_t GNEIntegerCountedSetCountForInteger(GNEIntegerCountedSetPtr ptr, GNEInteg
 int GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer)
 {
     if (ptr == NULL || ptr->values == NULL) { return FAILURE; }
+    size_t index = _GNEIntegerCountedSetInsertionIndexForInteger(ptr, integer);
 
-    
+    // If the returned index points to the same value, increase its count.
+    if (ptr->count > 0 && ptr->values[index].integer == integer) {
+        ptr->values[index].count += 1;
+    } else {
+        if (_GNEIntegerCountedSetIncreaseValuesBufferIfNeeded(ptr) == FAILURE) { return FAILURE; }
+        GNEIntegerCountedSetValue *values = ptr->values;
+        size_t count = ptr->count;
+        // Move all the values about the insertion index up by one.
+        for (size_t i = count; i > index; i--) {
+            GNEIntegerCountedSetValue previousValue = values[i - 1];
+            values[i] = previousValue;
+        }
+        GNEIntegerCountedSetValue value = values[index];
+        value.integer = integer;
+        value.count = 1;
+        ptr->count += 1;
+    }
 
-    return FAILURE;
+    return SUCCESS;
 }
 
 
@@ -163,4 +180,23 @@ size_t _GNEIntegerCountedSetInsertionIndexForInteger(GNEIntegerCountedSetPtr ptr
     while (values[bottom].integer < integer) { bottom += 1; }
 
     return bottom;
+}
+
+
+int _GNEIntegerCountedSetIncreaseValuesBufferIfNeeded(GNEIntegerCountedSetPtr ptr)
+{
+    if (ptr == NULL || ptr->values == NULL) { return FAILURE; }
+
+    size_t count = ptr->count;
+    size_t capacity = ptr->valuesCapacity;
+    size_t emptySpaces = (capacity / sizeof(GNEIntegerCountedSetValue)) - count;
+    if (emptySpaces <= 2) {
+        size_t newCapacity = capacity * 2;
+        GNEIntegerCountedSetValue *newValues = realloc(ptr->values, newCapacity);
+        if (newValues == NULL) { return FAILURE; }
+        ptr->values = newValues;
+        ptr->valuesCapacity = newCapacity;
+    }
+
+    return SUCCESS;
 }
