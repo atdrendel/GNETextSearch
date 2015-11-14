@@ -44,11 +44,7 @@ GNEIntegerArrayPtr GNEIntegerArrayCreateWithCapacity(size_t capacity)
 
     size_t bufferLength = capacity * sizeof(GNEInteger);
     GNEInteger *buffer = calloc(capacity, sizeof(GNEInteger));
-    if (buffer == NULL)
-    {
-        GNEIntegerArrayDestroy(ptr);
-        return NULL;
-    }
+    if (buffer == NULL) { GNEIntegerArrayDestroy(ptr); return NULL; }
 
     ptr->buffer = buffer;
     ptr->bufferLength = bufferLength;
@@ -60,8 +56,7 @@ GNEIntegerArrayPtr GNEIntegerArrayCreateWithCapacity(size_t capacity)
 
 void GNEIntegerArrayDestroy(GNEIntegerArrayPtr ptr)
 {
-    if (ptr != NULL)
-    {
+    if (ptr != NULL) {
         free(ptr->buffer);
         ptr->buffer = NULL;
         ptr->bufferLength = 0;
@@ -95,8 +90,7 @@ int GNEIntegerArrayAddIntegersFromArray(GNEIntegerArrayPtr ptr, GNEIntegerArrayP
     if (ptr == NULL || otherPtr == NULL) { return FAILURE; }
 
     size_t otherCount = GNEIntegerArrayGetCount(otherPtr);
-    for (size_t i = 0; i < otherCount; i++)
-    {
+    for (size_t i = 0; i < otherCount; i++) {
         GNEInteger integer = GNEIntegerArrayGetIntegerAtIndex(otherPtr, i);
         if (GNEIntegerArrayAddInteger(ptr, integer) == FAILURE) { return FAILURE;}
     }
@@ -107,11 +101,7 @@ int GNEIntegerArrayAddIntegersFromArray(GNEIntegerArrayPtr ptr, GNEIntegerArrayP
 
 GNEInteger GNEIntegerArrayGetIntegerAtIndex(GNEIntegerArrayPtr ptr, size_t index)
 {
-    if (index >= GNEIntegerArrayGetCount(ptr))
-    {
-        return SIZE_MAX;
-    }
-
+    if (index >= GNEIntegerArrayGetCount(ptr)) { return SIZE_MAX; }
     return (ptr->buffer)[index];
 }
 
@@ -120,8 +110,7 @@ void GNEIntegerArrayPrint(GNEIntegerArrayPtr ptr)
 {
     size_t count = GNEIntegerArrayGetCount(ptr);
     printf("<GNEIntegerArray, %p> %lld integers\n{\n", ptr, (long long)count);
-    for (size_t i = 0; i < count; i++)
-    {
+    for (size_t i = 0; i < count; i++) {
         printf("\t%lld\n", (long long)GNEIntegerArrayGetIntegerAtIndex(ptr, i));
     }
     printf("}\n");
@@ -142,8 +131,7 @@ int _GNEIntegerArrayIncreaseCapacityBy(GNEIntegerArrayPtr ptr, size_t increase)
     size_t newCount = maxCount + increase;
     size_t newBufferLength = newCount * sizeof(GNEInteger);
     GNEInteger *newBuffer = realloc(ptr->buffer, newBufferLength);
-    if (newBuffer == NULL)
-    {
+    if (newBuffer == NULL) {
         GNEIntegerArrayDestroy(ptr);
         return FAILURE;
     }
@@ -166,8 +154,7 @@ int _GNEIntegerArrayIncreaseCapacityIfNeeded(GNEIntegerArrayPtr ptr)
     size_t bufferLength = ptr->bufferLength;
     size_t emptySpacesRemaining = (bufferLength - usedBuffer) / sizeof(GNEInteger);
 
-    if (emptySpacesRemaining == 1)
-    {
+    if (emptySpacesRemaining == 1) {
         size_t previousMaxCount = count + emptySpacesRemaining;
         return _GNEIntegerArrayIncreaseCapacityBy(ptr, previousMaxCount); // Double the size.
     }
