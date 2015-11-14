@@ -200,31 +200,6 @@ typedef struct GNEIntegerCountedSet
 }
 
 
-- (void)testAddIntegers_AddTenThousandIntegersTwice_NoDuplicatesCorrectValuesAndCounts
-{
-    size_t count = 10000;
-    GNEInteger *integers = calloc(2 * count, sizeof(GNEInteger));
-    size_t *counts = calloc(count, sizeof(size_t));
-    for (size_t i = 0; i < (2 * count); i++)
-    {
-        integers[i] = (i < count) ? i : i - count;
-        if (i < count) { counts[i] = 2; }
-    }
-
-    [self p_addIntegers:integers count:(2 * count) toCountedSet:_countedSet];
-
-    XCTAssertTrue(_countedSet != NULL);
-    XCTAssertTrue(_countedSet->values != NULL);
-    XCTAssertEqual(10240 * sizeof(GNEIntegerCountedSetValue), _countedSet->valuesCapacity);
-    XCTAssertEqual(count, _countedSet->count);
-    [self p_assertIntegersInCountedSet:_countedSet equalIntegers:integers count:count];
-    [self p_assertCountsInCountedSet:_countedSet equalCounts:counts count:count];
-
-    free(integers);
-    free(counts);
-}
-
-
 - (void)testAddIntegers_AddOneMillionIntegersFourTimes_NoDuplicatesCorrectValuesAndCounts
 {
     size_t count = 1000000;
