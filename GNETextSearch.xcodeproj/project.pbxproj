@@ -53,6 +53,7 @@
 		5711A8041B949E960088910A /* GNETernaryTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNETernaryTree.h; sourceTree = "<group>"; };
 		5711A8051B949E960088910A /* GNETernaryTree.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GNETernaryTree.c; sourceTree = "<group>"; };
 		5711A8091B94B29F0088910A /* GNETernaryTreeTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNETernaryTreeTests.m; sourceTree = "<group>"; };
+		57633FC31BF79A74006B1541 /* GNETextSearchPrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GNETextSearchPrivate.h; sourceTree = "<group>"; };
 		57A46B081BF36022008809A3 /* GNEIntegerArray.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GNEIntegerArray.c; sourceTree = "<group>"; };
 		57A46B091BF36022008809A3 /* GNEIntegerArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEIntegerArray.h; sourceTree = "<group>"; };
 		57A46B0C1BF3604B008809A3 /* GNEMutableString.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GNEMutableString.c; sourceTree = "<group>"; };
@@ -106,6 +107,7 @@
 				57A46B071BF36001008809A3 /* String */,
 				5711A8031B949E780088910A /* Tree */,
 				5711A7EC1B949E440088910A /* GNETextSearch.h */,
+				57633FC31BF79A74006B1541 /* GNETextSearchPrivate.h */,
 				5711A7EE1B949E440088910A /* Info.plist */,
 			);
 			path = GNETextSearch;

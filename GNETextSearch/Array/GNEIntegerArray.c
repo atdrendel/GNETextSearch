@@ -7,17 +7,11 @@
 //
 
 #include "GNEIntegerArray.h"
-#include <stdlib.h>
+#include "GNETextSearchPrivate.h"
 #include <stdio.h>
 #include <stddef.h>
 
 // ------------------------------------------------------------------------------------------
-
-#define SUCCESS 1
-#define FAILURE 0
-
-#define TRUE 1
-#define FALSE 0
 
 int _GNEIntegerArrayIncreaseCapacityBy(GNEIntegerArrayPtr ptr, size_t increase);
 int _GNEIntegerArrayIncreaseCapacityIfNeeded(GNEIntegerArrayPtr ptr);

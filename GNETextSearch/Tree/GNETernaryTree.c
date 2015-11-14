@@ -8,18 +8,10 @@
 
 #include "GNETernaryTree.h"
 #include "GNEMutableString.h"
-#include <stdlib.h>
+#include "GNETextSearchPrivate.h"
 #include <stdio.h>
 
-
 // ------------------------------------------------------------------------------------------
-
-
-#define SUCCESS 1
-#define FAILURE 0
-
-#define TRUE 1
-#define FALSE 0
 
 GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target);
 int _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerArrayPtr results);
@@ -28,7 +20,6 @@ int _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsP
 int _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr);
 size_t _GNETernaryTreeGetWordLength(GNETernaryTreePtr ptr);
 int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength, size_t amount);
-
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Tree

@@ -7,17 +7,10 @@
 //
 
 #include "GNEMutableString.h"
+#include "GNETextSearchPrivate.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-// ------------------------------------------------------------------------------------------
-
-#define SUCCESS 1
-#define FAILURE 0
-
-#define TRUE 1
-#define FALSE 0
 
 // ------------------------------------------------------------------------------------------
 
