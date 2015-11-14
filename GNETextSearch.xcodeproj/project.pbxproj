@@ -14,6 +14,7 @@
 		5711A80A1B94B29F0088910A /* GNETernaryTreeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 5711A8091B94B29F0088910A /* GNETernaryTreeTests.m */; };
 		57633FC11BF79A2B006B1541 /* GNEIntegerCountedSet.c in Sources */ = {isa = PBXBuildFile; fileRef = 57633FBF1BF79A2B006B1541 /* GNEIntegerCountedSet.c */; };
 		57633FC21BF79A2B006B1541 /* GNEIntegerCountedSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 57633FC01BF79A2B006B1541 /* GNEIntegerCountedSet.h */; };
+		57633FC51BF7C958006B1541 /* GNEIntegerCountedSetTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 57633FC41BF7C958006B1541 /* GNEIntegerCountedSetTests.m */; };
 		57A46B0A1BF36022008809A3 /* GNEIntegerArray.c in Sources */ = {isa = PBXBuildFile; fileRef = 57A46B081BF36022008809A3 /* GNEIntegerArray.c */; };
 		57A46B0B1BF36022008809A3 /* GNEIntegerArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 57A46B091BF36022008809A3 /* GNEIntegerArray.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		57A46B0E1BF3604B008809A3 /* GNEMutableString.c in Sources */ = {isa = PBXBuildFile; fileRef = 57A46B0C1BF3604B008809A3 /* GNEMutableString.c */; };
@@ -58,6 +59,7 @@
 		57633FBF1BF79A2B006B1541 /* GNEIntegerCountedSet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GNEIntegerCountedSet.c; sourceTree = "<group>"; };
 		57633FC01BF79A2B006B1541 /* GNEIntegerCountedSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEIntegerCountedSet.h; sourceTree = "<group>"; };
 		57633FC31BF79A74006B1541 /* GNETextSearchPrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GNETextSearchPrivate.h; sourceTree = "<group>"; };
+		57633FC41BF7C958006B1541 /* GNEIntegerCountedSetTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEIntegerCountedSetTests.m; sourceTree = "<group>"; };
 		57A46B081BF36022008809A3 /* GNEIntegerArray.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GNEIntegerArray.c; sourceTree = "<group>"; };
 		57A46B091BF36022008809A3 /* GNEIntegerArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEIntegerArray.h; sourceTree = "<group>"; };
 		57A46B0C1BF3604B008809A3 /* GNEMutableString.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GNEMutableString.c; sourceTree = "<group>"; };
@@ -122,6 +124,7 @@
 			isa = PBXGroup;
 			children = (
 				57CF09FC1BA5F89C00E0F0EC /* GNEIntegerArrayTests.m */,
+				57633FC41BF7C958006B1541 /* GNEIntegerCountedSetTests.m */,
 				57A46B101BF37456008809A3 /* GNEMutableStringTests.m */,
 				5711A8091B94B29F0088910A /* GNETernaryTreeTests.m */,
 				5711A7FA1B949E440088910A /* Info.plist */,
@@ -292,6 +295,7 @@
 				5711A80A1B94B29F0088910A /* GNETernaryTreeTests.m in Sources */,
 				57A46B111BF37456008809A3 /* GNEMutableStringTests.m in Sources */,
 				57CF09FD1BA5F89C00E0F0EC /* GNEIntegerArrayTests.m in Sources */,
+				57633FC51BF7C958006B1541 /* GNEIntegerCountedSetTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

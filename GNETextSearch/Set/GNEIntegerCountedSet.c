@@ -105,9 +105,8 @@ int GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integ
             GNEIntegerCountedSetValue previousValue = values[i - 1];
             values[i] = previousValue;
         }
-        GNEIntegerCountedSetValue value = values[index];
-        value.integer = integer;
-        value.count = 1;
+        values[index].integer = integer;
+        values[index].count = 1;
         ptr->count += 1;
     }
 
