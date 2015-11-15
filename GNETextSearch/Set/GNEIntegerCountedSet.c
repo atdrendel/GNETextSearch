@@ -11,6 +11,8 @@
 
 // ------------------------------------------------------------------------------------------
 
+int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newInteger, size_t newCount);
+int _GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 size_t _GNEIntegerCountedSetIndexForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 size_t _GNEIntegerCountedSetInsertionIndexForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 int _GNEIntegerCountedSetIncreaseValuesBufferIfNeeded(GNEIntegerCountedSetPtr ptr);
@@ -90,12 +92,86 @@ size_t GNEIntegerCountedSetCountForInteger(GNEIntegerCountedSetPtr ptr, GNEInteg
 
 int GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer)
 {
+    return _GNEIntegerCountedSetAddInteger(ptr, integer, 1);
+}
+
+
+int GNEIntegerCountedSetUnionSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr)
+{
     if (ptr == NULL || ptr->values == NULL) { return FAILURE; }
-    size_t index = _GNEIntegerCountedSetInsertionIndexForInteger(ptr, integer);
+    if (otherPtr == NULL || otherPtr->values == NULL) { return FAILURE; }
+
+    size_t otherCount = otherPtr->count;
+    GNEIntegerCountedSetValue *otherValues = otherPtr->values;
+    for (size_t i = 0; i < otherCount; i++) {
+        GNEIntegerCountedSetValue otherValue = otherValues[i];
+        int result = _GNEIntegerCountedSetAddInteger(ptr, otherValue.integer, otherValue.count);
+        if (result == FAILURE) { return FAILURE; }
+    }
+    return SUCCESS;
+}
+
+
+int GNEIntegerCountedSetIntersectSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr)
+{
+    if (ptr == NULL || ptr->values == NULL) { return FAILURE; }
+    if (otherPtr == NULL || otherPtr->values == NULL) { return FAILURE; }
+
+    size_t count = ptr->count;
+
+    // Copy all of the counted set's values so that we can iterate over them
+    // while modifying the set.
+    GNEIntegerCountedSetValue valuesCopy[count];
+    for (size_t i = 0; i < count; i++) {
+        valuesCopy[i] = ptr->values[i];
+    }
+
+    for (size_t i = 0; i < count; i++) {
+        GNEIntegerCountedSetValue value = valuesCopy[i];
+        size_t index = _GNEIntegerCountedSetIndexForInteger(otherPtr, value.integer);
+        if (index == SIZE_MAX) {
+            int result = _GNEIntegerCountedSetRemoveInteger(ptr, value.integer);
+            if (result == FAILURE) { return FAILURE; }
+        } else {
+            size_t valueCount = GNEIntegerCountedSetCountForInteger(otherPtr, value.integer);
+            int result = _GNEIntegerCountedSetAddInteger(ptr, value.integer, valueCount);
+            if (result == FAILURE) { return FAILURE; }
+        }
+    }
+    return SUCCESS;
+}
+
+
+int GNEIntegerCountedSetMinusSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr)
+{
+    if (ptr == NULL || ptr->values == NULL) { return FAILURE; }
+    if (otherPtr == NULL || otherPtr->values == NULL) { return FAILURE; }
+
+    size_t otherCount = otherPtr->count;
+    GNEIntegerCountedSetValue *otherValues = otherPtr->values;
+    for (size_t i = 0; i < otherCount; i++) {
+        GNEIntegerCountedSetValue otherValue = otherValues[i];
+        int result = _GNEIntegerCountedSetRemoveInteger(ptr, otherValue.integer);
+        if (result == FAILURE) { return FAILURE; }
+    }
+    return SUCCESS;
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Private
+// ------------------------------------------------------------------------------------------
+/// Adds the specified integer to the specified counted set. The specified count is added
+/// to the integer's current count.
+int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newInteger, size_t newCount)
+{
+    if (ptr == NULL || ptr->values == NULL) { return FAILURE; }
+    if (newCount < 1) { return SUCCESS; }
+    size_t index = _GNEIntegerCountedSetInsertionIndexForInteger(ptr, newInteger);
 
     // If the returned index points to the same value, increase its count.
-    if (ptr->count > 0 && ptr->values[index].integer == integer) {
-        ptr->values[index].count += 1;
+    if (ptr->count > 0 && ptr->values[index].integer == newInteger) {
+        ptr->values[index].count += newCount;
     } else {
         if (_GNEIntegerCountedSetIncreaseValuesBufferIfNeeded(ptr) == FAILURE) { return FAILURE; }
         GNEIntegerCountedSetValue *values = ptr->values;
@@ -106,8 +182,8 @@ int GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integ
             values[i].integer = previousValue.integer;
             values[i].count = previousValue.count;
         }
-        values[index].integer = integer;
-        values[index].count = 1;
+        values[index].integer = newInteger;
+        values[index].count = newCount;
         ptr->count += 1;
     }
 
@@ -115,9 +191,25 @@ int GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integ
 }
 
 
-// ------------------------------------------------------------------------------------------
-#pragma mark - Private
-// ------------------------------------------------------------------------------------------
+int _GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer)
+{
+    if (ptr == NULL || ptr->values == NULL) { return FAILURE; }
+    size_t index = _GNEIntegerCountedSetIndexForInteger(ptr, integer);
+    if (index == SIZE_MAX) { return SUCCESS; }
+    if (index >= ptr->count) { return FAILURE; } // This should never happen.
+    GNEIntegerCountedSetValue *values = ptr->values;
+    size_t count = ptr->count;
+    for (size_t i = index; i < count; i++) {
+        GNEIntegerCountedSetValue nextValue = values[i + 1];
+        values[i].integer = nextValue.integer;
+        values[i].count = nextValue.count;
+    }
+    ptr->count -= 1;
+
+    return SUCCESS;
+}
+
+
 /// Returns the index at which the specified integer can be found. If the counted set
 /// does not include the integer, returns SIZE_MAX.
 size_t _GNEIntegerCountedSetIndexForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer)

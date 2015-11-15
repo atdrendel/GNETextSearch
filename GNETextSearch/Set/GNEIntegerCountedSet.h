@@ -27,5 +27,14 @@ extern size_t GNEIntegerCountedSetCountForInteger(GNEIntegerCountedSetPtr ptr, G
 /// Adds the specified integer to the counted set. Returns 1 if successful, otherwise 0.
 extern int GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 
+/// Adds each integer and its count in the other counted set to specified set.
+extern int GNEIntegerCountedSetUnionSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr);
+
+/// Removes from the specified counted set each integer that isn’t a member of the other set.
+/// If an integer is present in both sets, its counts are added together.
+extern int GNEIntegerCountedSetIntersectSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr);
+
+/// Removes each integer in the other counted set from the specified set, if present.
+extern int GNEIntegerCountedSetMinusSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr);
 
 #endif /* GNEIntegerCountedSet_h */
