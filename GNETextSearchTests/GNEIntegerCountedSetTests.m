@@ -130,7 +130,7 @@ typedef struct GNEIntegerCountedSet
 
 
 // ------------------------------------------------------------------------------------------
-#pragma mark - Add Integers
+#pragma mark - Add/Count Integers
 // ------------------------------------------------------------------------------------------
 - (void)testAddIntegers_ZeroAndOne_CorrectValuesAndCount
 {
@@ -200,6 +200,26 @@ typedef struct GNEIntegerCountedSet
 }
 
 
+- (void)testAddIntegers_AddTenNumbers_NoDuplicatesAndCorrectCounts
+{
+    size_t count = 10;
+    GNEInteger integers[] = {2, 8, 7, 4, 4, 8, 3, 0, 7, 0};
+
+    [self p_addIntegers:integers count:count toCountedSet:_countedSet];
+
+    XCTAssertTrue(_countedSet != NULL);
+    XCTAssertTrue(_countedSet->values != NULL);
+    XCTAssertEqual(10 * sizeof(GNEIntegerCountedSetValue), _countedSet->valuesCapacity);
+    XCTAssertEqual(6, _countedSet->count);
+    XCTAssertEqual(1, GNEIntegerCountedSetCountForInteger(_countedSet, 2));
+    XCTAssertEqual(2, GNEIntegerCountedSetCountForInteger(_countedSet, 8));
+    XCTAssertEqual(2, GNEIntegerCountedSetCountForInteger(_countedSet, 7));
+    XCTAssertEqual(2, GNEIntegerCountedSetCountForInteger(_countedSet, 4));
+    XCTAssertEqual(1, GNEIntegerCountedSetCountForInteger(_countedSet, 3));
+    XCTAssertEqual(2, GNEIntegerCountedSetCountForInteger(_countedSet, 0));
+}
+
+
 - (void)testAddIntegers_AddOneMillionIntegersFourTimes_NoDuplicatesCorrectValuesAndCounts
 {
     size_t count = 1000000;
@@ -225,20 +245,19 @@ typedef struct GNEIntegerCountedSet
 }
 
 
-// ------------------------------------------------------------------------------------------
-#pragma mark - Helpers
-// ------------------------------------------------------------------------------------------
-- (void)p_addIntegers:(GNEInteger *)integers
-                count:(size_t)count 
-         toCountedSet:(GNEIntegerCountedSetPtr)countedSet
+- (void)testAddIntegers_AddOneHundredThousandRandomIntegers_EqualToNSCountedSet
 {
-    for (size_t i = 0; i < count; i++)
-    {
-        XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(countedSet, integers[i]));
-    }
+    size_t count = 10000;
+    NSArray *numbers = [self p_randomNumberArrayWithCount:count];
+    [self p_addNumbers:numbers toCountedSet:_countedSet];
+    NSCountedSet *nsCountedSet = [self p_countedSetWithNumbers:numbers];
+    [self p_assertGNECountedSet:_countedSet isEqualToNSCountedSet:nsCountedSet];
 }
 
 
+// ------------------------------------------------------------------------------------------
+#pragma mark - Helpers
+// ------------------------------------------------------------------------------------------
 - (void)p_assertIntegersInCountedSet:(GNEIntegerCountedSetPtr)countedSet
                        equalIntegers:(GNEInteger *)integers
                                count:(size_t)count
@@ -258,6 +277,68 @@ typedef struct GNEIntegerCountedSet
     {
         XCTAssertEqual(counts[i], countedSet->values[i].count);
     }
+}
+
+
+- (void)p_assertGNECountedSet:(GNEIntegerCountedSetPtr)gneCountedSet
+        isEqualToNSCountedSet:(NSCountedSet *)nsCountedSet
+{
+    XCTAssertEqual((size_t)nsCountedSet.count, gneCountedSet->count);
+    for (NSNumber *number in nsCountedSet)
+    {
+        GNEInteger integer = (GNEInteger)number.integerValue;
+        size_t nsCount = (size_t)[nsCountedSet countForObject:number];
+        size_t gneCount = GNEIntegerCountedSetCountForInteger(gneCountedSet, integer);
+        XCTAssertEqual(nsCount, gneCount, @"%lld", (long long)integer);
+    }
+}
+
+
+- (void)p_addIntegers:(GNEInteger *)integers
+                count:(size_t)count
+         toCountedSet:(GNEIntegerCountedSetPtr)countedSet
+{
+    for (size_t i = 0; i < count; i++)
+    {
+        XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(countedSet, integers[i]));
+        XCTAssertTrue(GNEIntegerCountedSetCountForInteger(countedSet, integers[i]) > 0, @"%lld", (long long)integers[i]);
+    }
+}
+
+
+- (void)p_addNumbers:(NSArray *)numberArray toCountedSet:(GNEIntegerCountedSetPtr)countedSet
+{
+    for (NSNumber *number in numberArray)
+    {
+        GNEInteger integer = (GNEInteger)number.integerValue;
+        XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(countedSet, integer));
+        XCTAssertTrue(GNEIntegerCountedSetCountForInteger(countedSet, integer) > 0, @"%lld", (long long)integer);
+    }
+}
+
+
+- (NSArray *)p_randomNumberArrayWithCount:(size_t)count
+{
+    NSMutableArray *mutableArray = [NSMutableArray array];
+    for (size_t i = 0; i < count; i++)
+    {
+        u_int32_t integer = arc4random_uniform((u_int32_t)count);
+        [mutableArray addObject:@(integer)];
+    }
+
+    return [mutableArray copy];
+}
+
+
+- (NSCountedSet *)p_countedSetWithNumbers:(NSArray *)numberArray
+{
+    NSCountedSet *countedSet = [NSCountedSet set];
+    for (NSNumber *number in numberArray)
+    {
+        [countedSet addObject:number];
+    }
+
+    return countedSet;
 }
 
 

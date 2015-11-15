@@ -100,10 +100,11 @@ int GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integ
         if (_GNEIntegerCountedSetIncreaseValuesBufferIfNeeded(ptr) == FAILURE) { return FAILURE; }
         GNEIntegerCountedSetValue *values = ptr->values;
         size_t count = ptr->count;
-        // Move all the values about the insertion index up by one.
+        // Move all the values above the insertion index up by one.
         for (size_t i = count; i > index; i--) {
             GNEIntegerCountedSetValue previousValue = values[i - 1];
-            values[i] = previousValue;
+            values[i].integer = previousValue.integer;
+            values[i].count = previousValue.count;
         }
         values[index].integer = integer;
         values[index].count = 1;
@@ -129,14 +130,16 @@ size_t _GNEIntegerCountedSetIndexForInteger(GNEIntegerCountedSetPtr ptr, GNEInte
 
     GNEInteger firstInteger = values[0].integer;
     if (firstInteger == integer) { return 0; }
+    if (firstInteger > integer) { return SIZE_MAX; }
 
     GNEInteger lastInteger = values[(count - 1)].integer;
     if (lastInteger == integer) { return (count - 1); }
+    if (lastInteger < integer) { return SIZE_MAX; }
 
     size_t top = count - 1;
     size_t bottom = 0;
 
-    while (top > bottom) {
+    while (top >= bottom) {
         size_t middle = ((top + bottom) / 2);
         GNEInteger middleInteger = values[middle].integer;
         if (integer > middleInteger) { bottom = middle + 1; }
