@@ -151,8 +151,14 @@ int GNEIntegerCountedSetMinusSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedS
     GNEIntegerCountedSetValue *otherValues = otherPtr->values;
     for (size_t i = 0; i < otherCount; i++) {
         GNEIntegerCountedSetValue otherValue = otherValues[i];
-        int result = _GNEIntegerCountedSetRemoveInteger(ptr, otherValue.integer);
-        if (result == FAILURE) { return FAILURE; }
+        size_t index = _GNEIntegerCountedSetIndexForInteger(ptr, otherValue.integer);
+        if (index == SIZE_MAX || index >= ptr->count) { continue; }
+        if (otherValue.count >= ptr->values[index].count) {
+            int result = _GNEIntegerCountedSetRemoveInteger(ptr, otherValue.integer);
+            if (result == FAILURE) { return FAILURE; }
+        } else {
+            ptr->values[index].count -= otherValue.count;
+        }
     }
     return SUCCESS;
 }
