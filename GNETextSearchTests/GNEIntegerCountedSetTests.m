@@ -707,8 +707,8 @@ typedef struct GNEIntegerCountedSet
 
 - (void)testMinusSet_TwoRandomSets_UniqueIntegersFromFirstSet
 {
-    NSArray *numbers1 = [self p_randomNumberArrayWithCount:1000];
-    NSArray *numbers2 = [self p_randomNumberArrayWithCount:1000];
+    NSArray *numbers1 = [self p_randomNumberArrayWithCount:100000];
+    NSArray *numbers2 = [self p_randomNumberArrayWithCount:100000];
 
     GNEIntegerCountedSetPtr gne1 = GNEIntegerCountedSetCreate();
     GNEIntegerCountedSetPtr gne2 = GNEIntegerCountedSetCreate();
@@ -729,6 +729,50 @@ typedef struct GNEIntegerCountedSet
     
     GNEIntegerCountedSetDestroy(gne1);
     GNEIntegerCountedSetDestroy(gne2);
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Performance
+// ------------------------------------------------------------------------------------------
+- (void)testPerformance_AddTenThousandIntegers__0_016
+{
+    NSArray *numbers = [self p_tenThousandRandomIntegers_1];
+
+    [self measureBlock:^()
+    {
+        GNEIntegerCountedSetPtr countedSet = GNEIntegerCountedSetCreate();
+        [self p_addNumbers:numbers toCountedSet:countedSet];
+        GNEIntegerCountedSetDestroy(countedSet);
+    }];
+}
+
+
+- (void)testPerformance_AddOneHundredThousandIntegers__1_604
+{
+    NSArray *numbers = [self p_oneHundredThousandRandomIntegers_1];
+
+    [self measureBlock:^()
+    {
+        GNEIntegerCountedSetPtr countedSet = GNEIntegerCountedSetCreate();
+        [self p_addNumbers:numbers toCountedSet:countedSet];
+        GNEIntegerCountedSetDestroy(countedSet);
+    }];
+}
+
+
+- (void)testNSPerformance_AddOneHundredThousandIntegers__1_604
+{
+    NSArray *numbers = [self p_oneHundredThousandRandomIntegers_1];
+
+    [self measureBlock:^()
+    {
+        NSCountedSet *countedSet = [NSCountedSet set];
+        for (NSNumber *number in numbers)
+        {
+            [countedSet addObject:number];
+        }
+    }];
 }
 
 
@@ -827,6 +871,54 @@ typedef struct GNEIntegerCountedSet
     }
 
     return countedSet;
+}
+
+
+- (NSArray<NSNumber *> *)p_tenThousandRandomIntegers_1
+{
+    NSArray *numbers = [self p_oneHundredThousandRandomIntegers_1];
+
+    return [numbers subarrayWithRange:NSMakeRange(0, 10000)];
+}
+
+
+- (NSArray<NSNumber *> *)p_tenThousandRandomIntegers_2
+{
+    NSArray *numbers = [self p_oneHundredThousandRandomIntegers_2];
+
+    return [numbers subarrayWithRange:NSMakeRange(0, 10000)];
+}
+
+
+- (NSArray<NSNumber *> *)p_oneHundredThousandRandomIntegers_1
+{
+    NSString *path = [[NSBundle bundleForClass:[self class]] pathForResource:@"random-integers-100000-1"
+                                                                      ofType:@"txt"];
+    NSString *string = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
+    NSArray *stringArray = [string componentsSeparatedByString:@","];
+    NSMutableArray *numbers = [NSMutableArray array];
+    [stringArray enumerateObjectsUsingBlock:^(NSString *numberString, NSUInteger idx, BOOL *stop)
+    {
+        [numbers addObject:@(numberString.integerValue)];
+    }];
+
+    return [numbers copy];
+}
+
+
+- (NSArray<NSNumber *> *)p_oneHundredThousandRandomIntegers_2
+{
+    NSString *path = [[NSBundle bundleForClass:[self class]] pathForResource:@"random-integers-100000-2"
+                                                                      ofType:@"txt"];
+    NSString *string = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
+    NSArray *stringArray = [string componentsSeparatedByString:@","];
+    NSMutableArray *numbers = [NSMutableArray array];
+    [stringArray enumerateObjectsUsingBlock:^(NSString *numberString, NSUInteger idx, BOOL *stop)
+    {
+        [numbers addObject:@(numberString.integerValue)];
+    }];
+
+    return [numbers copy];
 }
 
 

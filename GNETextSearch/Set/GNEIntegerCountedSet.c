@@ -8,6 +8,7 @@
 
 #include "GNEIntegerCountedSet.h"
 #include "GNETextSearchPrivate.h"
+#include <string.h>
 
 // ------------------------------------------------------------------------------------------
 
@@ -183,11 +184,7 @@ int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newI
         GNEIntegerCountedSetValue *values = ptr->values;
         size_t count = ptr->count;
         // Move all the values above the insertion index up by one.
-        for (size_t i = count; i > index; i--) {
-            GNEIntegerCountedSetValue previousValue = values[i - 1];
-            values[i].integer = previousValue.integer;
-            values[i].count = previousValue.count;
-        }
+        memmove(&(values[index + 1]), &(values[index]), sizeof(GNEIntegerCountedSetValue) * (count - index));
         values[index].integer = newInteger;
         values[index].count = newCount;
         ptr->count += 1;
@@ -205,11 +202,12 @@ int _GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger i
     if (index >= ptr->count) { return FAILURE; } // This should never happen.
     GNEIntegerCountedSetValue *values = ptr->values;
     size_t count = ptr->count;
-    for (size_t i = index; i < count; i++) {
-        GNEIntegerCountedSetValue nextValue = values[i + 1];
-        values[i].integer = nextValue.integer;
-        values[i].count = nextValue.count;
-    }
+    memmove(&(values[index]), &(values[index + 1]), sizeof(GNEIntegerCountedSetValue) * (count - index - 1));
+
+    // Clear out the previous last value.
+    values[count - 1].integer = 0;
+    values[count - 1].count = 0;
+
     ptr->count -= 1;
 
     return SUCCESS;
