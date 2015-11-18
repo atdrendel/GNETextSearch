@@ -707,8 +707,8 @@ typedef struct GNEIntegerCountedSet
 
 - (void)testMinusSet_TwoRandomSets_UniqueIntegersFromFirstSet
 {
-    NSArray *numbers1 = [self p_randomNumberArrayWithCount:100000];
-    NSArray *numbers2 = [self p_randomNumberArrayWithCount:100000];
+    NSArray *numbers1 = [self p_randomNumberArrayWithCount:1000];
+    NSArray *numbers2 = [self p_randomNumberArrayWithCount:1000];
 
     GNEIntegerCountedSetPtr gne1 = GNEIntegerCountedSetCreate();
     GNEIntegerCountedSetPtr gne2 = GNEIntegerCountedSetCreate();
