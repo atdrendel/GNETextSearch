@@ -748,7 +748,7 @@ typedef struct GNEIntegerCountedSet
 }
 
 
-- (void)testPerformance_AddOneHundredThousandIntegers__1_604
+- (void)testPerformance_AddOneHundredThousandIntegers__0_700
 {
     NSArray *numbers = [self p_oneHundredThousandRandomIntegers_1];
 
