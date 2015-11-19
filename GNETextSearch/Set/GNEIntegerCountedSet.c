@@ -220,8 +220,8 @@ int GNEIntegerCountedSetValueCompare(const void *valuePtr1, const void *valuePtr
     GNEIntegerCountedSetValue value1 = *(GNEIntegerCountedSetValue *)valuePtr1;
     GNEIntegerCountedSetValue value2 = *(GNEIntegerCountedSetValue *)valuePtr2;
 
-    if (value1.count > value2.count) { return 1; }
-    if (value1.count < value2.count) { return -1; }
+    if (value1.count > value2.count) { return -1; }
+    if (value1.count < value2.count) { return 1; }
     return 0;
 }
 
