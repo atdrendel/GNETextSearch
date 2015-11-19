@@ -22,7 +22,7 @@ extern void GNEIntegerCountedSetDestroy(GNEIntegerCountedSetPtr ptr);
 extern int GNEIntegerCountedSetContainsInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 
 /// Returns the count for the specified integer. Returns 0 if the integer is not in the set.
-extern size_t GNEIntegerCountedSetCountForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
+extern size_t GNEIntegerCountedSetGetCountForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 
 /// Adds the specified integer to the counted set. Returns 1 if successful, otherwise 0.
 extern int GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);

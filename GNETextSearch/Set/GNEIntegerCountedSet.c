@@ -82,7 +82,7 @@ int GNEIntegerCountedSetContainsInteger(GNEIntegerCountedSetPtr ptr, GNEInteger 
     return (_GNEIntegerCountedSetIndexForInteger(ptr, integer) == SIZE_MAX) ? FALSE : TRUE;
 }
 
-size_t GNEIntegerCountedSetCountForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer)
+size_t GNEIntegerCountedSetGetCountForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer)
 {
     if (ptr == NULL || ptr->values == NULL) { return 0; }
     size_t index = _GNEIntegerCountedSetIndexForInteger(ptr, integer);
@@ -134,7 +134,7 @@ int GNEIntegerCountedSetIntersectSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCoun
             int result = _GNEIntegerCountedSetRemoveInteger(ptr, value.integer);
             if (result == FAILURE) { return FAILURE; }
         } else {
-            size_t valueCount = GNEIntegerCountedSetCountForInteger(otherPtr, value.integer);
+            size_t valueCount = GNEIntegerCountedSetGetCountForInteger(otherPtr, value.integer);
             int result = _GNEIntegerCountedSetAddInteger(ptr, value.integer, valueCount);
             if (result == FAILURE) { return FAILURE; }
         }
