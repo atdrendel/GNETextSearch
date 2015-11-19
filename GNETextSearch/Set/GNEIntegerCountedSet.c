@@ -203,14 +203,16 @@ int _GNEIntegerCountedSetCopyIntegers(const GNEIntegerCountedSetValue * const va
     if (values == NULL || integers == NULL) { return FAILURE; }
     if (count == 0) { return SUCCESS; }
 
-    GNEIntegerCountedSetValue valuesCopy[count];
     size_t size = sizeof(GNEIntegerCountedSetValue);
-    memcpy(&valuesCopy, values, count * size);
-    qsort(&valuesCopy, count, size, &GNEIntegerCountedSetValueCompare);
+    GNEIntegerCountedSetValue *valuesCopy = calloc(count, size);
+    if (valuesCopy == NULL) { return FAILURE; }
+    memcpy(valuesCopy, values, count * size);
+    qsort(valuesCopy, count, size, &GNEIntegerCountedSetValueCompare);
     for (size_t i = 0; i < count; i++) {
         GNEIntegerCountedSetValue value = valuesCopy[i];
         integers[i] = value.integer;
     }
+    free(valuesCopy);
     return SUCCESS;
 }
 
