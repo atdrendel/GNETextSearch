@@ -131,10 +131,7 @@ int _GNEIntegerArrayIncreaseCapacityBy(GNEIntegerArrayPtr ptr, size_t increase)
     size_t newCount = maxCount + increase;
     size_t newBufferLength = newCount * sizeof(GNEInteger);
     GNEInteger *newBuffer = realloc(ptr->buffer, newBufferLength);
-    if (newBuffer == NULL) {
-        GNEIntegerArrayDestroy(ptr); // TODO: Don't destroy the integer array here. Side effects are bad.
-        return FAILURE;
-    }
+    if (newBuffer == NULL) { return FAILURE; }
 
     ptr->buffer = newBuffer;
     ptr->bufferLength = newBufferLength;
