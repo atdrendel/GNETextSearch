@@ -130,6 +130,43 @@ typedef struct GNEIntegerCountedSet
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Count
+// ------------------------------------------------------------------------------------------
+- (void)testCount_NullPointer_Zero
+{
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCount(NULL));
+}
+
+
+- (void)testCount_EmptySet_Zero
+{
+    XCTAssertEqual(0, _countedSet->count);
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCount(_countedSet));
+}
+
+
+- (void)testCount_OneInteger_One
+{
+    XCTAssertEqual(1, GNEIntegerCountedSetAddInteger(_countedSet, 12343232));
+    XCTAssertEqual(1, _countedSet->count);
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCount(_countedSet));
+}
+
+
+- (void)testCount_RandomIntegers_EqualsCountOfNSSet
+{
+    NSArray *numbers = [self p_tenThousandRandomIntegers_1];
+    for (NSNumber *number in numbers)
+    {
+        XCTAssertEqual(1, GNEIntegerCountedSetAddInteger(_countedSet, (GNEInteger)number.integerValue));
+    }
+    NSSet *set = [NSSet setWithArray:numbers];
+    XCTAssertEqual((size_t)set.count, _countedSet->count);
+    XCTAssertEqual((size_t)set.count, GNEIntegerCountedSetGetCount(_countedSet));
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Add/Contains/Count Integers
 // ------------------------------------------------------------------------------------------
 - (void)testAddIntegers_ZeroAndOne_CorrectValuesAndCount
