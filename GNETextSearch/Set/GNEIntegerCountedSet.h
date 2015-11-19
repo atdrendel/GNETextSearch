@@ -10,13 +10,18 @@
 #define GNEIntegerCountedSet_h
 
 #include <stdint.h>
-#include "GNEIntegerArray.h"
+
+#ifndef GNEInteger
+    #define GNEInteger int64_t
+#endif
 
 typedef struct GNEIntegerCountedSet * GNEIntegerCountedSetPtr;
 
 extern GNEIntegerCountedSetPtr GNEIntegerCountedSetCreate(void);
 extern GNEIntegerCountedSetPtr GNEIntegerCountedSetCreateWithInteger(GNEInteger integer);
 extern void GNEIntegerCountedSetDestroy(GNEIntegerCountedSetPtr ptr);
+
+extern size_t GNEIntegerCountedSetGetCount(GNEIntegerCountedSetPtr ptr);
 
 /// Returns 1 if the counted set includes the integer, otherwise 0.
 extern int GNEIntegerCountedSetContainsInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);

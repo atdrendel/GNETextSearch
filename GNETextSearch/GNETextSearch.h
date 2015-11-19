@@ -7,5 +7,5 @@
 //
 
 #import <GNETextSearch/GNETernaryTree.h>
-#import <GNETextSearch/GNEIntegerArray.h>
+#import <GNETextSearch/GNEIntegerCountedSet.h>
 

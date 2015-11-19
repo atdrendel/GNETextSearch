@@ -77,6 +77,12 @@ void GNEIntegerCountedSetDestroy(GNEIntegerCountedSetPtr ptr)
 }
 
 
+size_t GNEIntegerCountedSetGetCount(GNEIntegerCountedSetPtr ptr)
+{
+    return (ptr == NULL) ? 0 : ptr->count;
+}
+
+
 int GNEIntegerCountedSetContainsInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer)
 {
     return (_GNEIntegerCountedSetIndexForInteger(ptr, integer) == SIZE_MAX) ? FALSE : TRUE;
