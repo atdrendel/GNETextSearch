@@ -357,18 +357,26 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     size_t count = GNEIntegerCountedSetGetCount(resultsPtr);
     XCTAssertEqual((size_t)4, count);
 
-//    NSMutableArray *resultsArray = [NSMutableArray array];
-//    for (size_t i = 0; i < count; i++)
-//    {
-//        [resultsArray addObject:@((NSUInteger)GNEIntegerArrayGetIntegerAtIndex(resultsPtr, i))];
-//    }
-//
-//    NSArray *expectedResults = @[@(@"😄".hash), @(@"😊".hash), @(@"👹".hash), @(@"🇺🇸".hash)];
-//
-//    NSSet *resultsSet = [NSSet setWithArray:resultsArray];
-//    NSSet *expectedResultsSet = [NSSet setWithArray:expectedResults];
-//
-//    XCTAssertEqualObjects(expectedResultsSet, resultsSet);
+    GNEInteger *integers = NULL;
+    count = 0;
+    XCTAssertEqual(1, GNEIntegerCountedSetCopyIntegers(resultsPtr, &integers, &count));
+    XCTAssertTrue(integers != NULL);
+    XCTAssertEqual((size_t)4, count);
+
+    NSMutableArray *resultsArray = [NSMutableArray array];
+    for (size_t i = 0; i < count; i++)
+    {
+        [resultsArray addObject:@(integers[i])];
+    }
+
+    NSArray *expectedResults = @[@(@"😄".hash), @(@"😊".hash), @(@"👹".hash), @(@"🇺🇸".hash)];
+
+    NSSet *resultsSet = [NSSet setWithArray:resultsArray];
+    NSSet *expectedResultsSet = [NSSet setWithArray:expectedResults];
+
+    XCTAssertEqualObjects(expectedResultsSet, resultsSet);
+
+    free(integers);
 }
 
 
