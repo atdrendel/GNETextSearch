@@ -167,6 +167,80 @@ typedef struct GNEIntegerCountedSet
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Copy Integers
+// ------------------------------------------------------------------------------------------
+- (void)testCopyIntegers_TenIntegers_TenResultsInCorrectOrder
+{
+    size_t count = 10;
+    GNEInteger integers[] = {8, 4, 7, 4, 4, 8, 3, 4, 7, 8};
+
+    [self p_addIntegers:integers count:count toCountedSet:_countedSet];
+    XCTAssertEqual(4, _countedSet->count);
+
+    GNEInteger *results = NULL;
+    size_t resultsCount = 0;
+    XCTAssertEqual(1, GNEIntegerCountedSetCopyIntegers(_countedSet, &results, &resultsCount));
+    XCTAssertEqual(resultsCount, 4);
+    XCTAssertEqual(4, results[0]);
+    XCTAssertEqual(8, results[1]);
+    XCTAssertEqual(7, results[2]);
+    XCTAssertEqual(3, results[3]);
+
+    free(results);
+}
+
+
+- (void)testCopyIntegers_OneThousandRandomIntegers_ResultsInCorrectOrder
+{
+    NSArray *numbers = [self p_randomNumberArrayWithCount:1000];
+
+    [self p_addNumbers:numbers toCountedSet:_countedSet];
+    NSCountedSet *countedSet = [self p_countedSetWithNumbers:numbers];
+
+    XCTAssertEqual(countedSet.count, GNEIntegerCountedSetGetCount(_countedSet));
+
+    NSMutableDictionary *countToResultsMap = [NSMutableDictionary dictionary];
+    for (NSNumber *number in countedSet)
+    {
+        NSUInteger count = [countedSet countForObject:number];
+        NSMutableArray *results = countToResultsMap[@(count)];
+        if (results == nil)
+        {
+            results = [NSMutableArray array];
+            countToResultsMap[@(count)] = results;
+        }
+        [results addObject:number];
+    }
+
+    GNEInteger *results = NULL;
+    size_t resultsCount = 0;
+    XCTAssertEqual(1, GNEIntegerCountedSetCopyIntegers(_countedSet, &results, &resultsCount));
+    XCTAssertTrue(results != NULL);
+    XCTAssertEqual((size_t)countedSet.count, resultsCount);
+
+    NSArray *descendingCounts = [[[[countToResultsMap allKeys]
+                                    sortedArrayUsingSelector:@selector(compare:)]
+                                        reverseObjectEnumerator] allObjects];
+
+    // The order of results is guaranteed to be in descending order according to
+    // the count of each integer. However, if multiple integers have the same count
+    // then the order within that group is undefined. So, for each count group
+    // we iterate over the next results and make sure they are in the group.
+    NSRange range = NSMakeRange(0, 0);
+    for (NSNumber *count in descendingCounts)
+    {
+        NSSet *resultsForCount = [NSSet setWithArray:countToResultsMap[count]];
+        range.length = resultsForCount.count;
+        for (size_t i = (size_t)range.location; i < (size_t)range.length; i++)
+        {
+            XCTAssertTrue([resultsForCount containsObject:@(results[i])]);
+        }
+        range.location += range.length;
+    }
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Add/Contains/Count Integers
 // ------------------------------------------------------------------------------------------
 - (void)testAddIntegers_ZeroAndOne_CorrectValuesAndCount
