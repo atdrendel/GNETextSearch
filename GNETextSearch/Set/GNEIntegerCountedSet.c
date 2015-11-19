@@ -12,15 +12,6 @@
 
 // ------------------------------------------------------------------------------------------
 
-int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newInteger, size_t newCount);
-int _GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
-size_t _GNEIntegerCountedSetIndexForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
-size_t _GNEIntegerCountedSetInsertionIndexForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
-int _GNEIntegerCountedSetIncreaseValuesBufferIfNeeded(GNEIntegerCountedSetPtr ptr);
-
-// ------------------------------------------------------------------------------------------
-#pragma mark - Counted Set
-// ------------------------------------------------------------------------------------------
 typedef struct GNEIntegerCountedSetValue
 {
     GNEInteger integer;
@@ -35,7 +26,20 @@ typedef struct GNEIntegerCountedSet
     size_t count;
 } GNEIntegerCountedSet;
 
+// ------------------------------------------------------------------------------------------
 
+int _GNEIntegerCountedSetCopyIntegers(const GNEIntegerCountedSetValue * const values,
+                                      const size_t count, GNEInteger *outIntegers);
+int GNEIntegerCountedSetValueCompare(const void *valuePtr1, const void *valuePtr2);
+int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newInteger, size_t newCount);
+int _GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
+size_t _GNEIntegerCountedSetIndexForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
+size_t _GNEIntegerCountedSetInsertionIndexForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
+int _GNEIntegerCountedSetIncreaseValuesBufferIfNeeded(GNEIntegerCountedSetPtr ptr);
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Counted Set
+// ------------------------------------------------------------------------------------------
 GNEIntegerCountedSetPtr GNEIntegerCountedSetCreate(void)
 {
     GNEIntegerCountedSetPtr ptr = calloc(1, sizeof(GNEIntegerCountedSet));
@@ -88,12 +92,31 @@ int GNEIntegerCountedSetContainsInteger(GNEIntegerCountedSetPtr ptr, GNEInteger 
     return (_GNEIntegerCountedSetIndexForInteger(ptr, integer) == SIZE_MAX) ? FALSE : TRUE;
 }
 
+
 size_t GNEIntegerCountedSetGetCountForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer)
 {
     if (ptr == NULL || ptr->values == NULL) { return 0; }
     size_t index = _GNEIntegerCountedSetIndexForInteger(ptr, integer);
     if (index == SIZE_MAX || index >= ptr->count) { return 0; }
     return ptr->values[index].count;
+}
+
+
+extern int GNEIntegerCountedSetCopyIntegers(GNEIntegerCountedSetPtr ptr, GNEInteger **outIntegers, size_t *outCount)
+{
+    if (ptr == NULL || ptr->values == NULL || outIntegers == NULL || outCount == NULL) { return FAILURE; }
+    GNEIntegerCountedSetValue *values = ptr->values;
+    size_t count = ptr->count;
+    size_t size = sizeof(GNEInteger);
+    GNEInteger *integers = calloc(count, size);
+    if (_GNEIntegerCountedSetCopyIntegers(values, count, integers) == FAILURE) {
+        free(integers);
+        *outCount = 0;
+        return FAILURE;
+    }
+    *outIntegers = integers;
+    *outCount = count;
+    return SUCCESS;
 }
 
 
@@ -174,6 +197,35 @@ int GNEIntegerCountedSetMinusSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedS
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private
 // ------------------------------------------------------------------------------------------
+int _GNEIntegerCountedSetCopyIntegers(const GNEIntegerCountedSetValue * const values,
+                                      const size_t count, GNEInteger *integers)
+{
+    if (values == NULL || integers == NULL) { return FAILURE; }
+    if (count == 0) { return SUCCESS; }
+
+    GNEIntegerCountedSetValue valuesCopy[count];
+    size_t size = sizeof(GNEIntegerCountedSetValue);
+    memcpy(&valuesCopy, values, count * size);
+    qsort(&valuesCopy, count, size, &GNEIntegerCountedSetValueCompare);
+    for (size_t i = 0; i < count; i++) {
+        GNEIntegerCountedSetValue value = valuesCopy[i];
+        integers[i] = value.integer;
+    }
+    return SUCCESS;
+}
+
+
+int GNEIntegerCountedSetValueCompare(const void *valuePtr1, const void *valuePtr2)
+{
+    GNEIntegerCountedSetValue value1 = *(GNEIntegerCountedSetValue *)valuePtr1;
+    GNEIntegerCountedSetValue value2 = *(GNEIntegerCountedSetValue *)valuePtr2;
+
+    if (value1.count > value2.count) { return 1; }
+    if (value1.count < value2.count) { return -1; }
+    return 0;
+}
+
+
 /// Adds the specified integer to the specified counted set. The specified count is added
 /// to the integer's current count.
 int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newInteger, size_t newCount)

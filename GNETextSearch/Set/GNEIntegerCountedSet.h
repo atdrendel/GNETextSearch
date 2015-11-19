@@ -29,6 +29,11 @@ extern int GNEIntegerCountedSetContainsInteger(GNEIntegerCountedSetPtr ptr, GNEI
 /// Returns the count for the specified integer. Returns 0 if the integer is not in the set.
 extern size_t GNEIntegerCountedSetGetCountForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 
+/// Creates an array of all of the integers in the specified counted set in descending order
+/// (the integer with the largest count is returned first). On return, the specified outIntegers
+/// pointer points at the array, which must be freed by the caller.
+extern int GNEIntegerCountedSetCopyIntegers(GNEIntegerCountedSetPtr ptr, GNEInteger **outIntegers, size_t *outCount);
+
 /// Adds the specified integer to the counted set. Returns 1 if successful, otherwise 0.
 extern int GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 
