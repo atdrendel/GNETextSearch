@@ -887,6 +887,53 @@ typedef struct GNEIntegerCountedSet
 }
 
 
+- (void)testPerformance_OneHundredThousandContains__0_024
+{
+    NSArray *inserted = [self p_oneHundredThousandRandomIntegers_1];
+    NSArray *targetNumbers = [self p_oneHundredThousandRandomIntegers_2];
+
+    [self p_addNumbers:inserted toCountedSet:_countedSet];
+
+    size_t targetCount = (size_t)targetNumbers.count;
+    GNEInteger *targets = calloc(targetCount, sizeof(GNEInteger));
+    for (size_t i = 0; i < targetCount; i++)
+    {
+        targets[i] = (GNEInteger)[targetNumbers[(NSUInteger)i] longLongValue];
+    }
+
+    __block NSUInteger count = 0;
+    [self measureBlock:^()
+    {
+        for (size_t i = 0; i < targetCount; i++)
+        {
+            count += (GNEIntegerCountedSetContainsInteger(_countedSet, targets[i])) ? 1 : 0;
+        }
+    }];
+
+    XCTAssertEqual(633570, count);
+}
+
+
+- (void)testNSPerformance_OneHundredThousandContains__0_010
+{
+    NSArray *inserted = [self p_oneHundredThousandRandomIntegers_1];
+    NSArray *targets = [self p_oneHundredThousandRandomIntegers_2];
+
+    NSCountedSet *countedSet = [self p_countedSetWithNumbers:inserted];
+
+    __block NSUInteger count = 0;
+    [self measureBlock:^()
+    {
+        for (NSNumber *number in targets)
+        {
+            count += ([countedSet containsObject:number]) ? 1 : 0;
+        }
+    }];
+
+    XCTAssertEqual(633570, count);
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - Helpers
 // ------------------------------------------------------------------------------------------
