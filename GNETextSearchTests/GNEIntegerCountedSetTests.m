@@ -35,6 +35,7 @@ typedef struct GNEIntegerCountedSet
     size_t insertIndex;
 } GNEIntegerCountedSet;
 
+int _GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 
 // ------------------------------------------------------------------------------------------
 
@@ -161,6 +162,32 @@ typedef struct GNEIntegerCountedSet
     XCTAssertEqual(1, GNEIntegerCountedSetAddInteger(_countedSet, 12343232));
     XCTAssertEqual(1, _countedSet->count);
     XCTAssertEqual(1, GNEIntegerCountedSetGetCount(_countedSet));
+}
+
+
+- (void)testCount_OneIntegerTwoTimes_One
+{
+    XCTAssertEqual(1, GNEIntegerCountedSetAddInteger(_countedSet, 12343232));
+    XCTAssertEqual(1, GNEIntegerCountedSetAddInteger(_countedSet, 12343232));
+    XCTAssertEqual(1, _countedSet->count);
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCount(_countedSet));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCountForInteger(_countedSet, 12343232));
+}
+
+
+- (void)testCount_FiveIntegersMinusOne_Four
+{
+    XCTAssertEqual(1, GNEIntegerCountedSetAddInteger(_countedSet, 12343232));
+    XCTAssertEqual(1, GNEIntegerCountedSetAddInteger(_countedSet, 3223));
+    XCTAssertEqual(1, GNEIntegerCountedSetAddInteger(_countedSet, 3242351245));
+    XCTAssertEqual(1, GNEIntegerCountedSetAddInteger(_countedSet, 12312));
+    XCTAssertEqual(1, GNEIntegerCountedSetAddInteger(_countedSet, 0));
+    XCTAssertEqual(5, _countedSet->count);
+    XCTAssertEqual(5, GNEIntegerCountedSetGetCount(_countedSet));
+
+    XCTAssertEqual(1, _GNEIntegerCountedSetRemoveInteger(_countedSet, 0));
+    XCTAssertEqual(4, _countedSet->count);
+    XCTAssertEqual(4, GNEIntegerCountedSetGetCount(_countedSet));
 }
 
 
