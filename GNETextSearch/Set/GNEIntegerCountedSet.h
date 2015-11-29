@@ -37,6 +37,10 @@ extern int GNEIntegerCountedSetCopyIntegers(GNEIntegerCountedSetPtr ptr, GNEInte
 /// Adds the specified integer to the counted set. Returns 1 if successful, otherwise 0.
 extern int GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 
+/// Removes the specified integer from the counted set. Returns 1 if successful, otherwise 0.
+/// Success is unrelated to whether or not the integer exists in the counted set.
+int GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
+
 /// Adds each integer and its count in the other counted set to specified set.
 extern int GNEIntegerCountedSetUnionSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr);
 
