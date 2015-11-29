@@ -35,7 +35,6 @@ typedef struct GNEIntegerCountedSet
     size_t insertIndex;
 } GNEIntegerCountedSet;
 
-int _GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 
 // ------------------------------------------------------------------------------------------
 
@@ -185,7 +184,7 @@ int _GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger i
     XCTAssertEqual(5, _countedSet->count);
     XCTAssertEqual(5, GNEIntegerCountedSetGetCount(_countedSet));
 
-    XCTAssertEqual(1, _GNEIntegerCountedSetRemoveInteger(_countedSet, 0));
+    XCTAssertEqual(1, GNEIntegerCountedSetRemoveInteger(_countedSet, 0));
     XCTAssertEqual(4, _countedSet->count);
     XCTAssertEqual(4, GNEIntegerCountedSetGetCount(_countedSet));
 }
@@ -207,7 +206,7 @@ int _GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger i
 // ------------------------------------------------------------------------------------------
 #pragma mark - Copy Integers
 // ------------------------------------------------------------------------------------------
-- (void)testCopyIntegers_TenIntegers_TenResultsInCorrectOrder
+- (void)testCopyIntegers_FourUniqueIntegers_FourResultsInCorrectOrder
 {
     size_t count = 10;
     GNEInteger integers[] = {8, 4, 7, 4, 4, 8, 3, 4, 7, 8};
@@ -223,6 +222,28 @@ int _GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger i
     XCTAssertEqual(8, results[1]);
     XCTAssertEqual(7, results[2]);
     XCTAssertEqual(3, results[3]);
+
+    free(results);
+}
+
+
+- (void)testCopyIntegers_FourIntegersMinusTwo_TwoResultsInCorrectOrder
+{
+    size_t count = 10;
+    GNEInteger integers[] = {8, 4, 7, 4, 4, 8, 3, 4, 7, 8};
+
+    [self p_addIntegers:integers count:count toCountedSet:_countedSet];
+    XCTAssertEqual(4, GNEIntegerCountedSetGetCount(_countedSet));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetRemoveInteger(_countedSet, 4));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetRemoveInteger(_countedSet, 7));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCount(_countedSet));
+
+    GNEInteger *results = NULL;
+    size_t resultsCount = 0;
+    XCTAssertEqual(1, GNEIntegerCountedSetCopyIntegers(_countedSet, &results, &resultsCount));
+    XCTAssertEqual(resultsCount, 2);
+    XCTAssertEqual(8, results[0]);
+    XCTAssertEqual(3, results[1]);
 
     free(results);
 }
@@ -275,6 +296,8 @@ int _GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger i
         }
         range.location += range.length;
     }
+
+    free(results);
 }
 
 
@@ -442,6 +465,50 @@ int _GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger i
     [self p_addNumbers:numbers toCountedSet:_countedSet];
     NSCountedSet *nsCountedSet = [self p_countedSetWithNumbers:numbers];
     [self p_assertGNECountedSet:_countedSet isEqualToNSCountedSet:nsCountedSet];
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Remove Integer
+// ------------------------------------------------------------------------------------------
+- (void)testRemove_EmptySetRemoveOne_Success
+{
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCount(_countedSet));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetRemoveInteger(_countedSet, 1));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCount(_countedSet));
+}
+
+
+- (void)testRemove_RemoveOnlyInteger_ZeroCount
+{
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 1));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCount(_countedSet));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetRemoveInteger(_countedSet, 1));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCount(_countedSet));
+}
+
+
+- (void)testRemove_OneIntegerTwiceRemove_ZeroCount
+{
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 1));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 1));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCount(_countedSet));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCountForInteger(_countedSet, 1));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetRemoveInteger(_countedSet, 1));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCount(_countedSet));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(_countedSet, 1));
+}
+
+
+- (void)testRemove_ThreeIntegersRemoveFirst_TwoRemaining
+{
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 1));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 2));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 3));
+    XCTAssertEqual(3, GNEIntegerCountedSetGetCount(_countedSet));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetRemoveInteger(_countedSet, 1));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCount(_countedSet));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(_countedSet, 1));
 }
 
 

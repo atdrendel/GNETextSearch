@@ -44,7 +44,6 @@ int _GNEIntegerCountedSetCopyIntegers(const GNEIntegerCountedSetPtr ptr, GNEInte
                                       const size_t integersCount);
 int _CountedSetNodeCompare(const void *valuePtr1, const void *valuePtr2);
 int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newInteger, size_t countToAdd);
-int _GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 _CountedSetNodePtr _GNEIntegerCountedSetGetNodeForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 size_t _GNEIntegerCountedSetGetIndexOfNodeForIntegerInsertion(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 size_t _GNEIntegerCountedSetInsertionIndexForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer); // TODO: Remove me
@@ -144,6 +143,17 @@ int GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integ
 }
 
 
+int GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer)
+{
+    if (ptr == NULL) { return FAILURE; }
+    _CountedSetNodePtr nodePtr = _GNEIntegerCountedSetGetNodeForInteger(ptr, integer);
+    if (nodePtr == NULL) { return  SUCCESS; }
+    nodePtr->count = 0;
+    ptr->count -= 1;
+    return SUCCESS;
+}
+
+
 int GNEIntegerCountedSetUnionSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return FAILURE; }
@@ -176,7 +186,7 @@ int GNEIntegerCountedSetIntersectSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCoun
         _CountedSetNode node = nodesCopy[i];
         _CountedSetNodePtr nodePtr = _GNEIntegerCountedSetGetNodeForInteger(otherPtr, node.integer);
         if (nodePtr == NULL || nodePtr->count == 0) {
-            int result = _GNEIntegerCountedSetRemoveInteger(ptr, node.integer);
+            int result = GNEIntegerCountedSetRemoveInteger(ptr, node.integer);
             if (result == FAILURE) { free(nodesCopy); return FAILURE; }
         } else {
             size_t count = GNEIntegerCountedSetGetCountForInteger(otherPtr, node.integer);
@@ -201,7 +211,7 @@ int GNEIntegerCountedSetMinusSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedS
         _CountedSetNodePtr nodePtr = _GNEIntegerCountedSetGetNodeForInteger(ptr, otherValue.integer);
         if (nodePtr == NULL) { continue; }
         if (otherValue.count >= nodePtr->count) {
-            int result = _GNEIntegerCountedSetRemoveInteger(ptr, otherValue.integer);
+            int result = GNEIntegerCountedSetRemoveInteger(ptr, otherValue.integer);
             if (result == FAILURE) { return FAILURE; }
         } else {
             nodePtr->count -= otherValue.count;
@@ -296,17 +306,6 @@ int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newI
     if (newInteger < nodeInteger) { nodePtr->left = index; }
     else { nodePtr->right = index; }
 
-    return SUCCESS;
-}
-
-
-int _GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer)
-{
-    if (ptr == NULL) { return FAILURE; }
-    _CountedSetNodePtr nodePtr = _GNEIntegerCountedSetGetNodeForInteger(ptr, integer);
-    if (nodePtr == NULL) { return  SUCCESS; }
-    nodePtr->count = 0;
-    ptr->count -= 1;
     return SUCCESS;
 }
 
