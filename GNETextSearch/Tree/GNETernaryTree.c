@@ -125,6 +125,14 @@ GNEIntegerCountedSetPtr GNETernaryTreeSearchWithPrefix(GNETernaryTreePtr ptr, co
 }
 
 
+GNEIntegerArrayPtr GNETernaryTreeSearchWithWildcard(GNETernaryTreePtr ptr, const char *target, const char wildcard)
+{
+    if (ptr == NULL) { return NULL; }
+
+    return NULL;
+}
+
+
 int GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t *outLength)
 {
     if (ptr == NULL || outResults == NULL || outLength == NULL) { return FAILURE; }
@@ -162,6 +170,42 @@ void GNETernaryTreePrint(GNETernaryTreePtr ptr)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private
 // ------------------------------------------------------------------------------------------
+int _GNETernaryTreeSearchWithWildcard(GNETernaryTreePtr ptr,
+                                      const char *target,
+                                      const char wildcard,
+                                      GNEIntegerArrayPtr *outDocumentIDs)
+{
+    if (target == NULL || outDocumentIDs == NULL) { return FAILURE; }
+
+    if (ptr == NULL) { return SUCCESS; }
+
+    //    nodecnt++;
+    if (*target == wildcard || *target < ptr->character)
+    {
+        _GNETernaryTreeSearchWithWildcard(ptr->lower, target, wildcard, outDocumentIDs);
+    }
+    else if (*target == wildcard || *target == ptr->character)
+    {
+        if (ptr->character && *target)
+        {
+            _GNETernaryTreeSearchWithWildcard(ptr->same, (target + 1), wildcard, outDocumentIDs);
+        }
+    }
+    else if (*target == '\0' && ptr->documentIDs != NULL)
+    {
+        
+        //        srcharr[srchtop++] = (char *) p->eqkid;
+    }
+    else if (*target == wildcard || *target > ptr->character)
+    {
+        return _GNETernaryTreeSearchWithWildcard(ptr->higher, target, wildcard, outDocumentIDs);
+        //        pmsearch(p->hikid, s);
+    }
+
+    return SUCCESS;
+}
+
+
 GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target)
 {
     if (ptr == NULL) { return NULL; }
