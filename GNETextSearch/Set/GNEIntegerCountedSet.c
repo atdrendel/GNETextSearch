@@ -46,7 +46,12 @@ int _CountedSetNodeCompare(const void *valuePtr1, const void *valuePtr2);
 int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newInteger, size_t countToAdd);
 _CountedSetNodePtr _GNEIntegerCountedSetGetNodeForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 size_t _GNEIntegerCountedSetGetIndexOfNodeForIntegerInsertion(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
-size_t _GNEIntegerCountedSetInsertionIndexForInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer); // TODO: Remove me
+size_t _GNEIntegerCountedSetGetIndexOfNodeAndParentNodeForIntegerInsertion(GNEIntegerCountedSetPtr ptr,
+                                                                           GNEInteger integer,
+                                                                           size_t *outParentIndex);
+int _GNEIntegerCountedSetBalanceNodeAtIndex(_CountedSetNode *nodes, size_t index);
+void _GNEIntegerCountedSetRotateLeft(_CountedSetNode *nodes, size_t index);
+void _GNEIntegerCountedSetRotateRight(_CountedSetNode *nodes, size_t index);
 int _GNEIntegerCountedSetCreateNodeWithInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer,
                                                size_t count, size_t *outIndex);
 int _GNEIntegerCountedSetIncreaseValuesBufferIfNeeded(GNEIntegerCountedSetPtr ptr);
@@ -286,7 +291,10 @@ int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newI
         return SUCCESS;
     }
 
-    size_t insertIndex = _GNEIntegerCountedSetGetIndexOfNodeForIntegerInsertion(ptr, newInteger);
+    size_t parentIndex = SIZE_MAX;
+    size_t insertIndex = _GNEIntegerCountedSetGetIndexOfNodeAndParentNodeForIntegerInsertion(ptr,
+                                                                                             newInteger,
+                                                                                             &parentIndex);
     if (insertIndex == SIZE_MAX) { return FAILURE; }
 
     _CountedSetNode *nodePtr = &(ptr->nodes[insertIndex]);
@@ -305,6 +313,8 @@ int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newI
 
     if (newInteger < nodeInteger) { nodePtr->left = index; }
     else { nodePtr->right = index; }
+
+    _GNEIntegerCountedSetBalanceNodeAtIndex(ptr->nodes, parentIndex);
 
     return SUCCESS;
 }
@@ -326,12 +336,21 @@ _CountedSetNodePtr _GNEIntegerCountedSetGetNodeForInteger(GNEIntegerCountedSetPt
 /// a new node should be inserted. Return NULL on failure.
 size_t _GNEIntegerCountedSetGetIndexOfNodeForIntegerInsertion(GNEIntegerCountedSetPtr ptr, GNEInteger integer)
 {
+    return _GNEIntegerCountedSetGetIndexOfNodeAndParentNodeForIntegerInsertion(ptr, integer, NULL);
+}
+
+
+size_t _GNEIntegerCountedSetGetIndexOfNodeAndParentNodeForIntegerInsertion(GNEIntegerCountedSetPtr ptr,
+                                                                           GNEInteger integer,
+                                                                           size_t *outParentIndex)
+{
     if (ptr == NULL || ptr->nodes == NULL || ptr->root == NULL) { return SIZE_MAX; }
 
     _CountedSetNode *nodes = ptr->nodes;
     size_t parentIndex = SIZE_MAX;
     size_t nextIndex = 0; // Start at root
     do {
+        if (outParentIndex != NULL) { *outParentIndex = parentIndex; }
         parentIndex = nextIndex;
         _CountedSetNode parent = nodes[parentIndex];
         if (integer < parent.integer) { nextIndex = parent.left; }
@@ -340,6 +359,104 @@ size_t _GNEIntegerCountedSetGetIndexOfNodeForIntegerInsertion(GNEIntegerCountedS
     } while (nextIndex != SIZE_MAX);
 
     return parentIndex;
+}
+
+
+int _GNEIntegerCountedSetBalanceNodeAtIndex(_CountedSetNode *nodes, size_t index)
+{
+    if (nodes == NULL || index == SIZE_MAX) { return 0; }
+    _CountedSetNode node = nodes[index];
+    int leftHeight = _GNEIntegerCountedSetBalanceNodeAtIndex(nodes, node.left);
+    int rightHeight = _GNEIntegerCountedSetBalanceNodeAtIndex(nodes, node.right);
+    int height = leftHeight - rightHeight;
+    if (abs(leftHeight - rightHeight) > 1) {
+        if (height < 0) {
+            _GNEIntegerCountedSetRotateRight(nodes, index);
+        } else {
+            _GNEIntegerCountedSetRotateLeft(nodes, index);
+        }
+        height = BALANCED;
+    }
+    nodes[index].balance = height;
+    return abs(height) + 1;
+}
+
+
+void _GNEIntegerCountedSetRotateLeft(_CountedSetNode *nodes, size_t index)
+{
+    _CountedSetNode node = nodes[index];
+    size_t childIndex = node.left;
+    _CountedSetNode childNode = nodes[childIndex];
+    size_t grandchildIndex = (childNode.balance > 0) ? childNode.left : childNode.right;
+    _CountedSetNode grandchildNode = nodes[grandchildIndex];
+    if (childNode.balance > 0) {
+        //     8         7
+        //   7    ==>  2   8
+        // 2
+        nodes[index] = childNode;
+        nodes[index].left = grandchildIndex;
+        nodes[index].right = childIndex;
+        nodes[index].balance = BALANCED;
+
+        nodes[childIndex] = node;
+        nodes[childIndex].left = SIZE_MAX;
+        nodes[childIndex].balance = BALANCED;
+    } else {
+        //   8         7
+        // 2    ==>  2   8
+        //   7
+        nodes[index] = grandchildNode;
+        nodes[index].left = childIndex;
+        nodes[index].right = grandchildIndex;
+        nodes[index].balance = BALANCED;
+
+        nodes[grandchildIndex] = node;
+        nodes[grandchildIndex].left = SIZE_MAX;
+        nodes[grandchildIndex].balance = BALANCED;
+
+        nodes[childIndex].right = SIZE_MAX;
+        nodes[childIndex].balance = BALANCED;
+    }
+}
+
+
+void _GNEIntegerCountedSetRotateRight(_CountedSetNode *nodes, size_t index)
+{
+    _CountedSetNode node = nodes[index];
+    size_t childIndex = node.right;
+    _CountedSetNode childNode = nodes[childIndex];
+    size_t grandchildIndex = (childNode.balance > 0) ? childNode.left : childNode.right;
+    _CountedSetNode grandchildNode = nodes[grandchildIndex];
+    if (childNode.balance > 0) {
+        // 2           7
+        //   8  ==>  2   8
+        // 7
+        nodes[index] = grandchildNode;
+        nodes[index].left = grandchildIndex;
+        nodes[index].right = childIndex;
+        nodes[index].balance = BALANCED;
+
+        nodes[grandchildIndex] = node;
+        nodes[grandchildIndex].left = SIZE_MAX;
+        nodes[grandchildIndex].right = SIZE_MAX;
+        nodes[grandchildIndex].balance = BALANCED;
+
+        nodes[childIndex].left = SIZE_MAX;
+        nodes[childIndex].balance = BALANCED;
+    } else {
+        // 2             7
+        //   7    ==>  2   8
+        //     8
+        nodes[index] = childNode;
+        nodes[index].left = childIndex;
+        nodes[index].right = grandchildIndex;
+        nodes[index].balance = BALANCED;
+
+        nodes[childIndex] = node;
+        nodes[childIndex].left = SIZE_MAX;
+        nodes[childIndex].right = SIZE_MAX;
+        nodes[childIndex].balance = BALANCED;
+    }
 }
 
 
