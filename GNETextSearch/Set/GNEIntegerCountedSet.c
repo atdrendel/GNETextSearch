@@ -352,9 +352,8 @@ size_t _GNEIntegerCountedSetGetIndexOfNodeAndParentNodeForIntegerInsertion(GNEIn
     do {
         if (outParentIndex != NULL) { *outParentIndex = parentIndex; }
         parentIndex = nextIndex;
-        _CountedSetNode parent = nodes[parentIndex];
-        if (integer < parent.integer) { nextIndex = parent.left; }
-        else if (integer > parent.integer) { nextIndex = parent.right; }
+        if (integer < nodes[parentIndex].integer) { nextIndex = nodes[parentIndex].left; }
+        else if (integer > nodes[parentIndex].integer) { nextIndex = nodes[parentIndex].right; }
         else { return parentIndex; }
     } while (nextIndex != SIZE_MAX);
 
