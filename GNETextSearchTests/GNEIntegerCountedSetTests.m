@@ -1128,6 +1128,21 @@ typedef struct GNEIntegerCountedSet
 }
 
 
+- (void)testNSPerformance_AddTenThousandIntegers__0_004
+{
+    NSArray *numbers = [self p_tenThousandRandomIntegers_1];
+
+    [self measureBlock:^()
+    {
+        NSCountedSet *countedSet = [NSCountedSet set];
+        for (NSNumber *number in numbers)
+        {
+            [countedSet addObject:number];
+        }
+    }];
+}
+
+
 - (void)testPerformance_AddOneHundredThousandIntegers__0_700
 {
     NSArray *numbers = [self p_oneHundredThousandRandomIntegers_1];
