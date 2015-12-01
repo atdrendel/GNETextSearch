@@ -364,9 +364,8 @@ size_t _GNEIntegerCountedSetGetIndexOfNodeAndParentNodeForIntegerInsertion(GNEIn
 int _GNEIntegerCountedSetBalanceNodeAtIndex(_CountedSetNode *nodes, size_t index)
 {
     if (nodes == NULL || index == SIZE_MAX) { return 0; }
-    _CountedSetNode node = nodes[index];
-    int leftHeight = _GNEIntegerCountedSetBalanceNodeAtIndex(nodes, node.left);
-    int rightHeight = _GNEIntegerCountedSetBalanceNodeAtIndex(nodes, node.right);
+    int leftHeight = _GNEIntegerCountedSetBalanceNodeAtIndex(nodes, nodes[index].left);
+    int rightHeight = _GNEIntegerCountedSetBalanceNodeAtIndex(nodes, nodes[index].right);
     int height = leftHeight - rightHeight;
     if (abs(leftHeight - rightHeight) > 1) {
         if (height < 0) {
