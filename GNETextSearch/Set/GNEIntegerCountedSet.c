@@ -298,7 +298,7 @@ int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newI
     if (insertIndex == SIZE_MAX) { return FAILURE; }
 
     _CountedSetNode *nodePtr = &(ptr->nodes[insertIndex]);
-    GNEInteger nodeInteger = (*nodePtr).integer;
+    GNEInteger nodeInteger = nodePtr->integer;
 
     if (nodeInteger == newInteger) {
         size_t newCount = ((SIZE_MAX - nodePtr->count) >= countToAdd) ? (nodePtr->count + countToAdd) : SIZE_MAX;
