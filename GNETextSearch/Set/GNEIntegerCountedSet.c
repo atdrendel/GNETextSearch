@@ -469,15 +469,14 @@ int _GNEIntegerCountedSetCreateNodeWithInteger(GNEIntegerCountedSetPtr ptr, GNEI
         *outIndex = SIZE_MAX;
         return FAILURE;
     }
-    _CountedSetNode *values = ptr->nodes;
     size_t index = ptr->insertIndex;
     ptr->insertIndex += 1;
     ptr->count += 1;
-    values[index].integer = integer;
-    values[index].count = count;
-    values[index].balance = BALANCED;
-    values[index].left = SIZE_MAX;
-    values[index].right = SIZE_MAX;
+    ptr->nodes[index].integer = integer;
+    ptr->nodes[index].count = count;
+    ptr->nodes[index].balance = BALANCED;
+    ptr->nodes[index].left = SIZE_MAX;
+    ptr->nodes[index].right = SIZE_MAX;
     *outIndex = index;
     return SUCCESS;
 }
