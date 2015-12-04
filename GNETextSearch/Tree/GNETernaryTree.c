@@ -57,6 +57,7 @@ void GNETernaryTreeDestroy(GNETernaryTreePtr ptr)
         GNETernaryTreeDestroy(ptr->same);
         GNETernaryTreeDestroy(ptr->higher);
         GNEIntegerCountedSetDestroy(ptr->documentIDs);
+        ptr->documentIDs = NULL;
         free(ptr);
     }
 }
