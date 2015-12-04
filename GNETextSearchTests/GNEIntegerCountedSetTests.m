@@ -708,6 +708,40 @@ typedef struct GNEIntegerCountedSet
 // ------------------------------------------------------------------------------------------
 #pragma mark - Union Set
 // ------------------------------------------------------------------------------------------
+- (void)testUnionSet_PopulatedSetAndNull_EqualToPopulatedSetAndSuccess
+{
+    size_t count = 10;
+    GNEInteger integers[] = {2, 8, 7, 4, 4, 8, 3, 0, 7, 0};
+    [self p_addIntegers:integers count:count toCountedSet:_countedSet];
+
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetUnionSet(_countedSet, NULL));
+
+    XCTAssertEqual(10 * sizeof(_CountedSetNode), _countedSet->nodesCapacity);
+    XCTAssertEqual(6, _countedSet->count);
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(_countedSet, 2));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCountForInteger(_countedSet, 8));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCountForInteger(_countedSet, 7));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCountForInteger(_countedSet, 4));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(_countedSet, 3));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCountForInteger(_countedSet, 0));
+
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 2));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 8));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 7));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 4));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 3));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 0));
+
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 1));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 5));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 6));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 9));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 10));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, -1));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 993999329));
+}
+
+
 - (void)testUnionSet_PopulatedAndEmptySet_EqualToPopulatedSet
 {
     size_t count = 10;
@@ -844,6 +878,40 @@ typedef struct GNEIntegerCountedSet
 // ------------------------------------------------------------------------------------------
 #pragma mark - Intersect Set
 // ------------------------------------------------------------------------------------------
+- (void)testIntersectSet_PopulatedSetAndNull_EmptySetAndSuccess
+{
+    size_t count = 10;
+    GNEInteger integers[] = {2, 8, 7, 4, 4, 8, 3, 0, 7, 0};
+    [self p_addIntegers:integers count:count toCountedSet:_countedSet];
+
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetIntersectSet(_countedSet, NULL));
+
+    XCTAssertEqual(10 * sizeof(_CountedSetNode), _countedSet->nodesCapacity);
+    XCTAssertEqual(0, _countedSet->count);
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(_countedSet, 2));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(_countedSet, 8));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(_countedSet, 7));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(_countedSet, 4));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(_countedSet, 3));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(_countedSet, 0));
+
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 2));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 8));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 7));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 4));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 3));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 0));
+
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 1));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 5));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 6));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 9));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 10));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, -1));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 993999329));
+}
+
+
 - (void)testIntersectSet_PopulatedAndEmptySet_EqualToEmptySet
 {
     size_t count = 10;
@@ -1006,6 +1074,40 @@ typedef struct GNEIntegerCountedSet
 // ------------------------------------------------------------------------------------------
 #pragma mark - Minus Set
 // ------------------------------------------------------------------------------------------
+- (void)testMinusSet_PopulatedSetAndNULL_EqualToPopulatedSetAndSuccess
+{
+    size_t count = 10;
+    GNEInteger integers[] = {2, 8, 7, 4, 4, 8, 3, 0, 7, 0};
+    [self p_addIntegers:integers count:count toCountedSet:_countedSet];
+
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetMinusSet(_countedSet, NULL));
+
+    XCTAssertEqual(10 * sizeof(_CountedSetNode), _countedSet->nodesCapacity);
+    XCTAssertEqual(6, _countedSet->count);
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(_countedSet, 2));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCountForInteger(_countedSet, 8));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCountForInteger(_countedSet, 7));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCountForInteger(_countedSet, 4));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(_countedSet, 3));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCountForInteger(_countedSet, 0));
+
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 2));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 8));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 7));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 4));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 3));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 0));
+
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 1));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 5));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 6));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 9));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 10));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, -1));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(_countedSet, 993999329));
+}
+
+
 - (void)testMinusSet_PopulatedAndEmptySet_EqualToPopulatedSet
 {
     size_t count = 10;

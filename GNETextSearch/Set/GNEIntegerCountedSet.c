@@ -174,7 +174,7 @@ int GNEIntegerCountedSetRemoveAllIntegers(GNEIntegerCountedSetPtr ptr)
 int GNEIntegerCountedSetUnionSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return FAILURE; }
-    if (otherPtr == NULL || otherPtr->nodes == NULL) { return FAILURE; }
+    if (otherPtr == NULL || otherPtr->nodes == NULL) { return SUCCESS; }
 
     size_t otherCount = otherPtr->count;
     _CountedSetNode *otherNodes = otherPtr->nodes;
@@ -190,7 +190,9 @@ int GNEIntegerCountedSetUnionSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedS
 int GNEIntegerCountedSetIntersectSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return FAILURE; }
-    if (otherPtr == NULL || otherPtr->nodes == NULL) { return FAILURE; }
+    if (otherPtr == NULL || otherPtr->nodes == NULL) {
+        return GNEIntegerCountedSetRemoveAllIntegers(ptr);
+    }
 
     size_t actualCount = ptr->insertIndex;
 
@@ -219,7 +221,7 @@ int GNEIntegerCountedSetIntersectSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCoun
 int GNEIntegerCountedSetMinusSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return FAILURE; }
-    if (otherPtr == NULL || otherPtr->nodes == NULL) { return FAILURE; }
+    if (otherPtr == NULL || otherPtr->nodes == NULL) { return SUCCESS; }
 
     size_t otherUsedCount = otherPtr->insertIndex;
     _CountedSetNode *otherNodes = otherPtr->nodes;
