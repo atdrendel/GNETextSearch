@@ -287,7 +287,7 @@ int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newI
         size_t index = SIZE_MAX;
         int result = _GNEIntegerCountedSetCreateNodeWithInteger(ptr, newInteger, countToAdd, &index);
         if (result == FAILURE || index == SIZE_MAX) { return FAILURE; }
-        ptr->root = &ptr->nodes[index];
+        ptr->root = &(ptr->nodes[index]);
         return SUCCESS;
     }
 
