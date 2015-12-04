@@ -671,6 +671,40 @@ typedef struct GNEIntegerCountedSet
 }
 
 
+- (void)testRemove_ThreeIntegersRemoveAll_ZeroCounts
+{
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 1));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 2));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 3));
+    XCTAssertEqual(3, GNEIntegerCountedSetGetCount(_countedSet));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetRemoveAllIntegers(_countedSet));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCount(_countedSet));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(_countedSet, 1));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(_countedSet, 2));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(_countedSet, 3));
+}
+
+
+- (void)testRemove_ThreeIntegersRemoveSecondAndThenRemoveAll_ZeroCounts
+{
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 1));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 2));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 3));
+    XCTAssertEqual(3, GNEIntegerCountedSetGetCount(_countedSet));
+
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetRemoveInteger(_countedSet, 2));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCount(_countedSet));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(_countedSet, 1));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(_countedSet, 3));
+
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetRemoveAllIntegers(_countedSet));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCount(_countedSet));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(_countedSet, 1));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(_countedSet, 2));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(_countedSet, 3));
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - Union Set
 // ------------------------------------------------------------------------------------------

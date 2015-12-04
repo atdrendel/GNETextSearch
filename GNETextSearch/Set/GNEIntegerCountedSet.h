@@ -41,6 +41,9 @@ extern int GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEIntege
 /// Success is unrelated to whether or not the integer exists in the counted set.
 int GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer);
 
+/// Removes all of the integers from the counted set.
+int GNEIntegerCountedSetRemoveAllIntegers(GNEIntegerCountedSetPtr ptr);
+
 /// Adds each integer and its count in the other counted set to specified set.
 extern int GNEIntegerCountedSetUnionSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr);
 

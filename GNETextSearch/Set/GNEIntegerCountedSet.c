@@ -159,6 +159,18 @@ int GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger in
 }
 
 
+int GNEIntegerCountedSetRemoveAllIntegers(GNEIntegerCountedSetPtr ptr)
+{
+    if (ptr == NULL) { return FAILURE; }
+    size_t count = ptr->insertIndex;
+    for (size_t i = 0; i < count; i++) {
+        ptr->nodes[i].count = 0;
+    }
+    ptr->count = 0;
+    return SUCCESS;
+}
+
+
 int GNEIntegerCountedSetUnionSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return FAILURE; }
