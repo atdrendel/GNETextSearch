@@ -31,7 +31,6 @@ typedef struct _CountedSetNode
 typedef struct GNEIntegerCountedSet
 {
     _CountedSetNode *nodes;
-    _CountedSetNodePtr root;
     size_t count; // The number of nodes whose count > 0.
     size_t nodesCapacity;
     size_t insertIndex;
@@ -70,7 +69,6 @@ GNEIntegerCountedSetPtr GNEIntegerCountedSetCreate(void)
     if (nodes == NULL) { GNEIntegerCountedSetDestroy(ptr); return NULL; }
 
     ptr->nodes = nodes;
-    ptr->root = NULL;
     ptr->count = 0;
     ptr->nodesCapacity = (count * size);
     ptr->insertIndex = 0;
@@ -95,7 +93,6 @@ void GNEIntegerCountedSetDestroy(GNEIntegerCountedSetPtr ptr)
     if (ptr != NULL) {
         free(ptr->nodes);
         ptr->nodes = NULL;
-        ptr->root = NULL;
         ptr->count = 0;
         ptr->nodesCapacity = 0;
         ptr->insertIndex = 0;
@@ -297,11 +294,10 @@ int _CountedSetNodeCompare(const void *valuePtr1, const void *valuePtr2)
 int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newInteger, size_t countToAdd)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return FAILURE; }
-    if (ptr->root == NULL) {
+    if (ptr->insertIndex == 0) {
         size_t index = SIZE_MAX;
         int result = _GNEIntegerCountedSetCreateNodeWithInteger(ptr, newInteger, countToAdd, &index);
         if (result == FAILURE || index == SIZE_MAX) { return FAILURE; }
-        ptr->root = &(ptr->nodes[index]);
         return SUCCESS;
     }
 
@@ -358,7 +354,7 @@ size_t _GNEIntegerCountedSetGetIndexOfNodeAndParentNodeForIntegerInsertion(GNEIn
                                                                            GNEInteger integer,
                                                                            size_t *outParentIndex)
 {
-    if (ptr == NULL || ptr->nodes == NULL || ptr->root == NULL) { return SIZE_MAX; }
+    if (ptr == NULL || ptr->nodes == NULL || ptr->insertIndex == 0) { return SIZE_MAX; }
 
     _CountedSetNode *nodes = ptr->nodes;
     size_t parentIndex = SIZE_MAX;

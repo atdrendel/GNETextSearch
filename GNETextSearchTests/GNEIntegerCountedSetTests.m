@@ -29,7 +29,6 @@ typedef struct _CountedSetNode
 typedef struct GNEIntegerCountedSet
 {
     _CountedSetNode *nodes;
-    _CountedSetNodePtr root;
     size_t count; // The number of nodes whose count > 0.
     size_t nodesCapacity;
     size_t insertIndex;
