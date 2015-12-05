@@ -19,6 +19,7 @@ int _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, GNEMutableStringPtr conte
 int _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr);
 int _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr);
 size_t _GNETernaryTreeGetWordLength(GNETernaryTreePtr ptr);
+static inline int _GNETernaryTreeHasValidDocumentIDs(GNETernaryTreePtr ptr);
 int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength, size_t amount);
 
 // ------------------------------------------------------------------------------------------
@@ -94,14 +95,15 @@ GNETernaryTreePtr GNETernaryTreeInsert(GNETernaryTreePtr ptr, const char *newCha
 }
 
 
-GNEIntegerCountedSetPtr GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target)
+GNEIntegerCountedSetPtr GNETernaryTreeCopyResultsForSearch(GNETernaryTreePtr ptr, const char *target)
 {
     GNETernaryTreePtr foundPtr = _GNETernaryTreeSearch(ptr, target);
-    return (foundPtr != NULL) ? foundPtr->documentIDs : NULL;
+    int hasResults = _GNETernaryTreeHasValidDocumentIDs(foundPtr);
+    return (hasResults == TRUE) ? GNEIntegerCountedSetCopy(foundPtr->documentIDs) : NULL;
 }
 
 
-GNEIntegerCountedSetPtr GNETernaryTreeSearchWithPrefix(GNETernaryTreePtr ptr, const char *prefix)
+GNEIntegerCountedSetPtr GNETernaryTreeCopyResultsForPrefixSearch(GNETernaryTreePtr ptr, const char *prefix)
 {
     GNETernaryTreePtr foundPtr = _GNETernaryTreeSearch(ptr, prefix);
 
@@ -111,11 +113,14 @@ GNEIntegerCountedSetPtr GNETernaryTreeSearchWithPrefix(GNETernaryTreePtr ptr, co
 
     if (resultsPtr == NULL) { return NULL; }
 
-    if (foundPtr->documentIDs) {
+    if (_GNETernaryTreeHasValidDocumentIDs(foundPtr) == TRUE) {
         GNEIntegerCountedSetUnionSet(resultsPtr, foundPtr->documentIDs);
     }
 
-    if (_GNETernaryTreeSearchFromNode(foundPtr->same, resultsPtr) == FAILURE) { return NULL; }
+    if (_GNETernaryTreeSearchFromNode(foundPtr->same, resultsPtr) == FAILURE) {
+        GNEIntegerCountedSetDestroy(resultsPtr);
+        return NULL;
+    }
 
     if (GNEIntegerCountedSetGetCount(resultsPtr) == 0) {
         GNEIntegerCountedSetDestroy(resultsPtr);
@@ -187,7 +192,7 @@ int _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerCountedSetPtr
     if (_GNETernaryTreeSearchFromNode(ptr->lower, results) == FAILURE) { return FAILURE; }
     if (_GNETernaryTreeSearchFromNode(ptr->same, results) == FAILURE) { return FAILURE; }
 
-    if (ptr->documentIDs != NULL) {
+    if (_GNETernaryTreeHasValidDocumentIDs(ptr) == TRUE) {
         if (GNEIntegerCountedSetUnionSet(results, ptr->documentIDs) == FAILURE) { return FAILURE; }
     }
 
@@ -202,7 +207,7 @@ int _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, GNEMutableStringPtr conte
     if (ptr == NULL) { return SUCCESS; }
 
     // We've found the end of a word. Append it to the results array.
-    if (ptr->documentIDs != NULL) {
+    if (_GNETernaryTreeHasValidDocumentIDs(ptr) == TRUE) {
         if (_GNETernaryTreeCopyWord(ptr, contentsPtr) == FAILURE) { return FAILURE; }
     }
 
@@ -281,6 +286,14 @@ size_t _GNETernaryTreeGetWordLength(GNETernaryTreePtr ptr)
     }
 
     return length;
+}
+
+
+/// Return TRUE if the specified node contains one or more document IDs, otherwise FALSE;
+static inline int _GNETernaryTreeHasValidDocumentIDs(GNETernaryTreePtr ptr)
+{
+    if (ptr == NULL || ptr->documentIDs == NULL) { return FALSE; }
+    return (GNEIntegerCountedSetGetCount(ptr->documentIDs) > 0) ? TRUE : FALSE;
 }
 
 
