@@ -140,6 +140,60 @@ typedef struct GNEIntegerCountedSet
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Copy
+// ------------------------------------------------------------------------------------------
+- (void)testCopy_NullPointer_Null
+{
+    XCTAssertTrue(NULL == GNEIntegerCountedSetCopy(NULL));
+}
+
+
+- (void)testCopy_EmptySet_EquivalentSet
+{
+    GNEIntegerCountedSetPtr copyPtr = GNEIntegerCountedSetCopy(_countedSet);
+    XCTAssertTrue(_countedSet != NULL);
+    XCTAssertTrue(copyPtr != NULL);
+    XCTAssertNotEqual(_countedSet, copyPtr);
+    XCTAssertEqual(_countedSet->count, copyPtr->count);
+    XCTAssertEqual(_countedSet->nodesCapacity, copyPtr->nodesCapacity);
+    XCTAssertEqual(_countedSet->insertIndex, copyPtr->insertIndex);
+    XCTAssertEqual(0, memcmp(_countedSet->nodes, copyPtr->nodes, _countedSet->nodesCapacity));
+}
+
+
+- (void)testCopy_FiveIntegers_EquivalentSet
+{
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 12343232));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 3223));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 3242351245));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 12312));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(_countedSet, 0));
+    XCTAssertEqual(5, _countedSet->count);
+
+    GNEIntegerCountedSetPtr copyPtr = GNEIntegerCountedSetCopy(_countedSet);
+    XCTAssertTrue(_countedSet != NULL);
+    XCTAssertEqual(5, _countedSet->count);
+    XCTAssertTrue(copyPtr != NULL);
+    XCTAssertNotEqual(_countedSet, copyPtr);
+    XCTAssertEqual(_countedSet->count, copyPtr->count);
+    XCTAssertEqual(_countedSet->nodesCapacity, copyPtr->nodesCapacity);
+    XCTAssertEqual(_countedSet->insertIndex, copyPtr->insertIndex);
+    XCTAssertEqual(0, memcmp(_countedSet->nodes, copyPtr->nodes, _countedSet->nodesCapacity));
+
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 12343232));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(copyPtr, 12343232));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 3223));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(copyPtr, 3223));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 3242351245));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(copyPtr, 3242351245));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 12312));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(copyPtr, 12312));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(_countedSet, 0));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(copyPtr, 0));
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Count
 // ------------------------------------------------------------------------------------------
 - (void)testCount_NullPointer_Zero

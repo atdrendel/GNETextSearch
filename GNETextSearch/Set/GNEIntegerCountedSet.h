@@ -19,6 +19,7 @@ typedef struct GNEIntegerCountedSet * GNEIntegerCountedSetPtr;
 
 extern GNEIntegerCountedSetPtr GNEIntegerCountedSetCreate(void);
 extern GNEIntegerCountedSetPtr GNEIntegerCountedSetCreateWithInteger(GNEInteger integer);
+extern GNEIntegerCountedSetPtr GNEIntegerCountedSetCopy(GNEIntegerCountedSetPtr ptr);
 extern void GNEIntegerCountedSetDestroy(GNEIntegerCountedSetPtr ptr);
 
 extern size_t GNEIntegerCountedSetGetCount(GNEIntegerCountedSetPtr ptr);

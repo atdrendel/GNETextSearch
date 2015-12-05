@@ -88,6 +88,26 @@ GNEIntegerCountedSetPtr GNEIntegerCountedSetCreateWithInteger(GNEInteger integer
 }
 
 
+GNEIntegerCountedSetPtr GNEIntegerCountedSetCopy(GNEIntegerCountedSetPtr ptr)
+{
+    if (ptr == NULL || ptr->nodes == NULL) { return NULL; }
+
+    GNEIntegerCountedSetPtr copyPtr = calloc(1, sizeof(GNEIntegerCountedSet));
+    if (copyPtr == NULL) { return NULL; }
+
+    _CountedSetNode *nodes = malloc(ptr->nodesCapacity);
+    if (nodes == NULL) { GNEIntegerCountedSetDestroy(copyPtr); return NULL; }
+
+    memcpy(nodes, ptr->nodes, ptr->nodesCapacity);
+
+    copyPtr->nodes = nodes;
+    copyPtr->count = ptr->count;
+    copyPtr->nodesCapacity = ptr->nodesCapacity;
+    copyPtr->insertIndex = ptr->insertIndex;
+    return copyPtr;
+}
+
+
 void GNEIntegerCountedSetDestroy(GNEIntegerCountedSetPtr ptr)
 {
     if (ptr != NULL) {
