@@ -169,7 +169,7 @@ int GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger in
 {
     if (ptr == NULL) { return FAILURE; }
     _CountedSetNodePtr nodePtr = _GNEIntegerCountedSetGetNodeForInteger(ptr, integer);
-    if (nodePtr == NULL) { return  SUCCESS; }
+    if (nodePtr == NULL || nodePtr->count == 0) { return SUCCESS; }
     nodePtr->count = 0;
     ptr->count -= 1;
     return SUCCESS;

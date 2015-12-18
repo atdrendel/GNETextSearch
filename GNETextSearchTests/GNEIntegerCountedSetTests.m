@@ -931,6 +931,38 @@ typedef struct GNEIntegerCountedSet
 // ------------------------------------------------------------------------------------------
 #pragma mark - Intersect Set
 // ------------------------------------------------------------------------------------------
+- (void)testIntersectSet_ThreeEqualSets_SameIntegers
+{
+    GNEIntegerCountedSetPtr resultsPtr = GNEIntegerCountedSetCreate();
+
+    GNEIntegerCountedSetPtr onePtr = GNEIntegerCountedSetCreate();
+    GNEInteger oneIntegers[] = {2, 8, 7, 4, 4, 8, 3, 0, 7, 0};
+    [self p_addIntegers:oneIntegers count:10 toCountedSet:onePtr];
+
+    GNEIntegerCountedSetPtr twoPtr = GNEIntegerCountedSetCreate();
+    GNEInteger twoIntegers[] = {8, 3, 0, 4};
+    [self p_addIntegers:twoIntegers count:4 toCountedSet:twoPtr];
+
+    GNEIntegerCountedSetPtr threePtr = GNEIntegerCountedSetCreate();
+    GNEInteger threeIntegers[] = {4, 4, 4, 4};
+    [self p_addIntegers:threeIntegers count:4 toCountedSet:threePtr];
+
+    GNEIntegerCountedSetUnionSet(resultsPtr, onePtr);
+    XCTAssertEqual(6, GNEIntegerCountedSetGetCount(resultsPtr));
+
+    GNEIntegerCountedSetIntersectSet(resultsPtr, twoPtr);
+    XCTAssertEqual(4, GNEIntegerCountedSetGetCount(resultsPtr));
+
+    GNEIntegerCountedSetIntersectSet(resultsPtr, threePtr);
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCount(resultsPtr));
+
+    GNEIntegerCountedSetDestroy(resultsPtr);
+    GNEIntegerCountedSetDestroy(onePtr);
+    GNEIntegerCountedSetDestroy(twoPtr);
+    GNEIntegerCountedSetDestroy(threePtr);
+}
+
+
 - (void)testIntersectSet_PopulatedSetAndNull_EmptySetAndSuccess
 {
     size_t count = 10;
