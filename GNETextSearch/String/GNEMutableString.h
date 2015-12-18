@@ -10,6 +10,7 @@
 #define GNEMutableString_h
 
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef struct GNEMutableString * GNEMutableStringPtr;
 

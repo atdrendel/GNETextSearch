@@ -10,6 +10,7 @@
 #define GNEIntegerCountedSet_h
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #ifndef GNEInteger
     #define GNEInteger int64_t
