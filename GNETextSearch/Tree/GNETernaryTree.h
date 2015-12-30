@@ -16,6 +16,7 @@ typedef struct GNETernaryTreeNode *GNETernaryTreePtr;
 extern GNETernaryTreePtr GNETernaryTreeCreate(void);
 extern void GNETernaryTreeDestroy(GNETernaryTreePtr ptr);
 extern GNETernaryTreePtr GNETernaryTreeInsert(GNETernaryTreePtr ptr, const char *newCharacter, GNEInteger documentID);
+extern int GNETernaryTreeRemove(GNETernaryTreePtr ptr, GNEInteger documentID);
 
 /// Returns a GNEIntegerCountedSet with the IDs of the documents containing the target. The caller is
 /// responsible for calling GNEIntegerCountedSetDestroy().
