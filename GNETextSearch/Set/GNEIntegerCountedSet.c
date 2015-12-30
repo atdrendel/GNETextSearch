@@ -220,6 +220,7 @@ int GNEIntegerCountedSetIntersectSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCoun
 
     for (size_t i = 0; i < actualCount; i++) {
         _CountedSetNode node = nodesCopy[i];
+        if (node.count == 0) { continue; }
         _CountedSetNodePtr nodePtr = _GNEIntegerCountedSetGetNodeForInteger(otherPtr, node.integer);
         if (nodePtr == NULL || nodePtr->count == 0) {
             int result = GNEIntegerCountedSetRemoveInteger(ptr, node.integer);
