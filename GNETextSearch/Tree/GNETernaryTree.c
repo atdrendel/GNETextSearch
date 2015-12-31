@@ -316,7 +316,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     {
         if (outBuffer && *outBuffer) { free((*outBuffer)); *outBuffer = NULL; }
         if (outBufferLength) { *outBufferLength = 0; }
-        
+
         return FAILURE;
     }
 
@@ -346,6 +346,6 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 
     *outBuffer = newBuffer;
     *outBufferLength = bufferLength;
-    
+
     return SUCCESS;
 }
