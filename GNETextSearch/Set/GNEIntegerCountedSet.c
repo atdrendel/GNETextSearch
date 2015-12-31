@@ -169,7 +169,7 @@ int GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger in
 {
     if (ptr == NULL) { return FAILURE; }
     _CountedSetNodePtr nodePtr = _GNEIntegerCountedSetGetNodeForInteger(ptr, integer);
-    if (nodePtr == NULL) { return  SUCCESS; }
+    if (nodePtr == NULL || nodePtr->count == 0) { return SUCCESS; }
     nodePtr->count = 0;
     ptr->count -= 1;
     return SUCCESS;
@@ -220,6 +220,7 @@ int GNEIntegerCountedSetIntersectSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCoun
 
     for (size_t i = 0; i < actualCount; i++) {
         _CountedSetNode node = nodesCopy[i];
+        if (node.count == 0) { continue; }
         _CountedSetNodePtr nodePtr = _GNEIntegerCountedSetGetNodeForInteger(otherPtr, node.integer);
         if (nodePtr == NULL || nodePtr->count == 0) {
             int result = GNEIntegerCountedSetRemoveInteger(ptr, node.integer);

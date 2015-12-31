@@ -8,6 +8,7 @@
 
 #import <XCTest/XCTest.h>
 #import "GNETernaryTree.h"
+#import "GNETextSearchPrivate.h"
 
 
 // ------------------------------------------------------------------------------------------
@@ -385,6 +386,86 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Remove Tests
+// ------------------------------------------------------------------------------------------
+- (void)testRemove_RemoveIDFromEmptyTree_Success
+{
+    XCTAssertEqual(0, [self resultsInTree:_treePtr].count);
+    XCTAssertEqual(SUCCESS, GNETernaryTreeRemove(_treePtr, 1010));
+}
+
+
+- (void)testRemove_RemoveOnlyDocument_SuccessAndNoSearchResults
+{
+    GNEInteger documentID = 1010;
+    NSString *text = @"word";
+    [self insertWords:@[text] documentID:documentID intoTree:_treePtr];
+    XCTAssertEqual(1, [self resultsInTree:_treePtr].count);
+    [self assertCanFindWords:@[text] documentID:documentID inTree:_treePtr];
+
+    XCTAssertEqual(SUCCESS, GNETernaryTreeRemove(_treePtr, documentID));
+    XCTAssertEqual(0, [self resultsInTree:_treePtr].count);
+    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, text.UTF8String));
+}
+
+
+- (void)testRemove_RemoveOneDocumentForWordBelongingToTwoDocuments_SuccessAndCountOfOne
+{
+    GNEInteger firstID = 1234;
+    GNEInteger secondID = 2345;
+    NSArray *words = @[@"✈️"];
+    [self insertWords:words documentID:firstID intoTree:_treePtr];
+    [self insertWords:words documentID:secondID intoTree:_treePtr];
+
+    GNEIntegerCountedSetPtr resultsPtr = NULL;
+    resultsPtr = GNETernaryTreeCopyResultsForSearch(_treePtr, [words.firstObject UTF8String]);
+    XCTAssertTrue(resultsPtr != NULL);
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCount(resultsPtr));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, firstID));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(resultsPtr, firstID));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, secondID));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(resultsPtr, secondID));
+    GNEIntegerCountedSetDestroy(resultsPtr);
+
+    XCTAssertEqual(SUCCESS, GNETernaryTreeRemove(_treePtr, firstID));
+    resultsPtr = GNETernaryTreeCopyResultsForSearch(_treePtr, [words.firstObject UTF8String]);
+    XCTAssertTrue(resultsPtr != NULL);
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCount(resultsPtr));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(resultsPtr, firstID));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(resultsPtr, firstID));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, secondID));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(resultsPtr, secondID));
+    GNEIntegerCountedSetDestroy(resultsPtr);
+}
+
+
+- (void)testRemove_RemoveOneOfThreeDocuments_SuccessAndNoSearchResultsForRemoved
+{
+    GNEInteger firstID = 1234;
+    GNEInteger secondID = 2345;
+    GNEInteger thirdID = 3456;
+
+    NSArray *firstWords = @[@"these", @"words", @"won't", @"be", @"removed"];
+    NSArray *secondWords = @[@"isRemoved", @"isRemoved"];
+    NSArray *thirdWords = @[@"these", @"words", @"also", @"won't", @"be", @"removed"];
+
+    [self insertWords:firstWords documentID:firstID intoTree:_treePtr];
+    [self assertCanFindWords:firstWords documentID:firstID inTree:_treePtr];
+    [self insertWords:secondWords documentID:secondID intoTree:_treePtr];
+    [self assertCanFindWords:secondWords documentID:secondID inTree:_treePtr];
+    [self insertWords:thirdWords documentID:thirdID intoTree:_treePtr];
+    [self assertCanFindWords:thirdWords documentID:thirdID inTree:_treePtr];
+
+    XCTAssertEqual(SUCCESS, GNETernaryTreeRemove(_treePtr, secondID));
+    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, [secondWords.firstObject UTF8String]));
+    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, [secondWords.lastObject UTF8String]));
+
+    [self assertCanFindWords:firstWords documentID:firstID inTree:_treePtr];
+    [self assertCanFindWords:thirdWords documentID:thirdID inTree:_treePtr];
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Private Tests
 // ------------------------------------------------------------------------------------------
 - (void)testIncreaseCharBuffer_NullBufferPointer_ReturnsNullBufferAnd0Length
@@ -460,7 +541,23 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 
     for (NSString *word in words)
     {
-        treePtr = GNETernaryTreeInsert(treePtr, word.UTF8String, word.hash);
+        XCTAssertTrue(NULL != GNETernaryTreeInsert(treePtr, word.UTF8String, word.hash));
+    }
+}
+
+
+- (void)insertWords:(NSArray *)words
+         documentID:(GNEInteger)documentID
+           intoTree:(GNETernaryTreePtr)treePtr
+{
+    if (treePtr == NULL)
+    {
+        return;
+    }
+
+    for (NSString *word in words)
+    {
+        XCTAssertTrue(NULL != GNETernaryTreeInsert(treePtr, word.UTF8String, documentID));
     }
 }
 
@@ -473,6 +570,21 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
         size_t count = GNEIntegerCountedSetGetCount(resultsPtr);
         XCTAssertTrue(count > 0);
         XCTAssertTrue(GNEIntegerCountedSetContainsInteger(resultsPtr, (GNEInteger)word.hash));
+        GNEIntegerCountedSetDestroy(resultsPtr);
+    }
+}
+
+
+- (void)assertCanFindWords:(NSArray *)words
+                documentID:(GNEInteger)documentID
+                    inTree:(GNETernaryTreePtr)ptr
+{
+    for (NSString *word in words)
+    {
+        GNEIntegerCountedSetPtr resultsPtr = GNETernaryTreeCopyResultsForSearch(ptr, word.UTF8String);
+        size_t count = GNEIntegerCountedSetGetCount(resultsPtr);
+        XCTAssertTrue(count > 0);
+        XCTAssertTrue(GNEIntegerCountedSetContainsInteger(resultsPtr, documentID));
         GNEIntegerCountedSetDestroy(resultsPtr);
     }
 }
@@ -523,7 +635,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 
     free(results);
 
-    return [resultsStr componentsSeparatedByString:@"\n"];
+    return (resultsStr.length > 0) ? [resultsStr componentsSeparatedByString:@"\n"] : @[];
 }
 
 

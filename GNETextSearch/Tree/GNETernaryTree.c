@@ -95,6 +95,22 @@ GNETernaryTreePtr GNETernaryTreeInsert(GNETernaryTreePtr ptr, const char *newCha
 }
 
 
+int GNETernaryTreeRemove(GNETernaryTreePtr ptr, GNEInteger documentID)
+{
+    if (ptr == NULL) { return SUCCESS; }
+
+    if (_GNETernaryTreeHasValidDocumentIDs(ptr) == TRUE) {
+        if (GNEIntegerCountedSetRemoveInteger(ptr->documentIDs, documentID) == FAILURE) {
+            return FAILURE;
+        }
+    }
+
+    if (GNETernaryTreeRemove(ptr->lower, documentID) == FAILURE) { return FAILURE; }
+    if (GNETernaryTreeRemove(ptr->same, documentID) == FAILURE) { return FAILURE; }
+    return GNETernaryTreeRemove(ptr->higher, documentID);
+}
+
+
 GNEIntegerCountedSetPtr GNETernaryTreeCopyResultsForSearch(GNETernaryTreePtr ptr, const char *target)
 {
     GNETernaryTreePtr foundPtr = _GNETernaryTreeSearch(ptr, target);
@@ -189,13 +205,12 @@ int _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerCountedSetPtr
 {
     if (ptr == NULL) { return SUCCESS; }
 
-    if (_GNETernaryTreeSearchFromNode(ptr->lower, results) == FAILURE) { return FAILURE; }
-    if (_GNETernaryTreeSearchFromNode(ptr->same, results) == FAILURE) { return FAILURE; }
-
     if (_GNETernaryTreeHasValidDocumentIDs(ptr) == TRUE) {
         if (GNEIntegerCountedSetUnionSet(results, ptr->documentIDs) == FAILURE) { return FAILURE; }
     }
 
+    if (_GNETernaryTreeSearchFromNode(ptr->lower, results) == FAILURE) { return FAILURE; }
+    if (_GNETernaryTreeSearchFromNode(ptr->same, results) == FAILURE) { return FAILURE; }
     return _GNETernaryTreeSearchFromNode(ptr->higher, results);
 }
 
@@ -203,7 +218,6 @@ int _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerCountedSetPtr
 int _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr)
 {
     if (contentsPtr == NULL) { return FAILURE; }
-
     if (ptr == NULL) { return SUCCESS; }
 
     // We've found the end of a word. Append it to the results array.
@@ -211,17 +225,8 @@ int _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, GNEMutableStringPtr conte
         if (_GNETernaryTreeCopyWord(ptr, contentsPtr) == FAILURE) { return FAILURE; }
     }
 
-    // First, go down the left branches of the tree.
-    if (_GNETernaryTreeCopyContents(ptr->lower, contentsPtr) == FAILURE) {
-        return FAILURE;
-    }
-
-    // Proceed down the middle path to discover entries.
-    if (_GNETernaryTreeCopyContents(ptr->same, contentsPtr) == FAILURE) {
-        return FAILURE;
-    }
-
-    // Last, go down the right branches of the tree.
+    if (_GNETernaryTreeCopyContents(ptr->lower, contentsPtr) == FAILURE) { return FAILURE; }
+    if (_GNETernaryTreeCopyContents(ptr->same, contentsPtr) == FAILURE) { return FAILURE; }
     return _GNETernaryTreeCopyContents(ptr->higher, contentsPtr);
 }
 
@@ -311,7 +316,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     {
         if (outBuffer && *outBuffer) { free((*outBuffer)); *outBuffer = NULL; }
         if (outBufferLength) { *outBufferLength = 0; }
-        
+
         return FAILURE;
     }
 
@@ -341,6 +346,6 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 
     *outBuffer = newBuffer;
     *outBufferLength = bufferLength;
-    
+
     return SUCCESS;
 }

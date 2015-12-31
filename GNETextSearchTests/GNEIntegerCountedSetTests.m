@@ -902,6 +902,57 @@ typedef struct GNEIntegerCountedSet
 }
 
 
+- (void)testUnionSet_ThreeDifferentSets_AllIntegersWithSummedCounts
+{
+    GNEIntegerCountedSetPtr resultsPtr = GNEIntegerCountedSetCreate();
+
+    GNEIntegerCountedSetPtr onePtr = GNEIntegerCountedSetCreate();
+    GNEInteger oneIntegers[] = {2, 8, 7, 4, 4, 8, 3, 0, 7, 0};
+    [self p_addIntegers:oneIntegers count:10 toCountedSet:onePtr];
+    XCTAssertEqual(6, GNEIntegerCountedSetGetCount(onePtr));
+
+    GNEIntegerCountedSetPtr twoPtr = GNEIntegerCountedSetCreate();
+    GNEInteger twoIntegers[] = {8, 3, 101, 4};
+    [self p_addIntegers:twoIntegers count:4 toCountedSet:twoPtr];
+    XCTAssertEqual(4, GNEIntegerCountedSetGetCount(twoPtr));
+
+    GNEIntegerCountedSetPtr threePtr = GNEIntegerCountedSetCreate();
+    GNEInteger threeIntegers[] = {4, 4, 4, 9};
+    [self p_addIntegers:threeIntegers count:4 toCountedSet:threePtr];
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCount(threePtr));
+
+    GNEIntegerCountedSetUnionSet(resultsPtr, onePtr);
+    XCTAssertEqual(6, GNEIntegerCountedSetGetCount(resultsPtr));
+
+    GNEIntegerCountedSetUnionSet(resultsPtr, twoPtr);
+    XCTAssertEqual(7, GNEIntegerCountedSetGetCount(resultsPtr));
+
+    GNEIntegerCountedSetUnionSet(resultsPtr, threePtr);
+    XCTAssertEqual(8, GNEIntegerCountedSetGetCount(resultsPtr));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, 4));
+    XCTAssertEqual(6, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 4));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, 2));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 2));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, 8));
+    XCTAssertEqual(3, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 8));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, 7));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 7));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, 3));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 3));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, 0));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 0));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, 101));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 101));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, 9));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 9));
+
+    GNEIntegerCountedSetDestroy(resultsPtr);
+    GNEIntegerCountedSetDestroy(onePtr);
+    GNEIntegerCountedSetDestroy(twoPtr);
+    GNEIntegerCountedSetDestroy(threePtr);
+}
+
+
 - (void)testUnionSet_TwoRandomSets_AllIntegersWithSummedCounts
 {
     NSArray *numbers1 = [self p_randomNumberArrayWithCount:1000];
@@ -931,6 +982,53 @@ typedef struct GNEIntegerCountedSet
 // ------------------------------------------------------------------------------------------
 #pragma mark - Intersect Set
 // ------------------------------------------------------------------------------------------
+- (void)testIntersectSet_ThreeDifferentSetsWithFour_OnlyFourRemains
+{
+    GNEIntegerCountedSetPtr resultsPtr = GNEIntegerCountedSetCreate();
+
+    GNEIntegerCountedSetPtr onePtr = GNEIntegerCountedSetCreate();
+    GNEInteger oneIntegers[] = {2, 8, 7, 4, 4, 8, 3, 0, 7, 0};
+    [self p_addIntegers:oneIntegers count:10 toCountedSet:onePtr];
+    XCTAssertEqual(6, GNEIntegerCountedSetGetCount(onePtr));
+
+    GNEIntegerCountedSetPtr twoPtr = GNEIntegerCountedSetCreate();
+    GNEInteger twoIntegers[] = {8, 3, 0, 4};
+    [self p_addIntegers:twoIntegers count:4 toCountedSet:twoPtr];
+    XCTAssertEqual(4, GNEIntegerCountedSetGetCount(twoPtr));
+
+    GNEIntegerCountedSetPtr threePtr = GNEIntegerCountedSetCreate();
+    GNEInteger threeIntegers[] = {4, 4, 4, 4};
+    [self p_addIntegers:threeIntegers count:4 toCountedSet:threePtr];
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCount(threePtr));
+
+    GNEIntegerCountedSetUnionSet(resultsPtr, onePtr);
+    XCTAssertEqual(6, GNEIntegerCountedSetGetCount(resultsPtr));
+
+    GNEIntegerCountedSetIntersectSet(resultsPtr, twoPtr);
+    XCTAssertEqual(4, GNEIntegerCountedSetGetCount(resultsPtr));
+
+    GNEIntegerCountedSetIntersectSet(resultsPtr, threePtr);
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCount(resultsPtr));
+    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, 4));
+    XCTAssertEqual(7, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 4));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(resultsPtr, 2));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 2));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(resultsPtr, 8));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 8));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(resultsPtr, 7));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 7));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(resultsPtr, 3));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 3));
+    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(resultsPtr, 0));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 0));
+
+    GNEIntegerCountedSetDestroy(resultsPtr);
+    GNEIntegerCountedSetDestroy(onePtr);
+    GNEIntegerCountedSetDestroy(twoPtr);
+    GNEIntegerCountedSetDestroy(threePtr);
+}
+
+
 - (void)testIntersectSet_PopulatedSetAndNull_EmptySetAndSuccess
 {
     size_t count = 10;
@@ -1077,50 +1175,112 @@ typedef struct GNEIntegerCountedSet
 }
 
 
-- (void)testIntersectSet_TwoRandomSets_SameIntegersWithSummedCounts
+- (void)testIntersectSet_TwoSetsWithTwoIntegersAndOneSetWithOneInteger_OneIntegerWithSummedCount
+{
+    size_t count = 2;
+    GNEInteger integers[] = {1, 101};
+
+    GNEIntegerCountedSetPtr onePtr = GNEIntegerCountedSetCreate();
+    GNEIntegerCountedSetPtr twoPtr = GNEIntegerCountedSetCreate();
+    GNEIntegerCountedSetPtr threePtr = GNEIntegerCountedSetCreate();
+
+    [self p_addIntegers:integers count:count toCountedSet:onePtr];
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetAddInteger(twoPtr, 1));
+    [self p_addIntegers:integers count:count toCountedSet:threePtr];
+
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCount(onePtr));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCount(twoPtr));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCount(threePtr));
+
+    GNEIntegerCountedSetPtr resultsPtr = GNEIntegerCountedSetCreate();
+    GNEIntegerCountedSetUnionSet(resultsPtr, onePtr);
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCount(resultsPtr));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 1));
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 101));
+
+    GNEIntegerCountedSetIntersectSet(resultsPtr, twoPtr);
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCount(resultsPtr));
+    XCTAssertEqual(2, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 1));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 101));
+
+    GNEIntegerCountedSetIntersectSet(resultsPtr, threePtr);
+    XCTAssertEqual(1, GNEIntegerCountedSetGetCount(resultsPtr));
+    XCTAssertEqual(3, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 1));
+    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(resultsPtr, 101));
+}
+
+
+- (void)testIntersectSet_ThreeRandomSets_SameIntegersWithSummedCounts
 {
     NSArray *numbers1 = [self p_randomNumberArrayWithCount:1000];
     NSArray *numbers2 = [self p_randomNumberArrayWithCount:1000];
+    NSArray *numbers3 = [self p_randomNumberArrayWithCount:1000];
 
     GNEIntegerCountedSetPtr gne1 = GNEIntegerCountedSetCreate();
     GNEIntegerCountedSetPtr gne2 = GNEIntegerCountedSetCreate();
+    GNEIntegerCountedSetPtr gne3 = GNEIntegerCountedSetCreate();
+    GNEIntegerCountedSetPtr resultsPtr = GNEIntegerCountedSetCreate();
     [self p_addNumbers:numbers1 toCountedSet:gne1];
     [self p_addNumbers:numbers2 toCountedSet:gne2];
+    [self p_addNumbers:numbers3 toCountedSet:gne3];
 
     NSCountedSet *ns1 = [self p_countedSetWithNumbers:numbers1];
-    NSCountedSet *nsIntersect = [ns1 mutableCopy];
     NSCountedSet *ns2 = [self p_countedSetWithNumbers:numbers2];
+    NSCountedSet *ns3 = [self p_countedSetWithNumbers:numbers3];
+    NSCountedSet *nsResults = [ns1 mutableCopy];
 
     [self p_assertGNECountedSet:gne1 isEqualToNSCountedSet:ns1];
     [self p_assertGNECountedSet:gne2 isEqualToNSCountedSet:ns2];
+    [self p_assertGNECountedSet:gne3 isEqualToNSCountedSet:ns3];
 
-    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetIntersectSet(gne1, gne2));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetUnionSet(resultsPtr, gne1));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetIntersectSet(resultsPtr, gne2));
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetIntersectSet(resultsPtr, gne3));
 
     // -[NSCountedSet intersectSet:] resets each object's count to 1.
-    [nsIntersect intersectSet:ns2];
+    [nsResults intersectSet:ns2];
+    [nsResults intersectSet:ns3];
 
-    XCTAssertEqual((size_t)nsIntersect.count, gne1->count);
-    for (NSNumber *number in nsIntersect.allObjects)
+    XCTAssertEqual((size_t)nsResults.count, resultsPtr->count);
+    for (NSNumber *number in nsResults.allObjects)
     {
-        XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(gne1, (GNEInteger)number.integerValue));
+        XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, (GNEInteger)number.integerValue));
     }
 
-    size_t count = gne1->count;
-    _CountedSetNode *nodes = gne1->nodes;
+    GNEInteger *integersArray = NULL;
+    size_t integersCount = 0;
+    XCTAssertEqual(SUCCESS, GNEIntegerCountedSetCopyIntegers(resultsPtr, &integersArray, &integersCount));
+    XCTAssertEqual((size_t)nsResults.count, integersCount);
+    for (size_t i = 0; i < integersCount; i++)
+    {
+        GNEInteger integer = integersArray[i];
+        XCTAssertTrue([nsResults containsObject:@(integer)]);
+        XCTAssertTrue([nsResults countForObject:@(integer)] > 0);
+    }
+
+    size_t count = resultsPtr->count;
+    _CountedSetNode *nodes = resultsPtr->nodes;
     for (size_t i = 0; i < count; i++)
     {
         _CountedSetNode node = nodes[i];
         size_t nsCount = 0;
         NSNumber *integerNumber = @(node.integer);
-        if ([ns1 containsObject:integerNumber] && [ns2 containsObject:integerNumber])
+        if ([ns1 containsObject:integerNumber] &&
+            [ns2 containsObject:integerNumber] &&
+            [ns3 containsObject:integerNumber])
         {
-            nsCount = (size_t)([ns1 countForObject:integerNumber] + [ns2 countForObject:integerNumber]);
+            size_t count1 = (size_t)[ns1 countForObject:integerNumber];
+            size_t count2 = (size_t)[ns2 countForObject:integerNumber];
+            size_t count3 = (size_t)[ns3 countForObject:integerNumber];
+            nsCount = count1 + count2 + count3;
         }
         XCTAssertEqual(nsCount, node.count);
     }
 
     GNEIntegerCountedSetDestroy(gne1);
     GNEIntegerCountedSetDestroy(gne2);
+    GNEIntegerCountedSetDestroy(gne3);
+    GNEIntegerCountedSetDestroy(resultsPtr);
 }
 
 
