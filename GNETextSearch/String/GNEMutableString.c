@@ -8,7 +8,6 @@
 
 #include "GNEMutableString.h"
 #include "GNETextSearchPrivate.h"
-#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 

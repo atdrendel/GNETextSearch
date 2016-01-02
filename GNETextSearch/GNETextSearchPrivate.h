@@ -19,6 +19,16 @@
 #define TRUE 1
 #define FALSE 0
 
+static inline size_t GNENextCapacityForMultipleAndSize(const size_t capacity,
+                                                       const size_t multiple,
+                                                       const size_t size)
+{
+    const size_t kMaxSize = UINT32_MAX - 1;
+    size_t maxCapacity = kMaxSize / size;
+    size_t next = (capacity <= (maxCapacity / multiple)) ? capacity * multiple : maxCapacity;
+    return next;
+}
+
 // ------------------------------------------------------------------------------------------
 
 #endif /* GNETextSearchPrivate_h */
