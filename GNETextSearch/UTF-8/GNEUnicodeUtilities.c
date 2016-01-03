@@ -25,8 +25,10 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
+#include "GNEUnicodeUtilities.h"
 #include "GNETextSearchPrivate.h"
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 
 
@@ -75,6 +77,36 @@ int utf8_isValid(const char *s)
 }
 
 
+static inline int utf8_isSpace(uint32_t character)
+{
+    return (character == 0x0020 || character == 0x3000 || (character >= 0x2002 && character <= 0x200B)) ? TRUE : FALSE;
+}
+
+
+static inline int utf8_isTab(uint32_t character)
+{
+    return (character == 0x0009) ? TRUE : FALSE;
+}
+
+
+static inline int utf8_isNewline(uint32_t character)
+{
+    return (character == 0x000A || character == 0x000D) ? TRUE : FALSE;
+}
+
+
+static inline int utf8_isWhitespace(uint32_t character)
+{
+    return (utf8_isSpace(character) || utf8_isNewline(character) || utf8_isTab(character)) ? TRUE : FALSE;
+}
+
+
+static inline int utf8_isBreak(uint32_t character)
+{
+    return utf8_isWhitespace(character);
+}
+
+
 void utf8_printCodePoints(const char *s)
 {
 	uint32_t codePoint = 0;
@@ -120,8 +152,68 @@ void utf8_printUTF16CodePoints(const char *s)
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Range
+// ------------------------------------------------------------------------------------------
+static inline size_t range_sum(GNERange range)
+{
+    return range.location + range.length;
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Public
 // ------------------------------------------------------------------------------------------
+int GNEUnicodeTokenizeString(const char *cString, process_token process)
+{
+    if (process == NULL) { return FAILURE; }
+
+    GNERange range = {0, 0};
+
+    uint32_t codePoint = 0;
+    uint32_t state = UTF8_ACCEPT;
+
+    size_t tokenCapacity = 1024; // TODO: Make this smaller initially and adjust it.
+    size_t tokenLength = 0;
+    uint32_t *token = calloc(tokenCapacity, sizeof(uint32_t));
+    if (token == NULL) { return FAILURE; }
+
+    while (cString[range_sum(range)] != '\0') {
+        if (utf8_decode(&state, &codePoint, cString[range_sum(range)]) == UTF8_ACCEPT) {
+            // TODO: Handle invalid control characters.
+
+            if (utf8_isBreak(codePoint) == TRUE) {
+                if (tokenLength > 0) {
+                    GNERange tokenRange = {0, 0};
+                    process(cString, tokenRange, token, tokenLength);
+                }
+
+                range.location = range_sum(range) + 1;
+                range.length = 0;
+                memset(token, '\0', sizeof(uint32_t) * tokenLength);
+                tokenLength = 0;
+            } else {
+                token[tokenLength] = codePoint;
+                tokenLength += 1;
+                range.length += 1;
+
+                // TODO: Increase capacity of token, if needed.
+            }
+
+
+        } else { range.length += 1; }
+    }
+
+    if (tokenLength > 0) {
+        GNERange tokenRange = {0, 0};
+        process(cString, tokenRange, token, tokenLength);
+    }
+
+    free(token);
+
+    return SUCCESS;
+}
+
+
 int  GNEUnicodeCopyCodePoints(const char *cString, uint32_t **outCodePoints, size_t *outLength)
 {
 	if (outCodePoints == NULL || outLength == NULL) { return FAILURE; }
@@ -180,7 +272,7 @@ int GNEUnicodeCopyUTF16CodePoints(const char *cString, uint32_t **outCodePoints,
 	uint32_t currentCodePoint[2] = {0, 0};
 	size_t currentLength = 0;
 	
-	for (; *cString != '\0'; cString++) {
+	for (; length < SIZE_MAX && *cString != '\0'; cString++) {
 
 		if (utf8_decode(&state, &codePoint, *cString) != UTF8_ACCEPT) { continue; }
 

@@ -41,6 +41,31 @@
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Tokenize
+// ------------------------------------------------------------------------------------------
+- (void)testTokenize_HelloAnthony_TwoTokens
+{
+    NSString *string = @"你好 Anthony";
+    NSMutableArray *expectedTokens = [@[@"Hello", @"Anthony"] mutableCopy];
+    GNEUnicodeTokenizeString(string.UTF8String, test_process);
+}
+
+
+void test_process(const char *string, GNERange range, uint32_t *token, size_t length)
+{
+    for (size_t i = 0; i < length; i++)
+    {
+        token[i] = CFSwapInt32HostToLittle(token[i]);
+    }
+
+    NSString *tokenStr = [[NSString alloc] initWithBytes:(void *)token
+                                                  length:(sizeof(uint32_t) * (length))
+                                                encoding:NSUTF32LittleEndianStringEncoding];
+    NSLog(@"Token: %@", tokenStr);
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - UTF-8 Code Points
 // ------------------------------------------------------------------------------------------
 - (void)testUTF8_Hello_Five
