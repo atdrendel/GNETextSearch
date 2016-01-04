@@ -37,7 +37,7 @@
 
 
 // ------------------------------------------------------------------------------------------
-#pragma mark - Private
+#pragma mark - Decode
 // ------------------------------------------------------------------------------------------
 static const uint8_t utf8d[] =
 {
@@ -77,36 +77,9 @@ int utf8_isValid(const char *s)
 }
 
 
-static inline int utf8_isSpace(uint32_t character)
-{
-    return (character == 0x0020 || character == 0x3000 || (character >= 0x2002 && character <= 0x200B)) ? TRUE : FALSE;
-}
-
-
-static inline int utf8_isTab(uint32_t character)
-{
-    return (character == 0x0009) ? TRUE : FALSE;
-}
-
-
-static inline int utf8_isNewline(uint32_t character)
-{
-    return (character == 0x000A || character == 0x000D) ? TRUE : FALSE;
-}
-
-
-static inline int utf8_isWhitespace(uint32_t character)
-{
-    return (utf8_isSpace(character) || utf8_isNewline(character) || utf8_isTab(character)) ? TRUE : FALSE;
-}
-
-
-static inline int utf8_isBreak(uint32_t character)
-{
-    return utf8_isWhitespace(character);
-}
-
-
+// ------------------------------------------------------------------------------------------
+#pragma mark - Print Code Points
+// ------------------------------------------------------------------------------------------
 void utf8_printCodePoints(const char *s)
 {
 	uint32_t codePoint = 0;
@@ -152,6 +125,39 @@ void utf8_printUTF16CodePoints(const char *s)
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Character
+// ------------------------------------------------------------------------------------------
+static inline int utf8_isSpace(uint32_t character)
+{
+    return (character == 0x0020 || character == 0x3000 || (character >= 0x2002 && character <= 0x200B)) ? TRUE : FALSE;
+}
+
+
+static inline int utf8_isTab(uint32_t character)
+{
+    return (character == 0x0009) ? TRUE : FALSE;
+}
+
+
+static inline int utf8_isNewline(uint32_t character)
+{
+    return (character == 0x000A || character == 0x000D) ? TRUE : FALSE;
+}
+
+
+static inline int utf8_isWhitespace(uint32_t character)
+{
+    return (utf8_isSpace(character) || utf8_isNewline(character) || utf8_isTab(character)) ? TRUE : FALSE;
+}
+
+
+static inline int utf8_isBreak(uint32_t character)
+{
+    return utf8_isWhitespace(character);
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Range
 // ------------------------------------------------------------------------------------------
 static inline size_t range_sum(GNERange range)
@@ -163,7 +169,7 @@ static inline size_t range_sum(GNERange range)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Public
 // ------------------------------------------------------------------------------------------
-int GNEUnicodeTokenizeString(const char *cString, process_token process)
+int GNEUnicodeTokenizeString(const char *cString, process_token process, void *context)
 {
     if (process == NULL) { return FAILURE; }
 
@@ -184,12 +190,11 @@ int GNEUnicodeTokenizeString(const char *cString, process_token process)
             if (utf8_isBreak(codePoint) == TRUE) {
                 if (tokenLength > 0) {
                     GNERange tokenRange = {0, 0};
-                    process(cString, tokenRange, token, tokenLength);
+                    process(cString, tokenRange, token, tokenLength, context);
                 }
 
                 range.location = range_sum(range) + 1;
                 range.length = 0;
-                memset(token, '\0', sizeof(uint32_t) * tokenLength);
                 tokenLength = 0;
             } else {
                 token[tokenLength] = codePoint;
@@ -205,7 +210,7 @@ int GNEUnicodeTokenizeString(const char *cString, process_token process)
 
     if (tokenLength > 0) {
         GNERange tokenRange = {0, 0};
-        process(cString, tokenRange, token, tokenLength);
+        process(cString, tokenRange, token, tokenLength, context);
     }
 
     free(token);
