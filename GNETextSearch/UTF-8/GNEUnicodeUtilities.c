@@ -236,8 +236,8 @@ int  GNEUnicodeCopyCodePoints(const char *cString, uint32_t **outCodePoints, siz
 			length += 1;
 			
 			if (length == capacity) {
-				capacity = GNENextCapacityForMultipleAndSize(capacity, 2, size);
-				uint32_t *newCodePoints = realloc(codePoints, capacity * size);
+                size_t bufferLength = GNENextBufferLength(&capacity, size);
+				uint32_t *newCodePoints = realloc(codePoints, bufferLength);
 				if (newCodePoints == NULL) { free(codePoints); return FAILURE; }
 				codePoints = newCodePoints;
 			}
@@ -291,8 +291,8 @@ int GNEUnicodeCopyUTF16CodePoints(const char *cString, uint32_t **outCodePoints,
 		}
 		
 		if (length >= capacity - 1) {
-			capacity = GNENextCapacityForMultipleAndSize(capacity, 2, size);
-			uint32_t *newCodePoints = realloc(codePoints, capacity * size);
+            size_t bufferLength = GNENextBufferLength(&capacity, size);
+			uint32_t *newCodePoints = realloc(codePoints, bufferLength);
 			if (newCodePoints == NULL) { free(codePoints); return FAILURE; }
 			codePoints = newCodePoints;
 		}

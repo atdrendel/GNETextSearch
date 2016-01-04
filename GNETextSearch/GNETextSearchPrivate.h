@@ -19,14 +19,14 @@
 #define TRUE 1
 #define FALSE 0
 
-static inline size_t GNENextCapacityForMultipleAndSize(const size_t capacity,
-                                                       const size_t multiple,
-                                                       const size_t size)
+static inline size_t GNENextBufferLength(size_t *capacity, const size_t size)
 {
-    const size_t kMaxSize = UINT32_MAX - 1;
-    size_t maxCapacity = kMaxSize / size;
-    size_t next = (capacity <= (maxCapacity / multiple)) ? capacity * multiple : maxCapacity;
-    return next;
+    if (capacity == NULL) { return 0; }
+    size_t count = *capacity;
+    size_t nextCount = (count * 3) / 2;
+    size_t validCount = (nextCount > count && ((SIZE_MAX / size) > nextCount)) ? nextCount : count;
+    *capacity = validCount;
+    return validCount * size;
 }
 
 // ------------------------------------------------------------------------------------------
