@@ -125,39 +125,6 @@ void utf8_printUTF16CodePoints(const char *s)
 
 
 // ------------------------------------------------------------------------------------------
-#pragma mark - Character
-// ------------------------------------------------------------------------------------------
-static inline int utf8_isSpace(uint32_t character)
-{
-    return (character == 0x0020 || character == 0x3000 || (character >= 0x2002 && character <= 0x200B)) ? TRUE : FALSE;
-}
-
-
-static inline int utf8_isTab(uint32_t character)
-{
-    return (character == 0x0009) ? TRUE : FALSE;
-}
-
-
-static inline int utf8_isNewline(uint32_t character)
-{
-    return (character == 0x000A || character == 0x000D) ? TRUE : FALSE;
-}
-
-
-static inline int utf8_isWhitespace(uint32_t character)
-{
-    return (utf8_isSpace(character) || utf8_isNewline(character) || utf8_isTab(character)) ? TRUE : FALSE;
-}
-
-
-static inline int utf8_isBreak(uint32_t character)
-{
-    return utf8_isWhitespace(character);
-}
-
-
-// ------------------------------------------------------------------------------------------
 #pragma mark - Range
 // ------------------------------------------------------------------------------------------
 static inline size_t range_sum(GNERange range)
