@@ -80,7 +80,7 @@ GNEIntegerCountedSetPtr GNEIntegerCountedSetCreateWithInteger(GNEInteger integer
 {
     GNEIntegerCountedSetPtr ptr = GNEIntegerCountedSetCreate();
     if (ptr == NULL) { return NULL; }
-    if (GNEIntegerCountedSetAddInteger(ptr, integer) == FAILURE) {
+    if (GNEIntegerCountedSetAddInteger(ptr, integer) == failure) {
         GNEIntegerCountedSetDestroy(ptr);
         return NULL;
     }
@@ -127,10 +127,10 @@ size_t GNEIntegerCountedSetGetCount(GNEIntegerCountedSetPtr ptr)
 }
 
 
-int GNEIntegerCountedSetContainsInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer)
+bool GNEIntegerCountedSetContainsInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer)
 {
     _CountedSetNodePtr nodePtr = _GNEIntegerCountedSetGetNodeForInteger(ptr, integer);
-    return (nodePtr == NULL || nodePtr->count == 0) ? FALSE : TRUE;
+    return (nodePtr == NULL || nodePtr->count == 0) ? false : true;
 }
 
 
@@ -142,20 +142,20 @@ size_t GNEIntegerCountedSetGetCountForInteger(GNEIntegerCountedSetPtr ptr, GNEIn
 }
 
 
-extern int GNEIntegerCountedSetCopyIntegers(GNEIntegerCountedSetPtr ptr, GNEInteger **outIntegers, size_t *outCount)
+result GNEIntegerCountedSetCopyIntegers(GNEIntegerCountedSetPtr ptr, GNEInteger **outIntegers, size_t *outCount)
 {
-    if (ptr == NULL || ptr->nodes == NULL || outIntegers == NULL || outCount == NULL) { return FAILURE; }
+    if (ptr == NULL || ptr->nodes == NULL || outIntegers == NULL || outCount == NULL) { return failure; }
     size_t integersCount = ptr->count;
     size_t size = sizeof(GNEInteger);
     GNEInteger *integers = calloc(integersCount, size);
-    if (_GNEIntegerCountedSetCopyIntegers(ptr, integers, integersCount) == FAILURE) {
+    if (_GNEIntegerCountedSetCopyIntegers(ptr, integers, integersCount) == failure) {
         free(integers);
         *outCount = 0;
-        return FAILURE;
+        return failure;
     }
     *outIntegers = integers;
     *outCount = integersCount;
-    return SUCCESS;
+    return success;
 }
 
 
@@ -167,46 +167,46 @@ int GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integ
 
 int GNEIntegerCountedSetRemoveInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer)
 {
-    if (ptr == NULL) { return FAILURE; }
+    if (ptr == NULL) { return failure; }
     _CountedSetNodePtr nodePtr = _GNEIntegerCountedSetGetNodeForInteger(ptr, integer);
-    if (nodePtr == NULL || nodePtr->count == 0) { return SUCCESS; }
+    if (nodePtr == NULL || nodePtr->count == 0) { return success; }
     nodePtr->count = 0;
     ptr->count -= 1;
-    return SUCCESS;
+    return success;
 }
 
 
 int GNEIntegerCountedSetRemoveAllIntegers(GNEIntegerCountedSetPtr ptr)
 {
-    if (ptr == NULL) { return FAILURE; }
+    if (ptr == NULL) { return failure; }
     size_t count = ptr->insertIndex;
     for (size_t i = 0; i < count; i++) {
         ptr->nodes[i].count = 0;
     }
     ptr->count = 0;
-    return SUCCESS;
+    return success;
 }
 
 
 int GNEIntegerCountedSetUnionSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr)
 {
-    if (ptr == NULL || ptr->nodes == NULL) { return FAILURE; }
-    if (otherPtr == NULL || otherPtr->nodes == NULL) { return SUCCESS; }
+    if (ptr == NULL || ptr->nodes == NULL) { return failure; }
+    if (otherPtr == NULL || otherPtr->nodes == NULL) { return success; }
 
     size_t otherCount = otherPtr->count;
     _CountedSetNode *otherNodes = otherPtr->nodes;
     for (size_t i = 0; i < otherCount; i++) {
         _CountedSetNode otherValue = otherNodes[i];
         int result = _GNEIntegerCountedSetAddInteger(ptr, otherValue.integer, otherValue.count);
-        if (result == FAILURE) { return FAILURE; }
+        if (result == failure) { return failure; }
     }
-    return SUCCESS;
+    return success;
 }
 
 
 int GNEIntegerCountedSetIntersectSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr)
 {
-    if (ptr == NULL || ptr->nodes == NULL) { return FAILURE; }
+    if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     if (otherPtr == NULL || otherPtr->nodes == NULL) {
         return GNEIntegerCountedSetRemoveAllIntegers(ptr);
     }
@@ -216,7 +216,7 @@ int GNEIntegerCountedSetIntersectSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCoun
     // Copy all of the counted set's values so that we can iterate over them
     // while modifying the set.
     _CountedSetNode *nodesCopy = _GNEIntegerCountedSetCopyNodes(ptr);
-    if (nodesCopy == NULL) { return FAILURE; }
+    if (nodesCopy == NULL) { return failure; }
 
     for (size_t i = 0; i < actualCount; i++) {
         _CountedSetNode node = nodesCopy[i];
@@ -224,22 +224,22 @@ int GNEIntegerCountedSetIntersectSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCoun
         _CountedSetNodePtr nodePtr = _GNEIntegerCountedSetGetNodeForInteger(otherPtr, node.integer);
         if (nodePtr == NULL || nodePtr->count == 0) {
             int result = GNEIntegerCountedSetRemoveInteger(ptr, node.integer);
-            if (result == FAILURE) { free(nodesCopy); return FAILURE; }
+            if (result == failure) { free(nodesCopy); return failure; }
         } else {
             size_t count = GNEIntegerCountedSetGetCountForInteger(otherPtr, node.integer);
             int result = _GNEIntegerCountedSetAddInteger(ptr, node.integer, count);
-            if (result == FAILURE) { free(nodesCopy); return FAILURE; }
+            if (result == failure) { free(nodesCopy); return failure; }
         }
     }
     free(nodesCopy);
-    return SUCCESS;
+    return success;
 }
 
 
 int GNEIntegerCountedSetMinusSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedSetPtr otherPtr)
 {
-    if (ptr == NULL || ptr->nodes == NULL) { return FAILURE; }
-    if (otherPtr == NULL || otherPtr->nodes == NULL) { return SUCCESS; }
+    if (ptr == NULL || ptr->nodes == NULL) { return failure; }
+    if (otherPtr == NULL || otherPtr->nodes == NULL) { return success; }
 
     size_t otherUsedCount = otherPtr->insertIndex;
     _CountedSetNode *otherNodes = otherPtr->nodes;
@@ -249,12 +249,12 @@ int GNEIntegerCountedSetMinusSet(GNEIntegerCountedSetPtr ptr, GNEIntegerCountedS
         if (nodePtr == NULL) { continue; }
         if (otherValue.count >= nodePtr->count) {
             int result = GNEIntegerCountedSetRemoveInteger(ptr, otherValue.integer);
-            if (result == FAILURE) { return FAILURE; }
+            if (result == failure) { return failure; }
         } else {
             nodePtr->count -= otherValue.count;
         }
     }
-    return SUCCESS;
+    return success;
 }
 
 
@@ -267,7 +267,7 @@ _CountedSetNode * _GNEIntegerCountedSetCopyNodes(const GNEIntegerCountedSetPtr p
     size_t actualCount = ptr->insertIndex;
     size_t size = sizeof(_CountedSetNode);
     _CountedSetNode *nodesCopy = calloc(actualCount, size);
-    if (nodesCopy == NULL) { return FAILURE; }
+    if (nodesCopy == NULL) { return failure; }
     memcpy(nodesCopy, ptr->nodes, actualCount * size);
     return nodesCopy;
 }
@@ -276,15 +276,15 @@ _CountedSetNode * _GNEIntegerCountedSetCopyNodes(const GNEIntegerCountedSetPtr p
 int _GNEIntegerCountedSetCopyIntegers(const GNEIntegerCountedSetPtr ptr, GNEInteger *integers,
                                       const size_t integersCount)
 {
-    if (ptr == NULL || ptr->nodes == NULL) { return FAILURE; }
-    if (integers == NULL || integersCount == 0) { return FAILURE; }
+    if (ptr == NULL || ptr->nodes == NULL) { return failure; }
+    if (integers == NULL || integersCount == 0) { return failure; }
 
     size_t nodesCount = ptr->insertIndex;
     size_t size = sizeof(_CountedSetNode);
-    if (integersCount > nodesCount) { return FAILURE; }
+    if (integersCount > nodesCount) { return failure; }
 
     _CountedSetNode *nodesCopy = _GNEIntegerCountedSetCopyNodes(ptr);
-    if (nodesCopy == NULL) { return FAILURE; }
+    if (nodesCopy == NULL) { return failure; }
 
     qsort(nodesCopy, nodesCount, size, &_CountedSetNodeCompare);
 
@@ -296,7 +296,7 @@ int _GNEIntegerCountedSetCopyIntegers(const GNEIntegerCountedSetPtr ptr, GNEInte
         integers[i] = value.integer;
     }
     free(nodesCopy);
-    return SUCCESS;
+    return success;
 }
 
 
@@ -314,19 +314,19 @@ int _CountedSetNodeCompare(const void *valuePtr1, const void *valuePtr2)
 
 int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newInteger, size_t countToAdd)
 {
-    if (ptr == NULL || ptr->nodes == NULL) { return FAILURE; }
+    if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     if (ptr->insertIndex == 0) {
         size_t index = SIZE_MAX;
         int result = _GNEIntegerCountedSetCreateNodeWithInteger(ptr, newInteger, countToAdd, &index);
-        if (result == FAILURE || index == SIZE_MAX) { return FAILURE; }
-        return SUCCESS;
+        if (result == failure || index == SIZE_MAX) { return failure; }
+        return success;
     }
 
     size_t parentIndex = SIZE_MAX;
     size_t insertIndex = _GNEIntegerCountedSetGetIndexOfNodeAndParentNodeForIntegerInsertion(ptr,
                                                                                              newInteger,
                                                                                              &parentIndex);
-    if (insertIndex == SIZE_MAX) { return FAILURE; }
+    if (insertIndex == SIZE_MAX) { return failure; }
 
     _CountedSetNode *nodePtr = &(ptr->nodes[insertIndex]);
     GNEInteger nodeInteger = nodePtr->integer;
@@ -334,12 +334,12 @@ int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newI
     if (nodeInteger == newInteger) {
         size_t newCount = ((SIZE_MAX - nodePtr->count) >= countToAdd) ? (nodePtr->count + countToAdd) : SIZE_MAX;
         nodePtr->count = newCount;
-        return SUCCESS;
+        return success;
     }
 
     size_t index = SIZE_MAX;
     int result = _GNEIntegerCountedSetCreateNodeWithInteger(ptr, newInteger, countToAdd, &index);
-    if (result == FAILURE || index == SIZE_MAX) { return FAILURE; }
+    if (result == failure || index == SIZE_MAX) { return failure; }
     nodePtr = &(ptr->nodes[insertIndex]); // If ptr->nodes was realloced, we need to refresh the pointer.
 
     if (newInteger < nodeInteger) { nodePtr->left = index; }
@@ -347,7 +347,7 @@ int _GNEIntegerCountedSetAddInteger(GNEIntegerCountedSetPtr ptr, GNEInteger newI
 
     _GNEIntegerCountedSetBalanceNodeAtIndex(ptr->nodes, parentIndex);
 
-    return SUCCESS;
+    return success;
 }
 
 
@@ -493,12 +493,12 @@ void _GNEIntegerCountedSetRotateRight(_CountedSetNode *nodes, size_t index)
 int _GNEIntegerCountedSetCreateNodeWithInteger(GNEIntegerCountedSetPtr ptr, GNEInteger integer,
                                                size_t count, size_t *outIndex)
 {
-    if (outIndex == NULL) { return FAILURE; }
-    if (ptr == NULL || ptr->nodes == NULL) { *outIndex = SIZE_MAX; return FAILURE; }
-    if (ptr->insertIndex == SIZE_MAX - 1) { *outIndex = SIZE_MAX; return FAILURE; }
-    if (_GNEIntegerCountedSetIncreaseValuesBufferIfNeeded(ptr) == FAILURE) {
+    if (outIndex == NULL) { return failure; }
+    if (ptr == NULL || ptr->nodes == NULL) { *outIndex = SIZE_MAX; return failure; }
+    if (ptr->insertIndex == SIZE_MAX - 1) { *outIndex = SIZE_MAX; return failure; }
+    if (_GNEIntegerCountedSetIncreaseValuesBufferIfNeeded(ptr) == failure) {
         *outIndex = SIZE_MAX;
-        return FAILURE;
+        return failure;
     }
     size_t index = ptr->insertIndex;
     ptr->insertIndex += 1;
@@ -509,22 +509,22 @@ int _GNEIntegerCountedSetCreateNodeWithInteger(GNEIntegerCountedSetPtr ptr, GNEI
     ptr->nodes[index].left = SIZE_MAX;
     ptr->nodes[index].right = SIZE_MAX;
     *outIndex = index;
-    return SUCCESS;
+    return success;
 }
 
 
 int _GNEIntegerCountedSetIncreaseValuesBufferIfNeeded(GNEIntegerCountedSetPtr ptr)
 {
-    if (ptr == NULL || ptr->nodes == NULL) { return FAILURE; }
+    if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     size_t usedCount = ptr->insertIndex;
     size_t capacity = ptr->nodesCapacity;
     size_t emptySpaces = (capacity / sizeof(_CountedSetNode)) - usedCount;
     if (emptySpaces <= 2) {
         size_t newCapacity = capacity * 2;
         _CountedSetNode *newNodes = realloc(ptr->nodes, newCapacity);
-        if (newNodes == NULL) { return FAILURE; }
+        if (newNodes == NULL) { return failure; }
         ptr->nodes = newNodes;
         ptr->nodesCapacity = newCapacity;
     }
-    return SUCCESS;
+    return success;
 }

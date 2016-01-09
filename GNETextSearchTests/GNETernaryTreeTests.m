@@ -391,7 +391,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 - (void)testRemove_RemoveIDFromEmptyTree_Success
 {
     XCTAssertEqual(0, [self resultsInTree:_treePtr].count);
-    XCTAssertEqual(SUCCESS, GNETernaryTreeRemove(_treePtr, 1010));
+    XCTAssertEqual(success, GNETernaryTreeRemove(_treePtr, 1010));
 }
 
 
@@ -403,7 +403,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     XCTAssertEqual(1, [self resultsInTree:_treePtr].count);
     [self assertCanFindWords:@[text] documentID:documentID inTree:_treePtr];
 
-    XCTAssertEqual(SUCCESS, GNETernaryTreeRemove(_treePtr, documentID));
+    XCTAssertEqual(success, GNETernaryTreeRemove(_treePtr, documentID));
     XCTAssertEqual(0, [self resultsInTree:_treePtr].count);
     XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, text.UTF8String));
 }
@@ -427,7 +427,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(resultsPtr, secondID));
     GNEIntegerCountedSetDestroy(resultsPtr);
 
-    XCTAssertEqual(SUCCESS, GNETernaryTreeRemove(_treePtr, firstID));
+    XCTAssertEqual(success, GNETernaryTreeRemove(_treePtr, firstID));
     resultsPtr = GNETernaryTreeCopyResultsForSearch(_treePtr, [words.firstObject UTF8String]);
     XCTAssertTrue(resultsPtr != NULL);
     XCTAssertEqual(1, GNEIntegerCountedSetGetCount(resultsPtr));
@@ -456,7 +456,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     [self insertWords:thirdWords documentID:thirdID intoTree:_treePtr];
     [self assertCanFindWords:thirdWords documentID:thirdID inTree:_treePtr];
 
-    XCTAssertEqual(SUCCESS, GNETernaryTreeRemove(_treePtr, secondID));
+    XCTAssertEqual(success, GNETernaryTreeRemove(_treePtr, secondID));
     XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, [secondWords.firstObject UTF8String]));
     XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, [secondWords.lastObject UTF8String]));
 

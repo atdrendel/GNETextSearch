@@ -10,13 +10,14 @@
 #define GNETernaryTree_h
 
 #include "GNEIntegerCountedSet.h"
+#include "GNETextSearchPublic.h"
 
 typedef struct GNETernaryTreeNode *GNETernaryTreePtr;
 
 extern GNETernaryTreePtr GNETernaryTreeCreate(void);
 extern void GNETernaryTreeDestroy(GNETernaryTreePtr ptr);
 extern GNETernaryTreePtr GNETernaryTreeInsert(GNETernaryTreePtr ptr, const char *newCharacter, GNEInteger documentID);
-extern int GNETernaryTreeRemove(GNETernaryTreePtr ptr, GNEInteger documentID);
+extern result GNETernaryTreeRemove(GNETernaryTreePtr ptr, GNEInteger documentID);
 
 /// Returns a GNEIntegerCountedSet with the IDs of the documents containing the target. The caller is
 /// responsible for calling GNEIntegerCountedSetDestroy().
@@ -27,7 +28,7 @@ extern GNEIntegerCountedSetPtr GNETernaryTreeCopyResultsForSearch(GNETernaryTree
 extern GNEIntegerCountedSetPtr GNETernaryTreeCopyResultsForPrefixSearch(GNETernaryTreePtr ptr, const char *prefix);
 
 /// Copies all words contained in the tree into outResults (which much be freed by the caller).
-extern int GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t *outLength);
+extern result GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t *outLength);
 
 extern void GNETernaryTreePrint(GNETernaryTreePtr ptr);
 

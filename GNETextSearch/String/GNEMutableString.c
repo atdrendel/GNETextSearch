@@ -13,9 +13,9 @@
 
 // ------------------------------------------------------------------------------------------
 
-int _GNEMutableStringIncreaseCapacityIfNeeded(GNEMutableStringPtr ptr, size_t newLength);
+result _GNEMutableStringIncreaseCapacityIfNeeded(GNEMutableStringPtr ptr, size_t newLength);
 size_t _GNEMutableStringGetMaxCharacterCount(GNEMutableStringPtr ptr);
-int _IsValidCString(const char *cString, const size_t length);
+bool _IsValidCString(const char *cString, const size_t length);
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - String
@@ -23,7 +23,7 @@ int _IsValidCString(const char *cString, const size_t length);
 typedef struct GNEMutableString
 {
     char *buffer;
-    size_t bufferCapacity;
+    size_t capacity;
     size_t length;
 } GNEMutableString;
 
@@ -38,7 +38,7 @@ GNEMutableStringPtr GNEMutableStringCreate(void)
     if (ptr == NULL) { free(buffer); return NULL; }
 
     ptr->buffer = buffer;
-    ptr->bufferCapacity = defaultCharacterCapacity * sizeof(char);
+    ptr->capacity = defaultCharacterCapacity * sizeof(char);
     ptr->length = 0;
 
     return ptr;
@@ -48,14 +48,14 @@ GNEMutableStringPtr GNEMutableStringCreate(void)
 GNEMutableStringPtr GNEMutableStringCreateWithCString(const char *cString, const size_t length)
 {
 #if DEBUG
-    if (_IsValidCString(cString, length) == FALSE) {
+    if (_IsValidCString(cString, length) == false) {
         printf("C string parameter is not valid");
         return NULL;
     }
 #endif
 
     GNEMutableStringPtr ptr = GNEMutableStringCreate();
-    if (GNEMutableStringAppendCString(ptr, cString, length) == FAILURE) {
+    if (GNEMutableStringAppendCString(ptr, cString, length) == failure) {
         GNEMutableStringDestroy(ptr);
         return NULL;
     }
@@ -69,7 +69,7 @@ void GNEMutableStringDestroy(GNEMutableStringPtr ptr)
     if (ptr != NULL) {
         free(ptr->buffer);
         ptr->buffer = NULL;
-        ptr->bufferCapacity = 0;
+        ptr->capacity = 0;
         ptr->length = 0;
         free(ptr);
     }
@@ -92,18 +92,18 @@ char GNEMutableStringGetCharAtIndex(GNEMutableStringPtr ptr, size_t index)
 int GNEMutableStringAppendCString(GNEMutableStringPtr ptr, const char *cString, const size_t length)
 {
 #if DEBUG
-    if (_IsValidCString(cString, length) == FALSE) {
+    if (_IsValidCString(cString, length) == false) {
         printf("C string parameter is not valid");
-        return FAILURE;
+        return failure;
     }
 #endif
 
-    if (ptr == NULL || cString == NULL) { return FAILURE; }
-    if (length == 0) { return SUCCESS; }
+    if (ptr == NULL || cString == NULL) { return failure; }
+    if (length == 0) { return success; }
 
     size_t currentLength = ptr->length;
     size_t newLength = currentLength + length;
-    if (_GNEMutableStringIncreaseCapacityIfNeeded(ptr, newLength) == FAILURE) { return FAILURE; }
+    if (_GNEMutableStringIncreaseCapacityIfNeeded(ptr, newLength) == failure) { return failure; }
 
     char *buffer = ptr->buffer;
     for (size_t i = 0; i < length; i++) {
@@ -111,7 +111,7 @@ int GNEMutableStringAppendCString(GNEMutableStringPtr ptr, const char *cString, 
     }
     ptr->length = newLength;
 
-    return SUCCESS;
+    return success;
 }
 
 
@@ -149,20 +149,20 @@ void GNEMutableStringPrint(GNEMutableStringPtr ptr)
 // ------------------------------------------------------------------------------------------
 int _GNEMutableStringIncreaseCapacityIfNeeded(GNEMutableStringPtr ptr, size_t newLength)
 {
-    if (ptr == NULL || ptr->buffer == NULL) { return FAILURE; }
+    if (ptr == NULL || ptr->buffer == NULL) { return failure; }
 
     size_t maxCharacterCount = _GNEMutableStringGetMaxCharacterCount(ptr);
     if (newLength >= maxCharacterCount) {
-        size_t doubleCapacity = (2 * ptr->bufferCapacity);
+        size_t doubleCapacity = (2 * ptr->capacity);
         size_t requestedCapacity = (newLength * sizeof(char));
-        size_t newBufferCapacity = (doubleCapacity > requestedCapacity) ? doubleCapacity : requestedCapacity;
-        char *newBuffer = realloc(ptr->buffer, newBufferCapacity);
-        if (newBuffer == NULL) { return FAILURE; }
+        size_t newCapacity = (doubleCapacity > requestedCapacity) ? doubleCapacity : requestedCapacity;
+        char *newBuffer = realloc(ptr->buffer, newCapacity);
+        if (newBuffer == NULL) { return failure; }
         ptr->buffer = newBuffer;
-        ptr->bufferCapacity = newBufferCapacity;
+        ptr->capacity = newCapacity;
     }
 
-    return SUCCESS;
+    return success;
 }
 
 
@@ -171,19 +171,19 @@ size_t _GNEMutableStringGetMaxCharacterCount(GNEMutableStringPtr ptr)
     if (ptr == NULL || ptr->buffer == NULL) { return 0; }
 
     size_t charSize = sizeof(char);
-    size_t bufferCapacity = ptr->bufferCapacity;
+    size_t capacity = ptr->capacity;
 
-    return (bufferCapacity / charSize);
+    return (capacity / charSize);
 }
 
 
-int _IsValidCString(const char *cString, const size_t length)
+bool _IsValidCString(const char *cString, const size_t length)
 {
-    if (cString == NULL) { return FALSE; }
+    if (cString == NULL) { return false; }
 
     for (size_t i = 0; i < length; i++) {
-        if (cString[i] == '\0') { return FALSE; }
+        if (cString[i] == '\0') { return false; }
     }
 
-    return TRUE;
+    return true;
 }

@@ -11,14 +11,6 @@
 
 // ------------------------------------------------------------------------------------------
 
-#include <stdlib.h>
-
-#define SUCCESS 1
-#define FAILURE 0
-
-#define TRUE 1
-#define FALSE 0
-
 static inline size_t GNENextBufferLength(size_t *capacity, const size_t size)
 {
     if (capacity == NULL) { return 0; }

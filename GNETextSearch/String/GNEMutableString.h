@@ -9,8 +9,7 @@
 #ifndef GNEMutableString_h
 #define GNEMutableString_h
 
-#include <stdint.h>
-#include <stdlib.h>
+#include "GNETextSearchPublic.h"
 
 typedef struct GNEMutableString * GNEMutableStringPtr;
 
@@ -35,7 +34,7 @@ extern char GNEMutableStringGetCharAtIndex(GNEMutableStringPtr ptr, size_t index
 /// Appends the specified C char array into the mutable string. Returns 1 if successful, otherwise 0.
 /// The length parameter refers to the number of chars in cString, but should not include
 /// the null terminator.
-extern int GNEMutableStringAppendCString(GNEMutableStringPtr ptr, const char *cString, const size_t length);
+extern result GNEMutableStringAppendCString(GNEMutableStringPtr ptr, const char *cString, const size_t length);
 
 /// Returns a null-terminated char representation of the mutable string's contents.
 /// The returned char array must be freed by the caller.

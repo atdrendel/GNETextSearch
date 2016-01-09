@@ -244,7 +244,7 @@
     uint32_t *result = NULL;
     size_t resultLength = 0;
 
-    XCTAssertEqual(SUCCESS, GNEUnicodeCopyCodePoints(cString, &result, &resultLength));
+    XCTAssertEqual(success, GNEUnicodeCopyCodePoints(cString, &result, &resultLength));
     XCTAssertEqual(length, resultLength);
     for (size_t i = 0; i < resultLength; i++)
     {
@@ -260,7 +260,7 @@
     uint32_t *result = NULL;
     size_t resultLength = 0;
 
-    XCTAssertEqual(SUCCESS, GNEUnicodeCopyUTF16CodePoints(cString, &result, &resultLength));
+    XCTAssertEqual(success, GNEUnicodeCopyUTF16CodePoints(cString, &result, &resultLength));
     XCTAssertEqual(length, resultLength);
     for (size_t i = 0; i < resultLength; i++)
     {

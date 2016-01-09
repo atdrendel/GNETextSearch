@@ -14,13 +14,13 @@
 // ------------------------------------------------------------------------------------------
 
 GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target);
-int _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerCountedSetPtr results);
-int _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr);
-int _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr);
-int _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr);
+result _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerCountedSetPtr results);
+result _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr);
+result _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr);
+result _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr);
 size_t _GNETernaryTreeGetWordLength(GNETernaryTreePtr ptr);
-static inline int _GNETernaryTreeHasValidDocumentIDs(GNETernaryTreePtr ptr);
-int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength, size_t amount);
+result _GNETernaryTreeHasValidDocumentIDs(GNETernaryTreePtr ptr);
+result _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength, size_t amount);
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Tree
@@ -95,18 +95,18 @@ GNETernaryTreePtr GNETernaryTreeInsert(GNETernaryTreePtr ptr, const char *newCha
 }
 
 
-int GNETernaryTreeRemove(GNETernaryTreePtr ptr, GNEInteger documentID)
+result GNETernaryTreeRemove(GNETernaryTreePtr ptr, GNEInteger documentID)
 {
-    if (ptr == NULL) { return SUCCESS; }
+    if (ptr == NULL) { return success; }
 
-    if (_GNETernaryTreeHasValidDocumentIDs(ptr) == TRUE) {
-        if (GNEIntegerCountedSetRemoveInteger(ptr->documentIDs, documentID) == FAILURE) {
-            return FAILURE;
+    if (_GNETernaryTreeHasValidDocumentIDs(ptr) == true) {
+        if (GNEIntegerCountedSetRemoveInteger(ptr->documentIDs, documentID) == failure) {
+            return failure;
         }
     }
 
-    if (GNETernaryTreeRemove(ptr->lower, documentID) == FAILURE) { return FAILURE; }
-    if (GNETernaryTreeRemove(ptr->same, documentID) == FAILURE) { return FAILURE; }
+    if (GNETernaryTreeRemove(ptr->lower, documentID) == failure) { return failure; }
+    if (GNETernaryTreeRemove(ptr->same, documentID) == failure) { return failure; }
     return GNETernaryTreeRemove(ptr->higher, documentID);
 }
 
@@ -115,7 +115,7 @@ GNEIntegerCountedSetPtr GNETernaryTreeCopyResultsForSearch(GNETernaryTreePtr ptr
 {
     GNETernaryTreePtr foundPtr = _GNETernaryTreeSearch(ptr, target);
     int hasResults = _GNETernaryTreeHasValidDocumentIDs(foundPtr);
-    return (hasResults == TRUE) ? GNEIntegerCountedSetCopy(foundPtr->documentIDs) : NULL;
+    return (hasResults == true) ? GNEIntegerCountedSetCopy(foundPtr->documentIDs) : NULL;
 }
 
 
@@ -129,11 +129,11 @@ GNEIntegerCountedSetPtr GNETernaryTreeCopyResultsForPrefixSearch(GNETernaryTreeP
 
     if (resultsPtr == NULL) { return NULL; }
 
-    if (_GNETernaryTreeHasValidDocumentIDs(foundPtr) == TRUE) {
+    if (_GNETernaryTreeHasValidDocumentIDs(foundPtr) == true) {
         GNEIntegerCountedSetUnionSet(resultsPtr, foundPtr->documentIDs);
     }
 
-    if (_GNETernaryTreeSearchFromNode(foundPtr->same, resultsPtr) == FAILURE) {
+    if (_GNETernaryTreeSearchFromNode(foundPtr->same, resultsPtr) == failure) {
         GNEIntegerCountedSetDestroy(resultsPtr);
         return NULL;
     }
@@ -147,14 +147,14 @@ GNEIntegerCountedSetPtr GNETernaryTreeCopyResultsForPrefixSearch(GNETernaryTreeP
 }
 
 
-int GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t *outLength)
+result GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t *outLength)
 {
-    if (ptr == NULL || outResults == NULL || outLength == NULL) { return FAILURE; }
+    if (ptr == NULL || outResults == NULL || outLength == NULL) { return failure; }
 
     GNEMutableStringPtr contentsPtr = GNEMutableStringCreate();
 
     int ret = _GNETernaryTreeCopyContents(ptr, contentsPtr);
-    if (ret == SUCCESS) {
+    if (ret == success) {
         *outResults = (char *)GNEMutableStringCopyContents(contentsPtr);
         *outLength = GNEMutableStringGetLength(contentsPtr);
     } else { *outLength = 0; }
@@ -201,42 +201,42 @@ GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *targe
 }
 
 
-int _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerCountedSetPtr results)
+result _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerCountedSetPtr results)
 {
-    if (ptr == NULL) { return SUCCESS; }
+    if (ptr == NULL) { return success; }
 
-    if (_GNETernaryTreeHasValidDocumentIDs(ptr) == TRUE) {
-        if (GNEIntegerCountedSetUnionSet(results, ptr->documentIDs) == FAILURE) { return FAILURE; }
+    if (_GNETernaryTreeHasValidDocumentIDs(ptr) == true) {
+        if (GNEIntegerCountedSetUnionSet(results, ptr->documentIDs) == failure) { return failure; }
     }
 
-    if (_GNETernaryTreeSearchFromNode(ptr->lower, results) == FAILURE) { return FAILURE; }
-    if (_GNETernaryTreeSearchFromNode(ptr->same, results) == FAILURE) { return FAILURE; }
+    if (_GNETernaryTreeSearchFromNode(ptr->lower, results) == failure) { return failure; }
+    if (_GNETernaryTreeSearchFromNode(ptr->same, results) == failure) { return failure; }
     return _GNETernaryTreeSearchFromNode(ptr->higher, results);
 }
 
 
-int _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr)
+result _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr)
 {
-    if (contentsPtr == NULL) { return FAILURE; }
-    if (ptr == NULL) { return SUCCESS; }
+    if (contentsPtr == NULL) { return failure; }
+    if (ptr == NULL) { return success; }
 
     // We've found the end of a word. Append it to the results array.
-    if (_GNETernaryTreeHasValidDocumentIDs(ptr) == TRUE) {
-        if (_GNETernaryTreeCopyWord(ptr, contentsPtr) == FAILURE) { return FAILURE; }
+    if (_GNETernaryTreeHasValidDocumentIDs(ptr) == true) {
+        if (_GNETernaryTreeCopyWord(ptr, contentsPtr) == failure) { return failure; }
     }
 
-    if (_GNETernaryTreeCopyContents(ptr->lower, contentsPtr) == FAILURE) { return FAILURE; }
-    if (_GNETernaryTreeCopyContents(ptr->same, contentsPtr) == FAILURE) { return FAILURE; }
+    if (_GNETernaryTreeCopyContents(ptr->lower, contentsPtr) == failure) { return failure; }
+    if (_GNETernaryTreeCopyContents(ptr->same, contentsPtr) == failure) { return failure; }
     return _GNETernaryTreeCopyContents(ptr->higher, contentsPtr);
 }
 
 
-int _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr)
+result _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr)
 {
-    if (ptr == NULL) { return SUCCESS; }
+    if (ptr == NULL) { return success; }
 
     size_t wordLength = _GNETernaryTreeGetWordLength(ptr) + 1; // Add one for the newline.
-    if (wordLength == 1) { return SUCCESS; }
+    if (wordLength == 1) { return success; }
     char *word = calloc((wordLength), sizeof(char));
 
     size_t characterIndex = wordLength - 1;
@@ -263,15 +263,15 @@ int _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsP
 }
 
 
-/// Returns TRUE if the specified pointer is a leaf node (i.e., its lower, same, and
-/// higher pointers are NULL), otherwise FALSE.
-int _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr)
+/// Returns true if the specified pointer is a leaf node (i.e., its lower, same, and
+/// higher pointers are NULL), otherwise false.
+result _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr)
 {
     if (ptr != NULL && ptr->lower == NULL && ptr->same == NULL && ptr->higher == NULL)
     {
-        return TRUE;
+        return true;
     }
-    return FALSE;
+    return false;
 }
 
 
@@ -294,22 +294,22 @@ size_t _GNETernaryTreeGetWordLength(GNETernaryTreePtr ptr)
 }
 
 
-/// Return TRUE if the specified node contains one or more document IDs, otherwise FALSE;
-static inline int _GNETernaryTreeHasValidDocumentIDs(GNETernaryTreePtr ptr)
+/// Return true if the specified node contains one or more document IDs, otherwise false;
+result _GNETernaryTreeHasValidDocumentIDs(GNETernaryTreePtr ptr)
 {
-    if (ptr == NULL || ptr->documentIDs == NULL) { return FALSE; }
-    return (GNEIntegerCountedSetGetCount(ptr->documentIDs) > 0) ? TRUE : FALSE;
+    if (ptr == NULL || ptr->documentIDs == NULL) { return false; }
+    return (GNEIntegerCountedSetGetCount(ptr->documentIDs) > 0) ? true : false;
 }
 
 
 /// Increases the specified char buffer (of the specified length) by the specified amount.
-/// Returns SUCCESS if the realloc operation succeed, otherwise FAILURE. In case of failure,
+/// Returns success if the realloc operation succeed, otherwise failure. In case of failure,
 /// the outBuffer is freed.
-int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength, size_t amount)
+result _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength, size_t amount)
 {
     if (amount == 0)
     {
-        return SUCCESS;
+        return success;
     }
 
     if (outBuffer == NULL || (*outBuffer) == NULL || outBufferLength == NULL)
@@ -317,7 +317,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
         if (outBuffer && *outBuffer) { free((*outBuffer)); *outBuffer = NULL; }
         if (outBufferLength) { *outBufferLength = 0; }
 
-        return FAILURE;
+        return failure;
     }
 
     char *buffer = *outBuffer;
@@ -330,7 +330,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
         *outBuffer = NULL;
         if (outBufferLength) { *outBufferLength = 0; }
 
-        return FAILURE;
+        return failure;
     }
 
     bufferLength = bufferLength + amount;
@@ -341,11 +341,11 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
         *outBuffer = NULL;
         if (outBufferLength) { *outBufferLength = 0; }
 
-        return FAILURE;
+        return failure;
     }
 
     *outBuffer = newBuffer;
     *outBufferLength = bufferLength;
 
-    return SUCCESS;
+    return success;
 }
