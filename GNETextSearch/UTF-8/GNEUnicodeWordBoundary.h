@@ -42,8 +42,4 @@ static inline bool utf8_isBreak(uint32_t character)
 }
 
 
-static inline bool utf8_isWordBoundary(uint32_t character) {
-    return false;
-}
-
 #endif /* GNEUnicodeWordBoundary_h */
