@@ -9,9 +9,19 @@
 #ifndef GNETextSearchPrivate_h
 #define GNETextSearchPrivate_h
 
-// ------------------------------------------------------------------------------------------
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-static inline size_t GNENextBufferLength(size_t *capacity, const size_t size)
+#ifndef TSEARCH_INLINE
+    #if defined(_MSC_VER) && !defined(__cplusplus)
+        #define TSEARCH_INLINE __inline
+    #else
+        #define TSEARCH_INLINE inline
+    #endif
+#endif
+
+TSEARCH_INLINE size_t _tsearch_next_buf_len(size_t *capacity, const size_t size)
 {
     if (capacity == NULL) { return 0; }
     size_t count = *capacity;
@@ -21,6 +31,8 @@ static inline size_t GNENextBufferLength(size_t *capacity, const size_t size)
     return validCount * size;
 }
 
-// ------------------------------------------------------------------------------------------
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* GNETextSearchPrivate_h */

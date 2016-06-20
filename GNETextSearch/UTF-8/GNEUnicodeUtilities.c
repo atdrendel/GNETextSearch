@@ -209,7 +209,7 @@ int  GNEUnicodeCopyCodePoints(const char *cString, uint32_t **outCodePoints, siz
 			length += 1;
 			
 			if (length == capacity) {
-                size_t bufferLength = GNENextBufferLength(&capacity, size);
+                size_t bufferLength = _tsearch_next_buf_len(&capacity, size);
 				uint32_t *newCodePoints = realloc(codePoints, bufferLength);
 				if (newCodePoints == NULL) { free(codePoints); return failure; }
 				codePoints = newCodePoints;
@@ -264,7 +264,7 @@ result GNEUnicodeCopyUTF16CodePoints(const char *cString, uint32_t **outCodePoin
 		}
 		
 		if (length >= capacity - 1) {
-            size_t bufferLength = GNENextBufferLength(&capacity, size);
+            size_t bufferLength = _tsearch_next_buf_len(&capacity, size);
 			uint32_t *newCodePoints = realloc(codePoints, bufferLength);
 			if (newCodePoints == NULL) { free(codePoints); return failure; }
 			codePoints = newCodePoints;
