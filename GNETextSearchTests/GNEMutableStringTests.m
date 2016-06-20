@@ -16,7 +16,7 @@
 typedef struct GNEMutableString
 {
     char *buffer;
-    size_t bufferCapacity;
+    size_t capacity;
     size_t length;
 } GNEMutableString;
 
@@ -65,7 +65,7 @@ int _IsValidCString(const char *cString, const size_t length);
 {
     XCTAssertTrue(_mutableStringPtr != NULL);
     XCTAssertTrue(_mutableStringPtr->buffer != NULL);
-    XCTAssertEqual(_mutableStringPtr->bufferCapacity, 5 * sizeof(char));
+    XCTAssertEqual(_mutableStringPtr->capacity, 5 * sizeof(char));
     XCTAssertEqual(_mutableStringPtr->length, 0);
 }
 
@@ -81,7 +81,7 @@ int _IsValidCString(const char *cString, const size_t length);
     XCTAssertTrue(_mutableStringPtr != NULL);
     XCTAssertTrue(_mutableStringPtr->buffer != NULL);
     [self assertCString:cString isEqualToCString:_mutableStringPtr->buffer length:length];
-    XCTAssertEqual(_mutableStringPtr->bufferCapacity, 5 * sizeof(char)); // Size should not have changed.
+    XCTAssertEqual(_mutableStringPtr->capacity, 5 * sizeof(char)); // Size should not have changed.
     XCTAssertEqual(_mutableStringPtr->length, length);
 }
 
@@ -97,7 +97,7 @@ int _IsValidCString(const char *cString, const size_t length);
     XCTAssertTrue(_mutableStringPtr != NULL);
     XCTAssertTrue(_mutableStringPtr->buffer != NULL);
     [self assertCString:cString isEqualToCString:_mutableStringPtr->buffer length:length];
-    XCTAssertEqual(_mutableStringPtr->bufferCapacity, 10 * sizeof(char)); // Size should have doubled.
+    XCTAssertEqual(_mutableStringPtr->capacity, 10 * sizeof(char)); // Size should have doubled.
     XCTAssertEqual(_mutableStringPtr->length, length);
 }
 
@@ -113,7 +113,7 @@ int _IsValidCString(const char *cString, const size_t length);
     XCTAssertTrue(_mutableStringPtr != NULL);
     XCTAssertTrue(_mutableStringPtr->buffer != NULL);
     [self assertCString:cString isEqualToCString:_mutableStringPtr->buffer length:length];
-    XCTAssertEqual(_mutableStringPtr->bufferCapacity, 11 * sizeof(char)); // Size should switched to new size.
+    XCTAssertEqual(_mutableStringPtr->capacity, 11 * sizeof(char)); // Size should switched to new size.
     XCTAssertEqual(_mutableStringPtr->length, length);
 }
 
@@ -129,7 +129,7 @@ int _IsValidCString(const char *cString, const size_t length);
     XCTAssertTrue(_mutableStringPtr != NULL);
     XCTAssertTrue(_mutableStringPtr->buffer != NULL);
     [self assertCString:cString isEqualToCString:_mutableStringPtr->buffer length:length];
-    XCTAssertEqual(_mutableStringPtr->bufferCapacity, length * sizeof(char)); // Size should switched to new size.
+    XCTAssertEqual(_mutableStringPtr->capacity, length * sizeof(char)); // Size should switched to new size.
     XCTAssertEqual(_mutableStringPtr->length, length);
 }
 
@@ -225,7 +225,7 @@ int _IsValidCString(const char *cString, const size_t length);
 - (void)testAppending_FiveOneCharStrings_CorrectLengthAndContents
 {
     XCTAssertEqual(0, _mutableStringPtr->length);
-    XCTAssertEqual(5, _mutableStringPtr->bufferCapacity);
+    XCTAssertEqual(5, _mutableStringPtr->capacity);
     XCTAssertEqual(5, _GNEMutableStringGetMaxCharacterCount(_mutableStringPtr));
 
     const char *cString = "ABCDE";
@@ -237,7 +237,7 @@ int _IsValidCString(const char *cString, const size_t length);
 
     XCTAssertEqual(length, _mutableStringPtr->length);
     XCTAssertEqual(length, GNEMutableStringGetLength(_mutableStringPtr));
-    XCTAssertEqual(10, _mutableStringPtr->bufferCapacity);
+    XCTAssertEqual(10, _mutableStringPtr->capacity);
     XCTAssertEqual(10, _GNEMutableStringGetMaxCharacterCount(_mutableStringPtr));
     XCTAssertEqual(0, memcmp(cString, _mutableStringPtr->buffer, length));
     [self assertCString:cString isEqualToCString:GNEMutableStringCopyContents(_mutableStringPtr) length:length];
@@ -247,7 +247,7 @@ int _IsValidCString(const char *cString, const size_t length);
 - (void)testAppending_FiveOneLongChineseStrings_CorrectLengthAndContents
 {
     XCTAssertEqual(0, _mutableStringPtr->length);
-    XCTAssertEqual(5, _mutableStringPtr->bufferCapacity);
+    XCTAssertEqual(5, _mutableStringPtr->capacity);
     XCTAssertEqual(5, _GNEMutableStringGetMaxCharacterCount(_mutableStringPtr));
 
     size_t count = 5;
@@ -265,7 +265,7 @@ int _IsValidCString(const char *cString, const size_t length);
 
     XCTAssertEqual(length, _mutableStringPtr->length);
     XCTAssertEqual(length, GNEMutableStringGetLength(_mutableStringPtr));
-    XCTAssertEqual(43184, _mutableStringPtr->bufferCapacity);
+    XCTAssertEqual(43184, _mutableStringPtr->capacity);
     XCTAssertEqual(43184, _GNEMutableStringGetMaxCharacterCount(_mutableStringPtr));
     XCTAssertEqual(0, memcmp(targetString.UTF8String, _mutableStringPtr->buffer, length));
     [self assertCString:targetString.UTF8String isEqualToCString:GNEMutableStringCopyContents(_mutableStringPtr) length:length];

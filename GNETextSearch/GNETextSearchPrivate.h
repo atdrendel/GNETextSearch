@@ -9,26 +9,30 @@
 #ifndef GNETextSearchPrivate_h
 #define GNETextSearchPrivate_h
 
-// ------------------------------------------------------------------------------------------
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include <stdlib.h>
+#ifndef TSEARCH_INLINE
+    #if defined(_MSC_VER) && !defined(__cplusplus)
+        #define TSEARCH_INLINE __inline
+    #else
+        #define TSEARCH_INLINE static inline
+    #endif
+#endif
 
-#define SUCCESS 1
-#define FAILURE 0
-
-#define TRUE 1
-#define FALSE 0
-
-static inline size_t GNENextCapacityForMultipleAndSize(const size_t capacity,
-                                                       const size_t multiple,
-                                                       const size_t size)
+TSEARCH_INLINE size_t _tsearch_next_buf_len(size_t *capacity, const size_t size)
 {
-    const size_t kMaxSize = UINT32_MAX - 1;
-    size_t maxCapacity = kMaxSize / size;
-    size_t next = (capacity <= (maxCapacity / multiple)) ? capacity * multiple : maxCapacity;
-    return next;
+    if (capacity == NULL) { return 0; }
+    size_t count = *capacity;
+    size_t nextCount = (count * 3) / 2;
+    size_t validCount = (nextCount > count && ((SIZE_MAX / size) > nextCount)) ? nextCount : count;
+    *capacity = validCount;
+    return validCount * size;
 }
 
-// ------------------------------------------------------------------------------------------
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* GNETextSearchPrivate_h */

@@ -25,8 +25,11 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
+#include "GNEUnicodeUtilities.h"
+#include "GNEUnicodeWordBoundary.h"
 #include "GNETextSearchPrivate.h"
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 
 
@@ -35,7 +38,7 @@
 
 
 // ------------------------------------------------------------------------------------------
-#pragma mark - Private
+#pragma mark - Decode
 // ------------------------------------------------------------------------------------------
 static const uint8_t utf8d[] =
 {
@@ -71,10 +74,13 @@ int utf8_isValid(const char *s)
 	uint32_t codePoint = 0;
 	uint32_t state = UTF8_ACCEPT;
 	while (*s) { utf8_decode(&state, &codePoint, *s++); }
-	return (state == UTF8_ACCEPT) ? TRUE : FALSE;
+	return (state == UTF8_ACCEPT) ? true : false;
 }
 
 
+// ------------------------------------------------------------------------------------------
+#pragma mark - Print Code Points
+// ------------------------------------------------------------------------------------------
 void utf8_printCodePoints(const char *s)
 {
 	uint32_t codePoint = 0;
@@ -120,11 +126,75 @@ void utf8_printUTF16CodePoints(const char *s)
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Range
+// ------------------------------------------------------------------------------------------
+TSEARCH_INLINE size_t _range_sum(GNERange range)
+{
+    return range.location + range.length;
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Public
 // ------------------------------------------------------------------------------------------
+int GNEUnicodeTokenizeString(const char *cstr, process_token_func process, void *context)
+{
+    if (process == NULL) { return failure; }
+
+    GNERange range = {0, 0};
+
+    uint32_t codePoint = 0;
+    uint32_t state = UTF8_ACCEPT;
+
+    size_t tokenCapacity = 10;
+    size_t tokenLength = 0;
+    uint32_t *token = calloc(tokenCapacity, sizeof(uint32_t));
+    if (token == NULL) { return failure; }
+
+    while (cstr[_range_sum(range)] != '\0') {
+        if (utf8_decode(&state, &codePoint, cstr[_range_sum(range)]) == UTF8_ACCEPT) {
+            // TODO: Handle invalid control characters.
+
+            if (utf8_isBreak(codePoint) == true) {
+                if (tokenLength > 0) {
+                    GNERange tokenRange = {0, 0};
+                    process(cstr, tokenRange, token, tokenLength, context);
+                }
+
+                range.location = _range_sum(range) + 1;
+                range.length = 0;
+                tokenLength = 0;
+            } else {
+                token[tokenLength] = codePoint;
+                tokenLength += 1;
+                range.length += 1;
+
+                if (tokenLength + 1 >= tokenCapacity) {
+                    size_t bufferLength = _tsearch_next_buf_len(&tokenCapacity, sizeof(uint32_t));
+                    uint32_t *newToken = realloc(token, bufferLength);
+                    if (newToken == NULL) { free(token); return failure; }
+                    token = newToken;
+                }
+            }
+
+
+        } else { range.length += 1; }
+    }
+
+    if (tokenLength > 0) {
+        GNERange tokenRange = {0, 0};
+        process(cstr, tokenRange, token, tokenLength, context);
+    }
+
+    free(token);
+
+    return success;
+}
+
+
 int  GNEUnicodeCopyCodePoints(const char *cString, uint32_t **outCodePoints, size_t *outLength)
 {
-	if (outCodePoints == NULL || outLength == NULL) { return FAILURE; }
+	if (outCodePoints == NULL || outLength == NULL) { return failure; }
 	*outCodePoints = NULL;
 	*outLength = 0;
 	
@@ -136,7 +206,7 @@ int  GNEUnicodeCopyCodePoints(const char *cString, uint32_t **outCodePoints, siz
 	size_t capacity = 10;
 	size_t length = 0;
 	uint32_t *codePoints = calloc(capacity, size);
-	if (codePoints == NULL) { return FAILURE; }
+	if (codePoints == NULL) { return failure; }
 	
 	while (length < SIZE_MAX && *cString != '\0') {
 		if (utf8_decode(&state, &codePoint, *cString) == UTF8_ACCEPT) {
@@ -144,26 +214,26 @@ int  GNEUnicodeCopyCodePoints(const char *cString, uint32_t **outCodePoints, siz
 			length += 1;
 			
 			if (length == capacity) {
-				capacity = GNENextCapacityForMultipleAndSize(capacity, 2, size);
-				uint32_t *newCodePoints = realloc(codePoints, capacity * size);
-				if (newCodePoints == NULL) { free(codePoints); return FAILURE; }
+                size_t bufferLength = _tsearch_next_buf_len(&capacity, size);
+				uint32_t *newCodePoints = realloc(codePoints, bufferLength);
+				if (newCodePoints == NULL) { free(codePoints); return failure; }
 				codePoints = newCodePoints;
 			}
 		}
 		cString += 1;
 	}
 	
-	if (state != UTF8_ACCEPT) { return FAILURE; }
+	if (state != UTF8_ACCEPT) { return failure; }
 
 	*outCodePoints = codePoints;
 	*outLength = length;
-	return SUCCESS;
+	return success;
 }
 
 
-int GNEUnicodeCopyUTF16CodePoints(const char *cString, uint32_t **outCodePoints, size_t *outLength)
+result GNEUnicodeCopyUTF16CodePoints(const char *cString, uint32_t **outCodePoints, size_t *outLength)
 {
-	if (outCodePoints == NULL || outLength == NULL) { return FAILURE; }
+	if (outCodePoints == NULL || outLength == NULL) { return failure; }
 	*outCodePoints = NULL;
 	*outLength = 0;
 	
@@ -175,12 +245,12 @@ int GNEUnicodeCopyUTF16CodePoints(const char *cString, uint32_t **outCodePoints,
 	size_t capacity = 10;
 	size_t length = 0;
 	uint32_t *codePoints = calloc(capacity, size);
-	if (codePoints == NULL) { return FAILURE; }
+	if (codePoints == NULL) { return failure; }
 	
 	uint32_t currentCodePoint[2] = {0, 0};
 	size_t currentLength = 0;
 	
-	for (; *cString != '\0'; cString++) {
+	for (; length < SIZE_MAX && *cString != '\0'; cString++) {
 
 		if (utf8_decode(&state, &codePoint, *cString) != UTF8_ACCEPT) { continue; }
 
@@ -199,16 +269,16 @@ int GNEUnicodeCopyUTF16CodePoints(const char *cString, uint32_t **outCodePoints,
 		}
 		
 		if (length >= capacity - 1) {
-			capacity = GNENextCapacityForMultipleAndSize(capacity, 2, size);
-			uint32_t *newCodePoints = realloc(codePoints, capacity * size);
-			if (newCodePoints == NULL) { free(codePoints); return FAILURE; }
+            size_t bufferLength = _tsearch_next_buf_len(&capacity, size);
+			uint32_t *newCodePoints = realloc(codePoints, bufferLength);
+			if (newCodePoints == NULL) { free(codePoints); return failure; }
 			codePoints = newCodePoints;
 		}
 	}
 	
 	*outCodePoints = codePoints;
 	*outLength = length;
-	return SUCCESS;
+	return success;
 }
 
 
