@@ -75,6 +75,15 @@
     XCTAssertEqualObjects(expected, processedTokens);
 }
 
+- (void)testTokenizeTwoLongTokens
+{
+    NSString *string = @"AnthonyIsAwesomeAndThisIsOneLongToken ThisIsOneLongButShorterToken";
+    NSArray *expected = @[@"AnthonyIsAwesomeAndThisIsOneLongToken", @"ThisIsOneLongButShorterToken"];
+
+    NSMutableArray *processedTokens = [NSMutableArray array];
+    GNEUnicodeTokenizeString(string.UTF8String, p_processTestToken, (__bridge void *)processedTokens);
+    XCTAssertEqualObjects(expected, processedTokens);
+}
 
 - (void)testTokenize_WoDeMingziShiAnDongNiWithFullWidthSpaces_FiveTokens
 {

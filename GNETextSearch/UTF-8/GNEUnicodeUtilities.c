@@ -128,7 +128,7 @@ void utf8_printUTF16CodePoints(const char *s)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Range
 // ------------------------------------------------------------------------------------------
-static inline size_t range_sum(GNERange range)
+TSEARCH_INLINE size_t _range_sum(GNERange range)
 {
     return range.location + range.length;
 }
@@ -137,7 +137,7 @@ static inline size_t range_sum(GNERange range)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Public
 // ------------------------------------------------------------------------------------------
-int GNEUnicodeTokenizeString(const char *cString, process_token process, void *context)
+int GNEUnicodeTokenizeString(const char *cstr, process_token_func process, void *context)
 {
     if (process == NULL) { return failure; }
 
@@ -146,22 +146,22 @@ int GNEUnicodeTokenizeString(const char *cString, process_token process, void *c
     uint32_t codePoint = 0;
     uint32_t state = UTF8_ACCEPT;
 
-    size_t tokenCapacity = 1024; // TODO: Make this smaller initially and adjust it.
+    size_t tokenCapacity = 10;
     size_t tokenLength = 0;
     uint32_t *token = calloc(tokenCapacity, sizeof(uint32_t));
     if (token == NULL) { return failure; }
 
-    while (cString[range_sum(range)] != '\0') {
-        if (utf8_decode(&state, &codePoint, cString[range_sum(range)]) == UTF8_ACCEPT) {
+    while (cstr[_range_sum(range)] != '\0') {
+        if (utf8_decode(&state, &codePoint, cstr[_range_sum(range)]) == UTF8_ACCEPT) {
             // TODO: Handle invalid control characters.
 
             if (utf8_isBreak(codePoint) == true) {
                 if (tokenLength > 0) {
                     GNERange tokenRange = {0, 0};
-                    process(cString, tokenRange, token, tokenLength, context);
+                    process(cstr, tokenRange, token, tokenLength, context);
                 }
 
-                range.location = range_sum(range) + 1;
+                range.location = _range_sum(range) + 1;
                 range.length = 0;
                 tokenLength = 0;
             } else {
@@ -169,7 +169,12 @@ int GNEUnicodeTokenizeString(const char *cString, process_token process, void *c
                 tokenLength += 1;
                 range.length += 1;
 
-                // TODO: Increase capacity of token, if needed.
+                if (tokenLength + 1 >= tokenCapacity) {
+                    size_t bufferLength = _tsearch_next_buf_len(&tokenCapacity, sizeof(uint32_t));
+                    uint32_t *newToken = realloc(token, bufferLength);
+                    if (newToken == NULL) { free(token); return failure; }
+                    token = newToken;
+                }
             }
 
 
@@ -178,7 +183,7 @@ int GNEUnicodeTokenizeString(const char *cString, process_token process, void *c
 
     if (tokenLength > 0) {
         GNERange tokenRange = {0, 0};
-        process(cString, tokenRange, token, tokenLength, context);
+        process(cstr, tokenRange, token, tokenLength, context);
     }
 
     free(token);

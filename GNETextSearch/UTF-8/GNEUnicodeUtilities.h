@@ -12,9 +12,9 @@
 #include "GNETextSearchPublic.h"
 
 typedef struct {size_t location; size_t length;} GNERange;
-typedef void(*process_token)(const char *string, GNERange range, uint32_t *token, size_t length, void *context);
+typedef void(*process_token_func)(const char *string, GNERange range, uint32_t *token, size_t length, void *context);
 
-extern result GNEUnicodeTokenizeString(const char *cString, process_token process, void *context);
+extern result GNEUnicodeTokenizeString(const char *cString, process_token_func process, void *context);
 
 extern result GNEUnicodeCopyCodePoints(const char *cString, uint32_t **outCodePoints, size_t *outLength);
 extern result GNEUnicodeCopyUTF16CodePoints(const char *cString, uint32_t **outCodePoints, size_t *outLength);
