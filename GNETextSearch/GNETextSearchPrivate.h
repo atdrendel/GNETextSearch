@@ -17,7 +17,7 @@ extern "C" {
     #if defined(_MSC_VER) && !defined(__cplusplus)
         #define TSEARCH_INLINE __inline
     #else
-        #define TSEARCH_INLINE inline
+        #define TSEARCH_INLINE static inline
     #endif
 #endif
 
