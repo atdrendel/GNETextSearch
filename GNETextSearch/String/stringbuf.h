@@ -11,6 +11,10 @@
 
 #include "GNETextSearchPublic.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct tsearch_stringbuf * tsearch_stringbuf_ptr;
 
 /// Creates an empty mutable string. Returns a pointer to the mutable string if successful, otherwise NULL.
@@ -41,5 +45,9 @@ extern result tsearch_stringbuf_append_cstring(tsearch_stringbuf_ptr ptr, const 
 extern const char * tsearch_stringbuf_copy_cstring(tsearch_stringbuf_ptr ptr);
 
 extern void tsearch_stringbuf_print(tsearch_stringbuf_ptr ptr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* tsearch_stringbuf_h */

@@ -9,11 +9,11 @@
 #ifndef tsearch_countedset_h
 #define tsearch_countedset_h
 
+#include "GNETextSearchPublic.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "GNETextSearchPublic.h"
 
 typedef struct tsearch_countedset * tsearch_countedset_ptr;
 
