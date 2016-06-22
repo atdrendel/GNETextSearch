@@ -9,7 +9,7 @@
 #ifndef GNETernaryTree_h
 #define GNETernaryTree_h
 
-#include "GNEIntegerCountedSet.h"
+#include "countedset.h"
 #include "GNETextSearchPublic.h"
 
 typedef struct GNETernaryTreeNode *GNETernaryTreePtr;
@@ -20,12 +20,12 @@ extern GNETernaryTreePtr GNETernaryTreeInsert(GNETernaryTreePtr ptr, const char 
 extern result GNETernaryTreeRemove(GNETernaryTreePtr ptr, GNEInteger documentID);
 
 /// Returns a GNEIntegerCountedSet with the IDs of the documents containing the target. The caller is
-/// responsible for calling GNEIntegerCountedSetDestroy().
-extern GNEIntegerCountedSetPtr GNETernaryTreeCopyResultsForSearch(GNETernaryTreePtr ptr, const char *target);
+/// responsible for calling tsearch_countedset_free().
+extern tsearch_countedset_ptr GNETernaryTreeCopyResultsForSearch(GNETernaryTreePtr ptr, const char *target);
 
-/// Returns a GNEIntegerCountedSetPtr with the IDs of the documents containing the target prefix. The caller
-/// is responsible for calling GNEIntegerCountedSetDestroy().
-extern GNEIntegerCountedSetPtr GNETernaryTreeCopyResultsForPrefixSearch(GNETernaryTreePtr ptr, const char *prefix);
+/// Returns a tsearch_countedset_ptr with the IDs of the documents containing the target prefix. The caller
+/// is responsible for calling tsearch_countedset_free().
+extern tsearch_countedset_ptr GNETernaryTreeCopyResultsForPrefixSearch(GNETernaryTreePtr ptr, const char *prefix);
 
 /// Copies all words contained in the tree into outResults (which much be freed by the caller).
 extern result GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t *outLength);

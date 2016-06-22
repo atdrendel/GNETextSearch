@@ -14,7 +14,7 @@
 // ------------------------------------------------------------------------------------------
 
 GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target);
-result _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerCountedSetPtr results);
+result _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, tsearch_countedset_ptr results);
 result _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr);
 result _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr);
 result _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr);
@@ -30,7 +30,7 @@ typedef struct GNETernaryTreeNode
     char character;
     GNETernaryTreePtr parent;
     GNETernaryTreePtr lower, same, higher;
-    GNEIntegerCountedSetPtr documentIDs;
+    tsearch_countedset_ptr documentIDs;
 } GNETernaryTreeNode;
 
 
@@ -57,7 +57,7 @@ void GNETernaryTreeDestroy(GNETernaryTreePtr ptr)
         GNETernaryTreeDestroy(ptr->lower);
         GNETernaryTreeDestroy(ptr->same);
         GNETernaryTreeDestroy(ptr->higher);
-        GNEIntegerCountedSetDestroy(ptr->documentIDs);
+        tsearch_countedset_free(ptr->documentIDs);
         ptr->documentIDs = NULL;
         free(ptr);
     }
@@ -80,8 +80,8 @@ GNETernaryTreePtr GNETernaryTreeInsert(GNETernaryTreePtr ptr, const char *newCha
         ptr->lower->parent = ptr;
     } else if (*newCharacter == ptr->character) {
         if ('\0' == *(newCharacter + 1)) {
-            if (ptr->documentIDs == NULL) { ptr->documentIDs = GNEIntegerCountedSetCreate(); }
-            GNEIntegerCountedSetAddInteger(ptr->documentIDs, documentID);
+            if (ptr->documentIDs == NULL) { ptr->documentIDs = tsearch_countedset_init(); }
+            tsearch_countedset_add_int(ptr->documentIDs, documentID);
         } else {
             ptr->same = GNETernaryTreeInsert(ptr->same, (newCharacter + 1), documentID);
             ptr->same->parent = ptr;
@@ -100,7 +100,7 @@ result GNETernaryTreeRemove(GNETernaryTreePtr ptr, GNEInteger documentID)
     if (ptr == NULL) { return success; }
 
     if (_GNETernaryTreeHasValidDocumentIDs(ptr) == true) {
-        if (GNEIntegerCountedSetRemoveInteger(ptr->documentIDs, documentID) == failure) {
+        if (tsearch_countedset_remove_int(ptr->documentIDs, documentID) == failure) {
             return failure;
         }
     }
@@ -111,35 +111,35 @@ result GNETernaryTreeRemove(GNETernaryTreePtr ptr, GNEInteger documentID)
 }
 
 
-GNEIntegerCountedSetPtr GNETernaryTreeCopyResultsForSearch(GNETernaryTreePtr ptr, const char *target)
+tsearch_countedset_ptr GNETernaryTreeCopyResultsForSearch(GNETernaryTreePtr ptr, const char *target)
 {
     GNETernaryTreePtr foundPtr = _GNETernaryTreeSearch(ptr, target);
     int hasResults = _GNETernaryTreeHasValidDocumentIDs(foundPtr);
-    return (hasResults == true) ? GNEIntegerCountedSetCopy(foundPtr->documentIDs) : NULL;
+    return (hasResults == true) ? tsearch_countedset_copy(foundPtr->documentIDs) : NULL;
 }
 
 
-GNEIntegerCountedSetPtr GNETernaryTreeCopyResultsForPrefixSearch(GNETernaryTreePtr ptr, const char *prefix)
+tsearch_countedset_ptr GNETernaryTreeCopyResultsForPrefixSearch(GNETernaryTreePtr ptr, const char *prefix)
 {
     GNETernaryTreePtr foundPtr = _GNETernaryTreeSearch(ptr, prefix);
 
     if (foundPtr == NULL) { return NULL; }
 
-    GNEIntegerCountedSetPtr resultsPtr = GNEIntegerCountedSetCreate();
+    tsearch_countedset_ptr resultsPtr = tsearch_countedset_init();
 
     if (resultsPtr == NULL) { return NULL; }
 
     if (_GNETernaryTreeHasValidDocumentIDs(foundPtr) == true) {
-        GNEIntegerCountedSetUnionSet(resultsPtr, foundPtr->documentIDs);
+        tsearch_countedset_union(resultsPtr, foundPtr->documentIDs);
     }
 
     if (_GNETernaryTreeSearchFromNode(foundPtr->same, resultsPtr) == failure) {
-        GNEIntegerCountedSetDestroy(resultsPtr);
+        tsearch_countedset_free(resultsPtr);
         return NULL;
     }
 
-    if (GNEIntegerCountedSetGetCount(resultsPtr) == 0) {
-        GNEIntegerCountedSetDestroy(resultsPtr);
+    if (tsearch_countedset_get_count(resultsPtr) == 0) {
+        tsearch_countedset_free(resultsPtr);
         resultsPtr = NULL;
     }
 
@@ -201,12 +201,12 @@ GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *targe
 }
 
 
-result _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, GNEIntegerCountedSetPtr results)
+result _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, tsearch_countedset_ptr results)
 {
     if (ptr == NULL) { return success; }
 
     if (_GNETernaryTreeHasValidDocumentIDs(ptr) == true) {
-        if (GNEIntegerCountedSetUnionSet(results, ptr->documentIDs) == failure) { return failure; }
+        if (tsearch_countedset_union(results, ptr->documentIDs) == failure) { return failure; }
     }
 
     if (_GNETernaryTreeSearchFromNode(ptr->lower, results) == failure) { return failure; }
@@ -298,7 +298,7 @@ size_t _GNETernaryTreeGetWordLength(GNETernaryTreePtr ptr)
 result _GNETernaryTreeHasValidDocumentIDs(GNETernaryTreePtr ptr)
 {
     if (ptr == NULL || ptr->documentIDs == NULL) { return false; }
-    return (GNEIntegerCountedSetGetCount(ptr->documentIDs) > 0) ? true : false;
+    return (tsearch_countedset_get_count(ptr->documentIDs) > 0) ? true : false;
 }
 
 

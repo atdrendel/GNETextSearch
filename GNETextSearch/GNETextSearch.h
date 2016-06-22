@@ -7,5 +7,5 @@
 //
 
 #import "GNETernaryTree.h"
-#import "GNEIntegerCountedSet.h"
+#import "countedset.h"
 

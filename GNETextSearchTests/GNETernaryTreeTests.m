@@ -59,13 +59,13 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 {
     NSString *word = @"Anthony";
     XCTAssertNoThrow([self insertWords:@[word] intoTree:_treePtr]);
-    GNEIntegerCountedSetPtr resultPtr = GNETernaryTreeCopyResultsForSearch(_treePtr, word.UTF8String);
+    tsearch_countedset_ptr resultPtr = GNETernaryTreeCopyResultsForSearch(_treePtr, word.UTF8String);
     XCTAssertTrue(resultPtr != NULL);
-    XCTAssertEqual((size_t)1, GNEIntegerCountedSetGetCount(resultPtr));
-    XCTAssertEqual(1, GNEIntegerCountedSetContainsInteger(resultPtr, (GNEInteger)word.hash));
+    XCTAssertEqual((size_t)1, tsearch_countedset_get_count(resultPtr));
+    XCTAssertEqual(1, tsearch_countedset_contains_int(resultPtr, (GNEInteger)word.hash));
     XCTAssertEqual(NULL, GNETernaryTreeCopyResultsForSearch(_treePtr, @"anthony".UTF8String));
     [self assertResultsInTree:_treePtr equalWords:@[word]];
-    GNEIntegerCountedSetDestroy(resultPtr);
+    tsearch_countedset_free(resultPtr);
 }
 
 
@@ -139,10 +139,10 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 {
     NSString *word = @"👌";
     XCTAssertNoThrow([self insertWords:@[word] intoTree:_treePtr]);
-    GNEIntegerCountedSetPtr resultsPtr = GNETernaryTreeCopyResultsForSearch(_treePtr, word.UTF8String);
+    tsearch_countedset_ptr resultsPtr = GNETernaryTreeCopyResultsForSearch(_treePtr, word.UTF8String);
     XCTAssertTrue(NULL != resultsPtr);
     [self assertResultsInTree:_treePtr equalWords:@[word]];
-    GNEIntegerCountedSetDestroy(resultsPtr);
+    tsearch_countedset_free(resultsPtr);
 }
 
 
@@ -229,7 +229,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     NSArray *randomizedWords = [self randomizeWords:words];
     XCTAssertNoThrow([self insertWords:randomizedWords intoTree:_treePtr]);
 
-    GNEIntegerCountedSetPtr resultsPtr = GNETernaryTreeCopyResultsForPrefixSearch(_treePtr, @"c".UTF8String);
+    tsearch_countedset_ptr resultsPtr = GNETernaryTreeCopyResultsForPrefixSearch(_treePtr, @"c".UTF8String);
     XCTAssertTrue(resultsPtr == NULL);
 }
 
@@ -356,14 +356,14 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     NSArray *randomizedWords = [self randomizeWords:words];
     XCTAssertNoThrow([self insertWords:randomizedWords intoTree:_treePtr]);
 
-    GNEIntegerCountedSetPtr resultsPtr = GNETernaryTreeCopyResultsForPrefixSearch(_treePtr, "\xF0\x9F\0");
+    tsearch_countedset_ptr resultsPtr = GNETernaryTreeCopyResultsForPrefixSearch(_treePtr, "\xF0\x9F\0");
     XCTAssertTrue(resultsPtr != NULL);
-    size_t count = GNEIntegerCountedSetGetCount(resultsPtr);
+    size_t count = tsearch_countedset_get_count(resultsPtr);
     XCTAssertEqual((size_t)4, count);
 
     GNEInteger *integers = NULL;
     count = 0;
-    XCTAssertEqual(1, GNEIntegerCountedSetCopyIntegers(resultsPtr, &integers, &count));
+    XCTAssertEqual(1, tsearch_countedset_copy_ints(resultsPtr, &integers, &count));
     XCTAssertTrue(integers != NULL);
     XCTAssertEqual((size_t)4, count);
 
@@ -381,7 +381,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     XCTAssertEqualObjects(expectedResultsSet, resultsSet);
 
     free(integers);
-    GNEIntegerCountedSetDestroy(resultsPtr);
+    tsearch_countedset_free(resultsPtr);
 }
 
 
@@ -417,25 +417,25 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     [self insertWords:words documentID:firstID intoTree:_treePtr];
     [self insertWords:words documentID:secondID intoTree:_treePtr];
 
-    GNEIntegerCountedSetPtr resultsPtr = NULL;
+    tsearch_countedset_ptr resultsPtr = NULL;
     resultsPtr = GNETernaryTreeCopyResultsForSearch(_treePtr, [words.firstObject UTF8String]);
     XCTAssertTrue(resultsPtr != NULL);
-    XCTAssertEqual(2, GNEIntegerCountedSetGetCount(resultsPtr));
-    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, firstID));
-    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(resultsPtr, firstID));
-    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, secondID));
-    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(resultsPtr, secondID));
-    GNEIntegerCountedSetDestroy(resultsPtr);
+    XCTAssertEqual(2, tsearch_countedset_get_count(resultsPtr));
+    XCTAssertEqual(TRUE, tsearch_countedset_contains_int(resultsPtr, firstID));
+    XCTAssertEqual(1, tsearch_countedset_get_count_for_int(resultsPtr, firstID));
+    XCTAssertEqual(TRUE, tsearch_countedset_contains_int(resultsPtr, secondID));
+    XCTAssertEqual(1, tsearch_countedset_get_count_for_int(resultsPtr, secondID));
+    tsearch_countedset_free(resultsPtr);
 
     XCTAssertEqual(success, GNETernaryTreeRemove(_treePtr, firstID));
     resultsPtr = GNETernaryTreeCopyResultsForSearch(_treePtr, [words.firstObject UTF8String]);
     XCTAssertTrue(resultsPtr != NULL);
-    XCTAssertEqual(1, GNEIntegerCountedSetGetCount(resultsPtr));
-    XCTAssertEqual(FALSE, GNEIntegerCountedSetContainsInteger(resultsPtr, firstID));
-    XCTAssertEqual(0, GNEIntegerCountedSetGetCountForInteger(resultsPtr, firstID));
-    XCTAssertEqual(TRUE, GNEIntegerCountedSetContainsInteger(resultsPtr, secondID));
-    XCTAssertEqual(1, GNEIntegerCountedSetGetCountForInteger(resultsPtr, secondID));
-    GNEIntegerCountedSetDestroy(resultsPtr);
+    XCTAssertEqual(1, tsearch_countedset_get_count(resultsPtr));
+    XCTAssertEqual(FALSE, tsearch_countedset_contains_int(resultsPtr, firstID));
+    XCTAssertEqual(0, tsearch_countedset_get_count_for_int(resultsPtr, firstID));
+    XCTAssertEqual(TRUE, tsearch_countedset_contains_int(resultsPtr, secondID));
+    XCTAssertEqual(1, tsearch_countedset_get_count_for_int(resultsPtr, secondID));
+    tsearch_countedset_free(resultsPtr);
 }
 
 
@@ -566,11 +566,11 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 {
     for (NSString *word in words)
     {
-        GNEIntegerCountedSetPtr resultsPtr = GNETernaryTreeCopyResultsForSearch(ptr, word.UTF8String);
-        size_t count = GNEIntegerCountedSetGetCount(resultsPtr);
+        tsearch_countedset_ptr resultsPtr = GNETernaryTreeCopyResultsForSearch(ptr, word.UTF8String);
+        size_t count = tsearch_countedset_get_count(resultsPtr);
         XCTAssertTrue(count > 0);
-        XCTAssertTrue(GNEIntegerCountedSetContainsInteger(resultsPtr, (GNEInteger)word.hash));
-        GNEIntegerCountedSetDestroy(resultsPtr);
+        XCTAssertTrue(tsearch_countedset_contains_int(resultsPtr, (GNEInteger)word.hash));
+        tsearch_countedset_free(resultsPtr);
     }
 }
 
@@ -581,11 +581,11 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 {
     for (NSString *word in words)
     {
-        GNEIntegerCountedSetPtr resultsPtr = GNETernaryTreeCopyResultsForSearch(ptr, word.UTF8String);
-        size_t count = GNEIntegerCountedSetGetCount(resultsPtr);
+        tsearch_countedset_ptr resultsPtr = GNETernaryTreeCopyResultsForSearch(ptr, word.UTF8String);
+        size_t count = tsearch_countedset_get_count(resultsPtr);
         XCTAssertTrue(count > 0);
-        XCTAssertTrue(GNEIntegerCountedSetContainsInteger(resultsPtr, documentID));
-        GNEIntegerCountedSetDestroy(resultsPtr);
+        XCTAssertTrue(tsearch_countedset_contains_int(resultsPtr, documentID));
+        tsearch_countedset_free(resultsPtr);
     }
 }
 
@@ -602,16 +602,16 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
              matchingPrefix:(NSString *)prefix
                  equalWords:(NSArray *)words
 {
-    GNEIntegerCountedSetPtr resultsPtr = GNETernaryTreeCopyResultsForPrefixSearch(ptr, prefix.UTF8String);
+    tsearch_countedset_ptr resultsPtr = GNETernaryTreeCopyResultsForPrefixSearch(ptr, prefix.UTF8String);
 
     XCTAssert((words.count == 0 && resultsPtr == NULL) ||
-              (words.count == GNEIntegerCountedSetGetCount(resultsPtr)));
+              (words.count == tsearch_countedset_get_count(resultsPtr)));
 
     for (NSString *word in words)
     {
-        XCTAssertEqual(1, GNEIntegerCountedSetContainsInteger(resultsPtr, (GNEInteger)word.hash));
+        XCTAssertEqual(1, tsearch_countedset_contains_int(resultsPtr, (GNEInteger)word.hash));
     }
-    GNEIntegerCountedSetDestroy(resultsPtr);
+    tsearch_countedset_free(resultsPtr);
 }
 
 
