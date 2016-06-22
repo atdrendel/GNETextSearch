@@ -120,9 +120,9 @@
 		5711A7EB1B949E440088910A /* GNETextSearch */ = {
 			isa = PBXGroup;
 			children = (
-				57633FBE1BF79A0D006B1541 /* Set */,
-				57A46B071BF36001008809A3 /* String */,
-				5711A8031B949E780088910A /* Tree */,
+				57633FBE1BF79A0D006B1541 /* Counted Set */,
+				57A46B071BF36001008809A3 /* String Buffer */,
+				5711A8031B949E780088910A /* Ternary Tree */,
 				576211281C371739003B3623 /* UTF-8 */,
 				5711A7EC1B949E440088910A /* GNETextSearch.h */,
 				57633FC31BF79A74006B1541 /* GNETextSearchPrivate.h */,
@@ -147,12 +147,13 @@
 			path = GNETextSearchTests;
 			sourceTree = "<group>";
 		};
-		5711A8031B949E780088910A /* Tree */ = {
+		5711A8031B949E780088910A /* Ternary Tree */ = {
 			isa = PBXGroup;
 			children = (
 				5711A8041B949E960088910A /* ternarytree.h */,
 				5711A8051B949E960088910A /* ternarytree.c */,
 			);
+			name = "Ternary Tree";
 			path = Tree;
 			sourceTree = "<group>";
 		};
@@ -166,21 +167,23 @@
 			path = "UTF-8";
 			sourceTree = "<group>";
 		};
-		57633FBE1BF79A0D006B1541 /* Set */ = {
+		57633FBE1BF79A0D006B1541 /* Counted Set */ = {
 			isa = PBXGroup;
 			children = (
 				57633FC01BF79A2B006B1541 /* countedset.h */,
 				57633FBF1BF79A2B006B1541 /* countedset.c */,
 			);
+			name = "Counted Set";
 			path = Set;
 			sourceTree = "<group>";
 		};
-		57A46B071BF36001008809A3 /* String */ = {
+		57A46B071BF36001008809A3 /* String Buffer */ = {
 			isa = PBXGroup;
 			children = (
 				57A46B0D1BF3604B008809A3 /* stringbuf.h */,
 				57A46B0C1BF3604B008809A3 /* stringbuf.c */,
 			);
+			name = "String Buffer";
 			path = String;
 			sourceTree = "<group>";
 		};
