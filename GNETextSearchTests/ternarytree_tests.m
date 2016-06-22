@@ -1,5 +1,5 @@
 //
-//  GNETrieTests.m
+//  ternarytree_tests.m
 //  GNETextSearch
 //
 //  Created by Anthony Drendel on 8/31/15.
@@ -7,7 +7,7 @@
 //
 
 #import <XCTest/XCTest.h>
-#import "GNETernaryTree.h"
+#import "ternarytree.h"
 #import "GNETextSearchPrivate.h"
 
 
@@ -15,7 +15,7 @@
 
 
 // Private function implemented in GNETernaryTree.
-int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength, size_t amount);
+int _tsearch_ternarytree_increase_char_buf(char **outBuffer, size_t *outBufferLength, size_t amount);
 
 
 // ------------------------------------------------------------------------------------------
@@ -23,7 +23,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 
 @interface GNETernaryTreeTests : XCTestCase
 {
-    GNETernaryTreePtr _treePtr;
+    tsearch_ternarytree_ptr _treePtr;
 }
 
 @end
@@ -41,12 +41,12 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 - (void)setUp
 {
     [super setUp];
-    _treePtr = GNETernaryTreeCreate();
+    _treePtr = tsearch_ternarytree_init();
 }
 
 - (void)tearDown
 {
-    GNETernaryTreeDestroy(_treePtr);
+    tsearch_ternarytree_free(_treePtr);
     _treePtr = NULL;
     [super tearDown];
 }
@@ -59,11 +59,11 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 {
     NSString *word = @"Anthony";
     XCTAssertNoThrow([self insertWords:@[word] intoTree:_treePtr]);
-    tsearch_countedset_ptr resultPtr = GNETernaryTreeCopyResultsForSearch(_treePtr, word.UTF8String);
+    tsearch_countedset_ptr resultPtr = tsearch_ternarytree_copy_search_results(_treePtr, word.UTF8String);
     XCTAssertTrue(resultPtr != NULL);
     XCTAssertEqual((size_t)1, tsearch_countedset_get_count(resultPtr));
     XCTAssertEqual(1, tsearch_countedset_contains_int(resultPtr, (GNEInteger)word.hash));
-    XCTAssertEqual(NULL, GNETernaryTreeCopyResultsForSearch(_treePtr, @"anthony".UTF8String));
+    XCTAssertEqual(NULL, tsearch_ternarytree_copy_search_results(_treePtr, @"anthony".UTF8String));
     [self assertResultsInTree:_treePtr equalWords:@[word]];
     tsearch_countedset_free(resultPtr);
 }
@@ -74,11 +74,11 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     NSArray *words = @[@"Ant", @"Awe"];
     XCTAssertNoThrow([self insertWords:words intoTree:_treePtr]);
     [self assertCanFindWords:words inTree:_treePtr];
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"ant".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"awe".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"An".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"Aw".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"A".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"ant".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"awe".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"An".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"Aw".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"A".UTF8String));
     [self assertResultsInTree:_treePtr equalWords:words];
 }
 
@@ -88,11 +88,11 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     NSArray *words = @[@"Awe", @"Ant"];
     XCTAssertNoThrow([self insertWords:words intoTree:_treePtr]);
     [self assertCanFindWords:words inTree:_treePtr];
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"ant".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"awe".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"An".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"Aw".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"A".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"ant".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"awe".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"An".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"Aw".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"A".UTF8String));
     [self assertResultsInTree:_treePtr equalWords:@[@"Ant", @"Awe"]];
 }
 
@@ -103,12 +103,12 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     NSArray *randomizedWords = [self randomizeWords:words];
     XCTAssertNoThrow([self insertWords:randomizedWords intoTree:_treePtr]);
     [self assertCanFindWords:words inTree:_treePtr];
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"Anthony".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"ant".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"awe".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"an".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"aw".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"a".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"Anthony".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"ant".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"awe".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"an".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"aw".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"a".UTF8String));
     [self assertResultsInTree:_treePtr equalWords:words];
 }
 
@@ -130,7 +130,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     NSArray *randomizedWords = [self randomizeWords:words];
     XCTAssertNoThrow([self insertWords:randomizedWords intoTree:_treePtr]);
     [self assertCanFindWords:words inTree:_treePtr];
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"ax".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"ax".UTF8String));
     [self assertResultsInTree:_treePtr equalWords:words];
 }
 
@@ -139,7 +139,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 {
     NSString *word = @"👌";
     XCTAssertNoThrow([self insertWords:@[word] intoTree:_treePtr]);
-    tsearch_countedset_ptr resultsPtr = GNETernaryTreeCopyResultsForSearch(_treePtr, word.UTF8String);
+    tsearch_countedset_ptr resultsPtr = tsearch_ternarytree_copy_search_results(_treePtr, word.UTF8String);
     XCTAssertTrue(NULL != resultsPtr);
     [self assertResultsInTree:_treePtr equalWords:@[word]];
     tsearch_countedset_free(resultsPtr);
@@ -151,7 +151,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     NSArray *words = [self wordsBeginningWithLMN];
     XCTAssertNoThrow([self insertWords:words intoTree:_treePtr]);
     [self assertCanFindWords:[self randomizeWords:words] inTree:_treePtr];
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"magicia".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"magicia".UTF8String));
     [self assertResultsInTree:_treePtr equalWords:words];
 }
 
@@ -162,7 +162,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     NSArray *randomizedWords = [self randomizeWords:words];
     XCTAssertNoThrow([self insertWords:randomizedWords intoTree:_treePtr]);
     [self assertCanFindWords:words inTree:_treePtr];
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"magicia".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"magicia".UTF8String));
     [self assertResultsInTree:_treePtr equalWords:words];
 }
 
@@ -172,8 +172,8 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     NSArray *words = [self wordsBeginningWithA];
     XCTAssertNoThrow([self insertWords:words intoTree:_treePtr]);
     [self assertCanFindWords:[self randomizeWords:words] inTree:_treePtr];
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"atol".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"assa".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"atol".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"assa".UTF8String));
     [self assertResultsInTree:_treePtr equalWords:[self randomizeWords:words]];
 }
 
@@ -184,8 +184,8 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     NSArray *randomizedWords = [self randomizeWords:words];
     XCTAssertNoThrow([self insertWords:randomizedWords intoTree:_treePtr]);
     [self assertCanFindWords:words inTree:_treePtr];
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"atol".UTF8String));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, @"assa".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"atol".UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, @"assa".UTF8String));
     [self assertResultsInTree:_treePtr equalWords:words];
 }
 
@@ -229,7 +229,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     NSArray *randomizedWords = [self randomizeWords:words];
     XCTAssertNoThrow([self insertWords:randomizedWords intoTree:_treePtr]);
 
-    tsearch_countedset_ptr resultsPtr = GNETernaryTreeCopyResultsForPrefixSearch(_treePtr, @"c".UTF8String);
+    tsearch_countedset_ptr resultsPtr = tsearch_ternarytree_copy_prefix_search_results(_treePtr, @"c".UTF8String);
     XCTAssertTrue(resultsPtr == NULL);
 }
 
@@ -356,7 +356,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     NSArray *randomizedWords = [self randomizeWords:words];
     XCTAssertNoThrow([self insertWords:randomizedWords intoTree:_treePtr]);
 
-    tsearch_countedset_ptr resultsPtr = GNETernaryTreeCopyResultsForPrefixSearch(_treePtr, "\xF0\x9F\0");
+    tsearch_countedset_ptr resultsPtr = tsearch_ternarytree_copy_prefix_search_results(_treePtr, "\xF0\x9F\0");
     XCTAssertTrue(resultsPtr != NULL);
     size_t count = tsearch_countedset_get_count(resultsPtr);
     XCTAssertEqual((size_t)4, count);
@@ -391,7 +391,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 - (void)testRemove_RemoveIDFromEmptyTree_Success
 {
     XCTAssertEqual(0, [self resultsInTree:_treePtr].count);
-    XCTAssertEqual(success, GNETernaryTreeRemove(_treePtr, 1010));
+    XCTAssertEqual(success, tsearch_ternarytree_remove(_treePtr, 1010));
 }
 
 
@@ -403,9 +403,9 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     XCTAssertEqual(1, [self resultsInTree:_treePtr].count);
     [self assertCanFindWords:@[text] documentID:documentID inTree:_treePtr];
 
-    XCTAssertEqual(success, GNETernaryTreeRemove(_treePtr, documentID));
+    XCTAssertEqual(success, tsearch_ternarytree_remove(_treePtr, documentID));
     XCTAssertEqual(0, [self resultsInTree:_treePtr].count);
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, text.UTF8String));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, text.UTF8String));
 }
 
 
@@ -418,7 +418,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     [self insertWords:words documentID:secondID intoTree:_treePtr];
 
     tsearch_countedset_ptr resultsPtr = NULL;
-    resultsPtr = GNETernaryTreeCopyResultsForSearch(_treePtr, [words.firstObject UTF8String]);
+    resultsPtr = tsearch_ternarytree_copy_search_results(_treePtr, [words.firstObject UTF8String]);
     XCTAssertTrue(resultsPtr != NULL);
     XCTAssertEqual(2, tsearch_countedset_get_count(resultsPtr));
     XCTAssertEqual(TRUE, tsearch_countedset_contains_int(resultsPtr, firstID));
@@ -427,8 +427,8 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     XCTAssertEqual(1, tsearch_countedset_get_count_for_int(resultsPtr, secondID));
     tsearch_countedset_free(resultsPtr);
 
-    XCTAssertEqual(success, GNETernaryTreeRemove(_treePtr, firstID));
-    resultsPtr = GNETernaryTreeCopyResultsForSearch(_treePtr, [words.firstObject UTF8String]);
+    XCTAssertEqual(success, tsearch_ternarytree_remove(_treePtr, firstID));
+    resultsPtr = tsearch_ternarytree_copy_search_results(_treePtr, [words.firstObject UTF8String]);
     XCTAssertTrue(resultsPtr != NULL);
     XCTAssertEqual(1, tsearch_countedset_get_count(resultsPtr));
     XCTAssertEqual(FALSE, tsearch_countedset_contains_int(resultsPtr, firstID));
@@ -456,9 +456,9 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     [self insertWords:thirdWords documentID:thirdID intoTree:_treePtr];
     [self assertCanFindWords:thirdWords documentID:thirdID inTree:_treePtr];
 
-    XCTAssertEqual(success, GNETernaryTreeRemove(_treePtr, secondID));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, [secondWords.firstObject UTF8String]));
-    XCTAssertTrue(NULL == GNETernaryTreeCopyResultsForSearch(_treePtr, [secondWords.lastObject UTF8String]));
+    XCTAssertEqual(success, tsearch_ternarytree_remove(_treePtr, secondID));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, [secondWords.firstObject UTF8String]));
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, [secondWords.lastObject UTF8String]));
 
     [self assertCanFindWords:firstWords documentID:firstID inTree:_treePtr];
     [self assertCanFindWords:thirdWords documentID:thirdID inTree:_treePtr];
@@ -471,7 +471,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 - (void)testIncreaseCharBuffer_NullBufferPointer_ReturnsNullBufferAnd0Length
 {
     size_t length = 100;
-    XCTAssertEqual(0, _GNETernaryTreeIncreaseCharBuffer(NULL, &length, length));
+    XCTAssertEqual(0, _tsearch_ternarytree_increase_char_buf(NULL, &length, length));
     XCTAssertEqual(0, length);
 }
 
@@ -480,7 +480,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 {
     size_t length = 100;
     char *buffer = NULL;
-    XCTAssertEqual(0, _GNETernaryTreeIncreaseCharBuffer(&buffer, &length, length));
+    XCTAssertEqual(0, _tsearch_ternarytree_increase_char_buf(&buffer, &length, length));
     XCTAssertTrue(buffer == NULL);
     XCTAssertEqual(0, length);
 }
@@ -490,7 +490,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 {
     size_t length = 100;
     char *buffer = malloc(length * sizeof(char));
-    XCTAssertEqual(0, _GNETernaryTreeIncreaseCharBuffer(&buffer, NULL, length));
+    XCTAssertEqual(0, _tsearch_ternarytree_increase_char_buf(&buffer, NULL, length));
     XCTAssertTrue(buffer == NULL);
     free(buffer);
 }
@@ -500,7 +500,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 {
     size_t length = 100;
     char *buffer = malloc(length * sizeof(char));
-    XCTAssertEqual(1, _GNETernaryTreeIncreaseCharBuffer(&buffer, &length, length));
+    XCTAssertEqual(1, _tsearch_ternarytree_increase_char_buf(&buffer, &length, length));
     XCTAssertTrue(buffer != NULL);
     XCTAssertEqual(200, length);
     free(buffer);
@@ -512,7 +512,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     size_t remainder = 10;
     size_t length = (SIZE_MAX / sizeof(char)) - remainder;
     char *buffer = malloc(1000); // Malloc fails when trying to allocate SIZE_MAX memory.
-    XCTAssertEqual(0, _GNETernaryTreeIncreaseCharBuffer(&buffer, &length, remainder + 1));
+    XCTAssertEqual(0, _tsearch_ternarytree_increase_char_buf(&buffer, &length, remainder + 1));
     XCTAssertTrue(buffer == NULL);
     XCTAssertTrue(length == 0);
 }
@@ -523,7 +523,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     size_t remainder = 10;
     size_t length = (SIZE_MAX / sizeof(char)) - remainder;
     char *buffer = malloc(1000); // Malloc fails when trying to allocate SIZE_MAX memory.
-    XCTAssertEqual(0, _GNETernaryTreeIncreaseCharBuffer(&buffer, &length, remainder));
+    XCTAssertEqual(0, _tsearch_ternarytree_increase_char_buf(&buffer, &length, remainder));
     XCTAssertTrue(buffer == NULL);
     XCTAssertTrue(length == 0);
 }
@@ -532,7 +532,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 // ------------------------------------------------------------------------------------------
 #pragma mark - Helpers
 // ------------------------------------------------------------------------------------------
-- (void)insertWords:(NSArray *)words intoTree:(GNETernaryTreePtr)treePtr
+- (void)insertWords:(NSArray *)words intoTree:(tsearch_ternarytree_ptr)treePtr
 {
     if (treePtr == NULL)
     {
@@ -541,14 +541,14 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 
     for (NSString *word in words)
     {
-        XCTAssertTrue(NULL != GNETernaryTreeInsert(treePtr, word.UTF8String, word.hash));
+        XCTAssertTrue(NULL != tsearch_ternarytree_insert(treePtr, word.UTF8String, word.hash));
     }
 }
 
 
 - (void)insertWords:(NSArray *)words
          documentID:(GNEInteger)documentID
-           intoTree:(GNETernaryTreePtr)treePtr
+           intoTree:(tsearch_ternarytree_ptr)treePtr
 {
     if (treePtr == NULL)
     {
@@ -557,16 +557,16 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 
     for (NSString *word in words)
     {
-        XCTAssertTrue(NULL != GNETernaryTreeInsert(treePtr, word.UTF8String, documentID));
+        XCTAssertTrue(NULL != tsearch_ternarytree_insert(treePtr, word.UTF8String, documentID));
     }
 }
 
 
-- (void)assertCanFindWords:(NSArray *)words inTree:(GNETernaryTreePtr)ptr
+- (void)assertCanFindWords:(NSArray *)words inTree:(tsearch_ternarytree_ptr)ptr
 {
     for (NSString *word in words)
     {
-        tsearch_countedset_ptr resultsPtr = GNETernaryTreeCopyResultsForSearch(ptr, word.UTF8String);
+        tsearch_countedset_ptr resultsPtr = tsearch_ternarytree_copy_search_results(ptr, word.UTF8String);
         size_t count = tsearch_countedset_get_count(resultsPtr);
         XCTAssertTrue(count > 0);
         XCTAssertTrue(tsearch_countedset_contains_int(resultsPtr, (GNEInteger)word.hash));
@@ -577,11 +577,11 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 
 - (void)assertCanFindWords:(NSArray *)words
                 documentID:(GNEInteger)documentID
-                    inTree:(GNETernaryTreePtr)ptr
+                    inTree:(tsearch_ternarytree_ptr)ptr
 {
     for (NSString *word in words)
     {
-        tsearch_countedset_ptr resultsPtr = GNETernaryTreeCopyResultsForSearch(ptr, word.UTF8String);
+        tsearch_countedset_ptr resultsPtr = tsearch_ternarytree_copy_search_results(ptr, word.UTF8String);
         size_t count = tsearch_countedset_get_count(resultsPtr);
         XCTAssertTrue(count > 0);
         XCTAssertTrue(tsearch_countedset_contains_int(resultsPtr, documentID));
@@ -590,7 +590,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 }
 
 
-- (void)assertResultsInTree:(GNETernaryTreePtr)ptr equalWords:(NSArray *)words
+- (void)assertResultsInTree:(tsearch_ternarytree_ptr)ptr equalWords:(NSArray *)words
 {
     NSArray *results = [self resultsInTree:ptr];
     XCTAssertEqual(results.count, words.count);
@@ -598,11 +598,11 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 }
 
 
-- (void)assertResultsInTree:(GNETernaryTreePtr)ptr
+- (void)assertResultsInTree:(tsearch_ternarytree_ptr)ptr
              matchingPrefix:(NSString *)prefix
                  equalWords:(NSArray *)words
 {
-    tsearch_countedset_ptr resultsPtr = GNETernaryTreeCopyResultsForPrefixSearch(ptr, prefix.UTF8String);
+    tsearch_countedset_ptr resultsPtr = tsearch_ternarytree_copy_prefix_search_results(ptr, prefix.UTF8String);
 
     XCTAssert((words.count == 0 && resultsPtr == NULL) ||
               (words.count == tsearch_countedset_get_count(resultsPtr)));
@@ -615,7 +615,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
 }
 
 
-- (NSArray *)resultsInTree:(GNETernaryTreePtr)ptr
+- (NSArray *)resultsInTree:(tsearch_ternarytree_ptr)ptr
 {
     NSString *resultsStr = @"";
 
@@ -627,7 +627,7 @@ int _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength,
     char *results = NULL;
     size_t length = 0;
 
-    if (GNETernaryTreeCopyContents(ptr, &results, &length) == 1)
+    if (tsearch_ternarytree_copy_contents(ptr, &results, &length) == 1)
     {
         NSCharacterSet *characterSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
         resultsStr = [[NSString stringWithUTF8String:results] stringByTrimmingCharactersInSet:characterSet];

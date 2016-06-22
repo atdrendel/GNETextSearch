@@ -1,5 +1,5 @@
 //
-//  GNEMutableStringTests.m
+//  stringbuf_tests.m
 //  GNETextSearch
 //
 //  Created by Anthony Drendel on 11/11/15.

@@ -1,42 +1,42 @@
 //
-//  GNETernaryTree.c
+//  ternarytree.c
 //  GNETextSearch
 //
 //  Created by Anthony Drendel on 8/31/15.
 //  Copyright © 2015 Gone East LLC. All rights reserved.
 //
 
-#include "GNETernaryTree.h"
+#include "ternarytree.h"
 #include "stringbuf.h"
 #include "GNETextSearchPrivate.h"
 #include <stdio.h>
 
 // ------------------------------------------------------------------------------------------
 
-GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target);
-result _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, tsearch_countedset_ptr results);
-result _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, tsearch_stringbuf_ptr contentsPtr);
-result _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, tsearch_stringbuf_ptr contentsPtr);
-result _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr);
-size_t _GNETernaryTreeGetWordLength(GNETernaryTreePtr ptr);
-result _GNETernaryTreeHasValidDocumentIDs(GNETernaryTreePtr ptr);
-result _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength, size_t amount);
+tsearch_ternarytree_ptr _tsearch_ternarytree_search(tsearch_ternarytree_ptr ptr, const char *target);
+result _tsearch_ternarytree_search_from_node(tsearch_ternarytree_ptr ptr, tsearch_countedset_ptr results);
+result _tsearch_ternarytree_copy_contents(tsearch_ternarytree_ptr ptr, tsearch_stringbuf_ptr contentsPtr);
+result _tsearch_ternarytree_copy_word(tsearch_ternarytree_ptr ptr, tsearch_stringbuf_ptr contentsPtr);
+result _tsearch_ternarytree_is_leaf(tsearch_ternarytree_ptr ptr);
+size_t _tsearch_ternarytree_get_word_len(tsearch_ternarytree_ptr ptr);
+result _tsearch_ternarytree_has_valid_document_ids(tsearch_ternarytree_ptr ptr);
+result _tsearch_ternarytree_increase_char_buf(char **outBuffer, size_t *outBufferLength, size_t amount);
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Tree
 // ------------------------------------------------------------------------------------------
-typedef struct GNETernaryTreeNode
+typedef struct tsearch_ternarytree_node
 {
     char character;
-    GNETernaryTreePtr parent;
-    GNETernaryTreePtr lower, same, higher;
+    tsearch_ternarytree_ptr parent;
+    tsearch_ternarytree_ptr lower, same, higher;
     tsearch_countedset_ptr documentIDs;
-} GNETernaryTreeNode;
+} tsearch_ternarytree_node;
 
 
-GNETernaryTreePtr GNETernaryTreeCreate(void)
+tsearch_ternarytree_ptr tsearch_ternarytree_init(void)
 {
-    GNETernaryTreePtr ptr = calloc(1, sizeof(GNETernaryTreeNode));
+    tsearch_ternarytree_ptr ptr = calloc(1, sizeof(tsearch_ternarytree_node));
     if (ptr == NULL) { return ptr; }
 
     ptr->character = '\0';
@@ -50,13 +50,13 @@ GNETernaryTreePtr GNETernaryTreeCreate(void)
 }
 
 
-void GNETernaryTreeDestroy(GNETernaryTreePtr ptr)
+void tsearch_ternarytree_free(tsearch_ternarytree_ptr ptr)
 {
     if (ptr != NULL) {
         ptr->parent = NULL;
-        GNETernaryTreeDestroy(ptr->lower);
-        GNETernaryTreeDestroy(ptr->same);
-        GNETernaryTreeDestroy(ptr->higher);
+        tsearch_ternarytree_free(ptr->lower);
+        tsearch_ternarytree_free(ptr->same);
+        tsearch_ternarytree_free(ptr->higher);
         tsearch_countedset_free(ptr->documentIDs);
         ptr->documentIDs = NULL;
         free(ptr);
@@ -64,30 +64,30 @@ void GNETernaryTreeDestroy(GNETernaryTreePtr ptr)
 }
 
 
-GNETernaryTreePtr GNETernaryTreeInsert(GNETernaryTreePtr ptr, const char *newCharacter, GNEInteger documentID)
+tsearch_ternarytree_ptr tsearch_ternarytree_insert(tsearch_ternarytree_ptr ptr, const char *newCharacter, GNEInteger documentID)
 {
     if (newCharacter == NULL) { return ptr; }
 
     if (ptr == NULL) {
-        ptr = GNETernaryTreeCreate();
+        ptr = tsearch_ternarytree_init();
         if (ptr == NULL) { return ptr; }
     }
 
-    if (ptr->character == '\0') { ptr->character = *newCharacter; } // GNETernaryTreeCreate()
+    if (ptr->character == '\0') { ptr->character = *newCharacter; } // tsearch_ternarytree_init()
 
     if (*newCharacter < ptr->character) {
-        ptr->lower = GNETernaryTreeInsert(ptr->lower, newCharacter, documentID);
+        ptr->lower = tsearch_ternarytree_insert(ptr->lower, newCharacter, documentID);
         ptr->lower->parent = ptr;
     } else if (*newCharacter == ptr->character) {
         if ('\0' == *(newCharacter + 1)) {
             if (ptr->documentIDs == NULL) { ptr->documentIDs = tsearch_countedset_init(); }
             tsearch_countedset_add_int(ptr->documentIDs, documentID);
         } else {
-            ptr->same = GNETernaryTreeInsert(ptr->same, (newCharacter + 1), documentID);
+            ptr->same = tsearch_ternarytree_insert(ptr->same, (newCharacter + 1), documentID);
             ptr->same->parent = ptr;
         }
     } else {
-        ptr->higher = GNETernaryTreeInsert(ptr->higher, newCharacter, documentID);
+        ptr->higher = tsearch_ternarytree_insert(ptr->higher, newCharacter, documentID);
         ptr->higher->parent = ptr;
     }
 
@@ -95,33 +95,33 @@ GNETernaryTreePtr GNETernaryTreeInsert(GNETernaryTreePtr ptr, const char *newCha
 }
 
 
-result GNETernaryTreeRemove(GNETernaryTreePtr ptr, GNEInteger documentID)
+result tsearch_ternarytree_remove(tsearch_ternarytree_ptr ptr, GNEInteger documentID)
 {
     if (ptr == NULL) { return success; }
 
-    if (_GNETernaryTreeHasValidDocumentIDs(ptr) == true) {
+    if (_tsearch_ternarytree_has_valid_document_ids(ptr) == true) {
         if (tsearch_countedset_remove_int(ptr->documentIDs, documentID) == failure) {
             return failure;
         }
     }
 
-    if (GNETernaryTreeRemove(ptr->lower, documentID) == failure) { return failure; }
-    if (GNETernaryTreeRemove(ptr->same, documentID) == failure) { return failure; }
-    return GNETernaryTreeRemove(ptr->higher, documentID);
+    if (tsearch_ternarytree_remove(ptr->lower, documentID) == failure) { return failure; }
+    if (tsearch_ternarytree_remove(ptr->same, documentID) == failure) { return failure; }
+    return tsearch_ternarytree_remove(ptr->higher, documentID);
 }
 
 
-tsearch_countedset_ptr GNETernaryTreeCopyResultsForSearch(GNETernaryTreePtr ptr, const char *target)
+tsearch_countedset_ptr tsearch_ternarytree_copy_search_results(tsearch_ternarytree_ptr ptr, const char *target)
 {
-    GNETernaryTreePtr foundPtr = _GNETernaryTreeSearch(ptr, target);
-    int hasResults = _GNETernaryTreeHasValidDocumentIDs(foundPtr);
+    tsearch_ternarytree_ptr foundPtr = _tsearch_ternarytree_search(ptr, target);
+    int hasResults = _tsearch_ternarytree_has_valid_document_ids(foundPtr);
     return (hasResults == true) ? tsearch_countedset_copy(foundPtr->documentIDs) : NULL;
 }
 
 
-tsearch_countedset_ptr GNETernaryTreeCopyResultsForPrefixSearch(GNETernaryTreePtr ptr, const char *prefix)
+tsearch_countedset_ptr tsearch_ternarytree_copy_prefix_search_results(tsearch_ternarytree_ptr ptr, const char *prefix)
 {
-    GNETernaryTreePtr foundPtr = _GNETernaryTreeSearch(ptr, prefix);
+    tsearch_ternarytree_ptr foundPtr = _tsearch_ternarytree_search(ptr, prefix);
 
     if (foundPtr == NULL) { return NULL; }
 
@@ -129,11 +129,11 @@ tsearch_countedset_ptr GNETernaryTreeCopyResultsForPrefixSearch(GNETernaryTreePt
 
     if (resultsPtr == NULL) { return NULL; }
 
-    if (_GNETernaryTreeHasValidDocumentIDs(foundPtr) == true) {
+    if (_tsearch_ternarytree_has_valid_document_ids(foundPtr) == true) {
         tsearch_countedset_union(resultsPtr, foundPtr->documentIDs);
     }
 
-    if (_GNETernaryTreeSearchFromNode(foundPtr->same, resultsPtr) == failure) {
+    if (_tsearch_ternarytree_search_from_node(foundPtr->same, resultsPtr) == failure) {
         tsearch_countedset_free(resultsPtr);
         return NULL;
     }
@@ -147,13 +147,13 @@ tsearch_countedset_ptr GNETernaryTreeCopyResultsForPrefixSearch(GNETernaryTreePt
 }
 
 
-result GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size_t *outLength)
+result tsearch_ternarytree_copy_contents(tsearch_ternarytree_ptr ptr, char **outResults, size_t *outLength)
 {
     if (ptr == NULL || outResults == NULL || outLength == NULL) { return failure; }
 
     tsearch_stringbuf_ptr contentsPtr = tsearch_stringbuf_init();
 
-    int ret = _GNETernaryTreeCopyContents(ptr, contentsPtr);
+    int ret = _tsearch_ternarytree_copy_contents(ptr, contentsPtr);
     if (ret == success) {
         *outResults = (char *)tsearch_stringbuf_copy_cstring(contentsPtr);
         *outLength = tsearch_stringbuf_get_len(contentsPtr);
@@ -165,12 +165,12 @@ result GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size
 }
 
 
-void GNETernaryTreePrint(GNETernaryTreePtr ptr)
+void tsearch_ternarytree_print(tsearch_ternarytree_ptr ptr)
 {
     char *results = NULL;
     size_t length = 0;
 
-    GNETernaryTreeCopyContents(ptr, &results, &length);
+    tsearch_ternarytree_copy_contents(ptr, &results, &length);
 
     printf("<GNETernaryTree, %p>\n", ptr);
     printf("%s", results);
@@ -184,58 +184,58 @@ void GNETernaryTreePrint(GNETernaryTreePtr ptr)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private
 // ------------------------------------------------------------------------------------------
-GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target)
+tsearch_ternarytree_ptr _tsearch_ternarytree_search(tsearch_ternarytree_ptr ptr, const char *target)
 {
     if (ptr == NULL) { return NULL; }
 
     const char targetCharacter = *target;
 
     if (targetCharacter != '\0' && targetCharacter < ptr->character) {
-        return _GNETernaryTreeSearch(ptr->lower, target);
+        return _tsearch_ternarytree_search(ptr->lower, target);
     } else if (targetCharacter != '\0' && targetCharacter > ptr->character) {
-        return _GNETernaryTreeSearch(ptr->higher, target);
+        return _tsearch_ternarytree_search(ptr->higher, target);
     } else {
         if (*(target + 1) == '\0') { return ptr; }
-        else { return _GNETernaryTreeSearch(ptr->same, ++target); }
+        else { return _tsearch_ternarytree_search(ptr->same, ++target); }
     }
 }
 
 
-result _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, tsearch_countedset_ptr results)
+result _tsearch_ternarytree_search_from_node(tsearch_ternarytree_ptr ptr, tsearch_countedset_ptr results)
 {
     if (ptr == NULL) { return success; }
 
-    if (_GNETernaryTreeHasValidDocumentIDs(ptr) == true) {
+    if (_tsearch_ternarytree_has_valid_document_ids(ptr) == true) {
         if (tsearch_countedset_union(results, ptr->documentIDs) == failure) { return failure; }
     }
 
-    if (_GNETernaryTreeSearchFromNode(ptr->lower, results) == failure) { return failure; }
-    if (_GNETernaryTreeSearchFromNode(ptr->same, results) == failure) { return failure; }
-    return _GNETernaryTreeSearchFromNode(ptr->higher, results);
+    if (_tsearch_ternarytree_search_from_node(ptr->lower, results) == failure) { return failure; }
+    if (_tsearch_ternarytree_search_from_node(ptr->same, results) == failure) { return failure; }
+    return _tsearch_ternarytree_search_from_node(ptr->higher, results);
 }
 
 
-result _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, tsearch_stringbuf_ptr contentsPtr)
+result _tsearch_ternarytree_copy_contents(tsearch_ternarytree_ptr ptr, tsearch_stringbuf_ptr contentsPtr)
 {
     if (contentsPtr == NULL) { return failure; }
     if (ptr == NULL) { return success; }
 
     // We've found the end of a word. Append it to the results array.
-    if (_GNETernaryTreeHasValidDocumentIDs(ptr) == true) {
-        if (_GNETernaryTreeCopyWord(ptr, contentsPtr) == failure) { return failure; }
+    if (_tsearch_ternarytree_has_valid_document_ids(ptr) == true) {
+        if (_tsearch_ternarytree_copy_word(ptr, contentsPtr) == failure) { return failure; }
     }
 
-    if (_GNETernaryTreeCopyContents(ptr->lower, contentsPtr) == failure) { return failure; }
-    if (_GNETernaryTreeCopyContents(ptr->same, contentsPtr) == failure) { return failure; }
-    return _GNETernaryTreeCopyContents(ptr->higher, contentsPtr);
+    if (_tsearch_ternarytree_copy_contents(ptr->lower, contentsPtr) == failure) { return failure; }
+    if (_tsearch_ternarytree_copy_contents(ptr->same, contentsPtr) == failure) { return failure; }
+    return _tsearch_ternarytree_copy_contents(ptr->higher, contentsPtr);
 }
 
 
-result _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, tsearch_stringbuf_ptr contentsPtr)
+result _tsearch_ternarytree_copy_word(tsearch_ternarytree_ptr ptr, tsearch_stringbuf_ptr contentsPtr)
 {
     if (ptr == NULL) { return success; }
 
-    size_t wordLength = _GNETernaryTreeGetWordLength(ptr) + 1; // Add one for the newline.
+    size_t wordLength = _tsearch_ternarytree_get_word_len(ptr) + 1; // Add one for the newline.
     if (wordLength == 1) { return success; }
     char *word = calloc((wordLength), sizeof(char));
 
@@ -265,7 +265,7 @@ result _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, tsearch_stringbuf_ptr cont
 
 /// Returns true if the specified pointer is a leaf node (i.e., its lower, same, and
 /// higher pointers are NULL), otherwise false.
-result _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr)
+result _tsearch_ternarytree_is_leaf(tsearch_ternarytree_ptr ptr)
 {
     if (ptr != NULL && ptr->lower == NULL && ptr->same == NULL && ptr->higher == NULL)
     {
@@ -277,7 +277,7 @@ result _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr)
 
 /// Returns the length of the beginning at the specified pointer.
 /// The length does NOT include the trailing null terminator.
-size_t _GNETernaryTreeGetWordLength(GNETernaryTreePtr ptr)
+size_t _tsearch_ternarytree_get_word_len(tsearch_ternarytree_ptr ptr)
 {
     if (ptr == NULL || ptr->documentIDs == NULL) { return 0; }
 
@@ -295,7 +295,7 @@ size_t _GNETernaryTreeGetWordLength(GNETernaryTreePtr ptr)
 
 
 /// Return true if the specified node contains one or more document IDs, otherwise false;
-result _GNETernaryTreeHasValidDocumentIDs(GNETernaryTreePtr ptr)
+result _tsearch_ternarytree_has_valid_document_ids(tsearch_ternarytree_ptr ptr)
 {
     if (ptr == NULL || ptr->documentIDs == NULL) { return false; }
     return (tsearch_countedset_get_count(ptr->documentIDs) > 0) ? true : false;
@@ -305,7 +305,7 @@ result _GNETernaryTreeHasValidDocumentIDs(GNETernaryTreePtr ptr)
 /// Increases the specified char buffer (of the specified length) by the specified amount.
 /// Returns success if the realloc operation succeed, otherwise failure. In case of failure,
 /// the outBuffer is freed.
-result _GNETernaryTreeIncreaseCharBuffer(char **outBuffer, size_t *outBufferLength, size_t amount)
+result _tsearch_ternarytree_increase_char_buf(char **outBuffer, size_t *outBufferLength, size_t amount)
 {
     if (amount == 0)
     {

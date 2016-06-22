@@ -1,5 +1,5 @@
 //
-//  GNEIntegerCountedSetTests.m
+//  countedset_tests.m
 //  GNETextSearch
 //
 //  Created by Anthony Drendel on 11/14/15.
