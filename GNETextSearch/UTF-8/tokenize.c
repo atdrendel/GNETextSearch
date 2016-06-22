@@ -1,5 +1,5 @@
 //
-//  GNEUnicodeUtilities.c
+//  tokenize.c
 //  GNETextSearch
 //
 //  Created by Anthony Drendel on 1/1/16.
@@ -25,8 +25,8 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
-#include "GNEUnicodeUtilities.h"
-#include "GNEUnicodeWordBoundary.h"
+#include "tokenize.h"
+#include "utf8_utils.h"
 #include "GNETextSearchPrivate.h"
 #include <stdio.h>
 #include <string.h>
@@ -128,7 +128,7 @@ void utf8_printUTF16CodePoints(const char *s)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Range
 // ------------------------------------------------------------------------------------------
-TSEARCH_INLINE size_t _range_sum(GNERange range)
+TSEARCH_INLINE size_t _range_sum(tsearch_range range)
 {
     return range.location + range.length;
 }
@@ -137,11 +137,11 @@ TSEARCH_INLINE size_t _range_sum(GNERange range)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Public
 // ------------------------------------------------------------------------------------------
-int GNEUnicodeTokenizeString(const char *cstr, process_token_func process, void *context)
+int tsearch_cstring_tokenize(const char *cstr, process_token_func process, void *context)
 {
     if (process == NULL) { return failure; }
 
-    GNERange range = {0, 0};
+    tsearch_range range = {0, 0};
 
     uint32_t codePoint = 0;
     uint32_t state = UTF8_ACCEPT;
@@ -157,7 +157,7 @@ int GNEUnicodeTokenizeString(const char *cstr, process_token_func process, void 
 
             if (utf8_isBreak(codePoint) == true) {
                 if (tokenLength > 0) {
-                    GNERange tokenRange = {0, 0};
+                    tsearch_range tokenRange = {0, 0};
                     process(cstr, tokenRange, token, tokenLength, context);
                 }
 
@@ -182,7 +182,7 @@ int GNEUnicodeTokenizeString(const char *cstr, process_token_func process, void 
     }
 
     if (tokenLength > 0) {
-        GNERange tokenRange = {0, 0};
+        tsearch_range tokenRange = {0, 0};
         process(cstr, tokenRange, token, tokenLength, context);
     }
 
@@ -192,7 +192,7 @@ int GNEUnicodeTokenizeString(const char *cstr, process_token_func process, void 
 }
 
 
-int  GNEUnicodeCopyCodePoints(const char *cString, uint32_t **outCodePoints, size_t *outLength)
+int  tsearch_cstring_copy_code_points(const char *cString, uint32_t **outCodePoints, size_t *outLength)
 {
 	if (outCodePoints == NULL || outLength == NULL) { return failure; }
 	*outCodePoints = NULL;
@@ -231,7 +231,7 @@ int  GNEUnicodeCopyCodePoints(const char *cString, uint32_t **outCodePoints, siz
 }
 
 
-result GNEUnicodeCopyUTF16CodePoints(const char *cString, uint32_t **outCodePoints, size_t *outLength)
+result tsearch_cstring_copy_utf16_code_points(const char *cString, uint32_t **outCodePoints, size_t *outLength)
 {
 	if (outCodePoints == NULL || outLength == NULL) { return failure; }
 	*outCodePoints = NULL;
@@ -284,7 +284,7 @@ result GNEUnicodeCopyUTF16CodePoints(const char *cString, uint32_t **outCodePoin
 
 // http://www.unicode.org/versions/Unicode8.0.0/ch03.pdf
 // Table 3-7. Well-Formed UTF-8 Byte Sequences
-size_t GNEUnicodeNumberOfCharactersForCodePoint(uint32_t codePoint)
+size_t tsearch_code_point_character_count(uint32_t codePoint)
 {
     if (codePoint <= 0x007F) { return 1; }
     if (codePoint <= 0x07FF) { return 2; }

@@ -1,40 +1,40 @@
 //
-//  GNEMutableString.c
+//  stringbuf.c
 //  GNETextSearch
 //
 //  Created by Anthony Drendel on 11/11/15.
 //  Copyright © 2015 Gone East LLC. All rights reserved.
 //
 
-#include "GNEMutableString.h"
+#include "stringbuf.h"
 #include "GNETextSearchPrivate.h"
 #include <stdio.h>
 #include <string.h>
 
 // ------------------------------------------------------------------------------------------
 
-result _GNEMutableStringIncreaseCapacityIfNeeded(GNEMutableStringPtr ptr, size_t newLength);
-size_t _GNEMutableStringGetMaxCharacterCount(GNEMutableStringPtr ptr);
-bool _IsValidCString(const char *cString, const size_t length);
+result _tsearch_stringbuf_increase_capacity(tsearch_stringbuf_ptr ptr, size_t newLength);
+size_t _tsearch_stringbuf_get_max_char_count(tsearch_stringbuf_ptr ptr);
+bool _is_valid_cstring(const char *cString, const size_t length);
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - String
 // ------------------------------------------------------------------------------------------
-typedef struct GNEMutableString
+typedef struct tsearch_stringbuf
 {
     char *buffer;
     size_t capacity;
     size_t length;
-} GNEMutableString;
+} tsearch_stringbuf;
 
 
-GNEMutableStringPtr GNEMutableStringCreate(void)
+tsearch_stringbuf_ptr tsearch_stringbuf_init(void)
 {
     size_t defaultCharacterCapacity = 5;
     char *buffer = calloc(defaultCharacterCapacity, sizeof(char));
     if (buffer == NULL) { return NULL; }
 
-    GNEMutableStringPtr ptr = calloc(1, sizeof(GNEMutableString));
+    tsearch_stringbuf_ptr ptr = calloc(1, sizeof(tsearch_stringbuf));
     if (ptr == NULL) { free(buffer); return NULL; }
 
     ptr->buffer = buffer;
@@ -45,18 +45,18 @@ GNEMutableStringPtr GNEMutableStringCreate(void)
 }
 
 
-GNEMutableStringPtr GNEMutableStringCreateWithCString(const char *cString, const size_t length)
+tsearch_stringbuf_ptr tsearch_stringbuf_init_with_cstring(const char *cString, const size_t length)
 {
 #if DEBUG
-    if (_IsValidCString(cString, length) == false) {
+    if (_is_valid_cstring(cString, length) == false) {
         printf("C string parameter is not valid");
         return NULL;
     }
 #endif
 
-    GNEMutableStringPtr ptr = GNEMutableStringCreate();
-    if (GNEMutableStringAppendCString(ptr, cString, length) == failure) {
-        GNEMutableStringDestroy(ptr);
+    tsearch_stringbuf_ptr ptr = tsearch_stringbuf_init();
+    if (tsearch_stringbuf_append_cstring(ptr, cString, length) == failure) {
+        tsearch_stringbuf_free(ptr);
         return NULL;
     }
 
@@ -64,7 +64,7 @@ GNEMutableStringPtr GNEMutableStringCreateWithCString(const char *cString, const
 }
 
 
-void GNEMutableStringDestroy(GNEMutableStringPtr ptr)
+void tsearch_stringbuf_free(tsearch_stringbuf_ptr ptr)
 {
     if (ptr != NULL) {
         free(ptr->buffer);
@@ -76,23 +76,23 @@ void GNEMutableStringDestroy(GNEMutableStringPtr ptr)
 }
 
 
-size_t GNEMutableStringGetLength(GNEMutableStringPtr ptr)
+size_t tsearch_stringbuf_get_len(tsearch_stringbuf_ptr ptr)
 {
     return (ptr == NULL) ? 0 : ptr->length;
 }
 
 
-char GNEMutableStringGetCharAtIndex(GNEMutableStringPtr ptr, size_t index)
+char tsearch_stringbuf_get_char_at_idx(tsearch_stringbuf_ptr ptr, size_t index)
 {
     if (ptr == NULL || ptr->buffer == NULL || index >= ptr->length) { return '\0'; }
     return ptr->buffer[index];
 }
 
 
-int GNEMutableStringAppendCString(GNEMutableStringPtr ptr, const char *cString, const size_t length)
+int tsearch_stringbuf_append_cstring(tsearch_stringbuf_ptr ptr, const char *cString, const size_t length)
 {
 #if DEBUG
-    if (_IsValidCString(cString, length) == false) {
+    if (_is_valid_cstring(cString, length) == false) {
         printf("C string parameter is not valid");
         return failure;
     }
@@ -103,7 +103,7 @@ int GNEMutableStringAppendCString(GNEMutableStringPtr ptr, const char *cString, 
 
     size_t currentLength = ptr->length;
     size_t newLength = currentLength + length;
-    if (_GNEMutableStringIncreaseCapacityIfNeeded(ptr, newLength) == failure) { return failure; }
+    if (_tsearch_stringbuf_increase_capacity(ptr, newLength) == failure) { return failure; }
 
     char *buffer = ptr->buffer;
     for (size_t i = 0; i < length; i++) {
@@ -115,7 +115,7 @@ int GNEMutableStringAppendCString(GNEMutableStringPtr ptr, const char *cString, 
 }
 
 
-const char * GNEMutableStringCopyContents(GNEMutableStringPtr ptr)
+const char * tsearch_stringbuf_copy_cstring(tsearch_stringbuf_ptr ptr)
 {
     if (ptr == NULL || ptr->buffer == NULL) { return NULL; }
 
@@ -134,11 +134,11 @@ const char * GNEMutableStringCopyContents(GNEMutableStringPtr ptr)
 }
 
 
-void GNEMutableStringPrint(GNEMutableStringPtr ptr)
+void tsearch_stringbuf_print(tsearch_stringbuf_ptr ptr)
 {
     if (ptr == NULL) { printf("%p is NULL", ptr); }
 
-    const char *contents = GNEMutableStringCopyContents(ptr);
+    const char *contents = tsearch_stringbuf_copy_cstring(ptr);
     printf("<GNEMutableString, %p> %s\n", ptr, contents);
     free((void *)contents);
 }
@@ -147,11 +147,11 @@ void GNEMutableStringPrint(GNEMutableStringPtr ptr)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private
 // ------------------------------------------------------------------------------------------
-int _GNEMutableStringIncreaseCapacityIfNeeded(GNEMutableStringPtr ptr, size_t newLength)
+int _tsearch_stringbuf_increase_capacity(tsearch_stringbuf_ptr ptr, size_t newLength)
 {
     if (ptr == NULL || ptr->buffer == NULL) { return failure; }
 
-    size_t maxCharacterCount = _GNEMutableStringGetMaxCharacterCount(ptr);
+    size_t maxCharacterCount = _tsearch_stringbuf_get_max_char_count(ptr);
     if (newLength >= maxCharacterCount) {
         size_t doubleCapacity = (2 * ptr->capacity);
         size_t requestedCapacity = (newLength * sizeof(char));
@@ -166,7 +166,7 @@ int _GNEMutableStringIncreaseCapacityIfNeeded(GNEMutableStringPtr ptr, size_t ne
 }
 
 
-size_t _GNEMutableStringGetMaxCharacterCount(GNEMutableStringPtr ptr)
+size_t _tsearch_stringbuf_get_max_char_count(tsearch_stringbuf_ptr ptr)
 {
     if (ptr == NULL || ptr->buffer == NULL) { return 0; }
 
@@ -177,7 +177,7 @@ size_t _GNEMutableStringGetMaxCharacterCount(GNEMutableStringPtr ptr)
 }
 
 
-bool _IsValidCString(const char *cString, const size_t length)
+bool _is_valid_cstring(const char *cString, const size_t length)
 {
     if (cString == NULL) { return false; }
 

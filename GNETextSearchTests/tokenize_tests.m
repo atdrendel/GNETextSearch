@@ -1,5 +1,5 @@
 //
-//  GNEUnicodeUtilitiesTests.m
+//  tokenize_tests.m
 //  GNETextSearch
 //
 //  Created by Anthony Drendel on 1/2/16.
@@ -7,7 +7,7 @@
 //
 
 #import <XCTest/XCTest.h>
-#import "GNEUnicodeUtilities.h"
+#import "tokenize.h"
 #import "GNETextSearchPrivate.h"
 
 
@@ -49,7 +49,7 @@
     NSArray *expected = @[@"Hello", @"Anthony"];
 
     NSMutableArray *processedTokens = [NSMutableArray array];
-    GNEUnicodeTokenizeString(string.UTF8String, p_processTestToken, (__bridge void *)processedTokens);
+    tsearch_cstring_tokenize(string.UTF8String, p_processTestToken, (__bridge void *)processedTokens);
     XCTAssertEqualObjects(expected, processedTokens);
 }
 
@@ -60,7 +60,7 @@
     NSArray *expected = @[@"Hello", @"Anthony"];
 
     NSMutableArray *processedTokens = [NSMutableArray array];
-    GNEUnicodeTokenizeString(string.UTF8String, p_processTestToken, (__bridge void *)processedTokens);
+    tsearch_cstring_tokenize(string.UTF8String, p_processTestToken, (__bridge void *)processedTokens);
     XCTAssertEqualObjects(expected, processedTokens);
 }
 
@@ -71,7 +71,7 @@
     NSArray *expected = @[@"你好", @"Anthony"];
 
     NSMutableArray *processedTokens = [NSMutableArray array];
-    GNEUnicodeTokenizeString(string.UTF8String, p_processTestToken, (__bridge void *)processedTokens);
+    tsearch_cstring_tokenize(string.UTF8String, p_processTestToken, (__bridge void *)processedTokens);
     XCTAssertEqualObjects(expected, processedTokens);
 }
 
@@ -81,7 +81,7 @@
     NSArray *expected = @[@"AnthonyIsAwesomeAndThisIsOneLongToken", @"ThisIsOneLongButShorterToken"];
 
     NSMutableArray *processedTokens = [NSMutableArray array];
-    GNEUnicodeTokenizeString(string.UTF8String, p_processTestToken, (__bridge void *)processedTokens);
+    tsearch_cstring_tokenize(string.UTF8String, p_processTestToken, (__bridge void *)processedTokens);
     XCTAssertEqualObjects(expected, processedTokens);
 }
 
@@ -91,7 +91,7 @@
     NSArray *expected = @[@"我", @"的", @"名字", @"是", @"安东尼"];
 
     NSMutableArray *processedTokens = [NSMutableArray array];
-    GNEUnicodeTokenizeString(string.UTF8String, p_processTestToken, (__bridge void *)processedTokens);
+    tsearch_cstring_tokenize(string.UTF8String, p_processTestToken, (__bridge void *)processedTokens);
     XCTAssertEqualObjects(expected, processedTokens);
 }
 
@@ -155,7 +155,7 @@
     uint32_t codePoints[] = {0x0048, 0x0065, 0x006C, 0x006C, 0x006F};
     for (size_t i = 0; i < 5; i++)
     {
-        XCTAssertEqual(1, GNEUnicodeNumberOfCharactersForCodePoint(codePoints[i]));
+        XCTAssertEqual(1, tsearch_code_point_character_count(codePoints[i]));
     }
 }
 
@@ -165,7 +165,7 @@
     uint32_t codePoints[] = {0x4F60, 0x597D};
     for (size_t i = 0; i < 2; i++)
     {
-        XCTAssertEqual(3, GNEUnicodeNumberOfCharactersForCodePoint(codePoints[i]));
+        XCTAssertEqual(3, tsearch_code_point_character_count(codePoints[i]));
     }
 }
 
@@ -173,7 +173,7 @@
 - (void)testCharCount_OkEmoji_Four
 {
     uint32_t codePoints[] = {0x1F44C};
-    XCTAssertEqual(4, GNEUnicodeNumberOfCharactersForCodePoint(codePoints[0]));
+    XCTAssertEqual(4, tsearch_code_point_character_count(codePoints[0]));
 }
 
 
@@ -182,7 +182,7 @@
     uint32_t codePoints[] = {0x1F1FA, 0x1F1F8};
     for (size_t i = 0; i < 2; i++)
     {
-        XCTAssertEqual(4, GNEUnicodeNumberOfCharactersForCodePoint(codePoints[i]));
+        XCTAssertEqual(4, tsearch_code_point_character_count(codePoints[i]));
     }
 }
 
@@ -190,13 +190,13 @@
 - (void)testCharCount_FamilyEmoji_ThreeOrFourPerCodePoint
 {
     uint32_t codePoints[] = {0x1F468, 0x200D, 0x1F469, 0x200D, 0x1F467, 0x200D, 0x1F466};
-    XCTAssertEqual(4, GNEUnicodeNumberOfCharactersForCodePoint(codePoints[0]));
-    XCTAssertEqual(3, GNEUnicodeNumberOfCharactersForCodePoint(codePoints[1]));
-    XCTAssertEqual(4, GNEUnicodeNumberOfCharactersForCodePoint(codePoints[2]));
-    XCTAssertEqual(3, GNEUnicodeNumberOfCharactersForCodePoint(codePoints[3]));
-    XCTAssertEqual(4, GNEUnicodeNumberOfCharactersForCodePoint(codePoints[4]));
-    XCTAssertEqual(3, GNEUnicodeNumberOfCharactersForCodePoint(codePoints[5]));
-    XCTAssertEqual(4, GNEUnicodeNumberOfCharactersForCodePoint(codePoints[6]));
+    XCTAssertEqual(4, tsearch_code_point_character_count(codePoints[0]));
+    XCTAssertEqual(3, tsearch_code_point_character_count(codePoints[1]));
+    XCTAssertEqual(4, tsearch_code_point_character_count(codePoints[2]));
+    XCTAssertEqual(3, tsearch_code_point_character_count(codePoints[3]));
+    XCTAssertEqual(4, tsearch_code_point_character_count(codePoints[4]));
+    XCTAssertEqual(3, tsearch_code_point_character_count(codePoints[5]));
+    XCTAssertEqual(4, tsearch_code_point_character_count(codePoints[6]));
 }
 
 
@@ -253,7 +253,7 @@
     uint32_t *result = NULL;
     size_t resultLength = 0;
 
-    XCTAssertEqual(success, GNEUnicodeCopyCodePoints(cString, &result, &resultLength));
+    XCTAssertEqual(success, tsearch_cstring_copy_code_points(cString, &result, &resultLength));
     XCTAssertEqual(length, resultLength);
     for (size_t i = 0; i < resultLength; i++)
     {
@@ -269,7 +269,7 @@
     uint32_t *result = NULL;
     size_t resultLength = 0;
 
-    XCTAssertEqual(success, GNEUnicodeCopyUTF16CodePoints(cString, &result, &resultLength));
+    XCTAssertEqual(success, tsearch_cstring_copy_utf16_code_points(cString, &result, &resultLength));
     XCTAssertEqual(length, resultLength);
     for (size_t i = 0; i < resultLength; i++)
     {
@@ -278,7 +278,7 @@
 }
 
 
-void p_processTestToken(const char *string, GNERange range, uint32_t *token, size_t length, void *context)
+void p_processTestToken(const char *string, tsearch_range range, uint32_t *token, size_t length, void *context)
 {
     NSMutableArray *processedTokens = (__bridge NSMutableArray *)context;
     assert([processedTokens isKindOfClass:[NSMutableArray class]]);
