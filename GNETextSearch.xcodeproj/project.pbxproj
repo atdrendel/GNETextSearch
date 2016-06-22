@@ -23,8 +23,8 @@
 		57633FC11BF79A2B006B1541 /* countedset.c in Sources */ = {isa = PBXBuildFile; fileRef = 57633FBF1BF79A2B006B1541 /* countedset.c */; };
 		57633FC21BF79A2B006B1541 /* countedset.h in Headers */ = {isa = PBXBuildFile; fileRef = 57633FC01BF79A2B006B1541 /* countedset.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		57633FC51BF7C958006B1541 /* GNEIntegerCountedSetTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 57633FC41BF7C958006B1541 /* GNEIntegerCountedSetTests.m */; };
-		57A46B0E1BF3604B008809A3 /* GNEMutableString.c in Sources */ = {isa = PBXBuildFile; fileRef = 57A46B0C1BF3604B008809A3 /* GNEMutableString.c */; };
-		57A46B0F1BF3604B008809A3 /* GNEMutableString.h in Headers */ = {isa = PBXBuildFile; fileRef = 57A46B0D1BF3604B008809A3 /* GNEMutableString.h */; };
+		57A46B0E1BF3604B008809A3 /* stringbuf.c in Sources */ = {isa = PBXBuildFile; fileRef = 57A46B0C1BF3604B008809A3 /* stringbuf.c */; };
+		57A46B0F1BF3604B008809A3 /* stringbuf.h in Headers */ = {isa = PBXBuildFile; fileRef = 57A46B0D1BF3604B008809A3 /* stringbuf.h */; };
 		57A46B111BF37456008809A3 /* GNEMutableStringTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 57A46B101BF37456008809A3 /* GNEMutableStringTests.m */; };
 		57A46B151BF3B926008809A3 /* words-beginning-with-A.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 57A46B121BF3B5F8008809A3 /* words-beginning-with-A.txt */; };
 /* End PBXBuildFile section */
@@ -74,8 +74,8 @@
 		57633FC01BF79A2B006B1541 /* countedset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = countedset.h; sourceTree = "<group>"; };
 		57633FC31BF79A74006B1541 /* GNETextSearchPrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GNETextSearchPrivate.h; sourceTree = "<group>"; };
 		57633FC41BF7C958006B1541 /* GNEIntegerCountedSetTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = GNEIntegerCountedSetTests.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
-		57A46B0C1BF3604B008809A3 /* GNEMutableString.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GNEMutableString.c; sourceTree = "<group>"; };
-		57A46B0D1BF3604B008809A3 /* GNEMutableString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEMutableString.h; sourceTree = "<group>"; };
+		57A46B0C1BF3604B008809A3 /* stringbuf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stringbuf.c; sourceTree = "<group>"; };
+		57A46B0D1BF3604B008809A3 /* stringbuf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stringbuf.h; sourceTree = "<group>"; };
 		57A46B101BF37456008809A3 /* GNEMutableStringTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEMutableStringTests.m; sourceTree = "<group>"; };
 		57A46B121BF3B5F8008809A3 /* words-beginning-with-A.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "words-beginning-with-A.txt"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -178,8 +178,8 @@
 		57A46B071BF36001008809A3 /* String */ = {
 			isa = PBXGroup;
 			children = (
-				57A46B0D1BF3604B008809A3 /* GNEMutableString.h */,
-				57A46B0C1BF3604B008809A3 /* GNEMutableString.c */,
+				57A46B0D1BF3604B008809A3 /* stringbuf.h */,
+				57A46B0C1BF3604B008809A3 /* stringbuf.c */,
 			);
 			path = String;
 			sourceTree = "<group>";
@@ -195,7 +195,7 @@
 				57633FC21BF79A2B006B1541 /* countedset.h in Headers */,
 				576211331C418CC4003B3623 /* GNEUnicodeWordBoundary.h in Headers */,
 				5711A8061B949E960088910A /* GNETernaryTree.h in Headers */,
-				57A46B0F1BF3604B008809A3 /* GNEMutableString.h in Headers */,
+				57A46B0F1BF3604B008809A3 /* stringbuf.h in Headers */,
 				576211301C386595003B3623 /* GNEUnicodeUtilities.h in Headers */,
 				576211311C38659C003B3623 /* GNETextSearchPrivate.h in Headers */,
 				576211351C418E24003B3623 /* GNETextSearchPublic.h in Headers */,
@@ -301,7 +301,7 @@
 			files = (
 				5711A8071B949E960088910A /* GNETernaryTree.c in Sources */,
 				57633FC11BF79A2B006B1541 /* countedset.c in Sources */,
-				57A46B0E1BF3604B008809A3 /* GNEMutableString.c in Sources */,
+				57A46B0E1BF3604B008809A3 /* stringbuf.c in Sources */,
 				5762112B1C37177E003B3623 /* GNEUnicodeUtilities.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -7,7 +7,7 @@
 //
 
 #include "GNETernaryTree.h"
-#include "GNEMutableString.h"
+#include "stringbuf.h"
 #include "GNETextSearchPrivate.h"
 #include <stdio.h>
 
@@ -15,8 +15,8 @@
 
 GNETernaryTreePtr _GNETernaryTreeSearch(GNETernaryTreePtr ptr, const char *target);
 result _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, tsearch_countedset_ptr results);
-result _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr);
-result _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr);
+result _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, tsearch_stringbuf_ptr contentsPtr);
+result _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, tsearch_stringbuf_ptr contentsPtr);
 result _GNETernaryTreeIsLeaf(GNETernaryTreePtr ptr);
 size_t _GNETernaryTreeGetWordLength(GNETernaryTreePtr ptr);
 result _GNETernaryTreeHasValidDocumentIDs(GNETernaryTreePtr ptr);
@@ -151,15 +151,15 @@ result GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, char **outResults, size
 {
     if (ptr == NULL || outResults == NULL || outLength == NULL) { return failure; }
 
-    GNEMutableStringPtr contentsPtr = GNEMutableStringCreate();
+    tsearch_stringbuf_ptr contentsPtr = tsearch_stringbuf_init();
 
     int ret = _GNETernaryTreeCopyContents(ptr, contentsPtr);
     if (ret == success) {
-        *outResults = (char *)GNEMutableStringCopyContents(contentsPtr);
-        *outLength = GNEMutableStringGetLength(contentsPtr);
+        *outResults = (char *)tsearch_stringbuf_copy_cstring(contentsPtr);
+        *outLength = tsearch_stringbuf_get_len(contentsPtr);
     } else { *outLength = 0; }
 
-    GNEMutableStringDestroy(contentsPtr);
+    tsearch_stringbuf_free(contentsPtr);
 
     return ret;
 }
@@ -215,7 +215,7 @@ result _GNETernaryTreeSearchFromNode(GNETernaryTreePtr ptr, tsearch_countedset_p
 }
 
 
-result _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr)
+result _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, tsearch_stringbuf_ptr contentsPtr)
 {
     if (contentsPtr == NULL) { return failure; }
     if (ptr == NULL) { return success; }
@@ -231,7 +231,7 @@ result _GNETernaryTreeCopyContents(GNETernaryTreePtr ptr, GNEMutableStringPtr co
 }
 
 
-result _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, GNEMutableStringPtr contentsPtr)
+result _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, tsearch_stringbuf_ptr contentsPtr)
 {
     if (ptr == NULL) { return success; }
 
@@ -256,7 +256,7 @@ result _GNETernaryTreeCopyWord(GNETernaryTreePtr ptr, GNEMutableStringPtr conten
         ptr = ptr->parent;
     }
 
-    int ret = GNEMutableStringAppendCString(contentsPtr, word, wordLength);
+    int ret = tsearch_stringbuf_append_cstring(contentsPtr, word, wordLength);
     free((void *)word);
 
     return ret;

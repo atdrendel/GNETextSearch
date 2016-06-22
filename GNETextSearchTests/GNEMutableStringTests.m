@@ -7,21 +7,20 @@
 //
 
 #import <XCTest/XCTest.h>
-#import "GNEMutableString.h"
+#import "stringbuf.h"
 
 
 // ------------------------------------------------------------------------------------------
 
 
-typedef struct GNEMutableString
+typedef struct tsearch_stringbuf
 {
     char *buffer;
     size_t capacity;
     size_t length;
-} GNEMutableString;
+} tsearch_stringbuf;
 
-size_t _GNEMutableStringGetMaxCharacterCount(GNEMutableStringPtr ptr);
-int _IsValidCString(const char *cString, const size_t length);
+size_t _tsearch_stringbuf_get_max_char_count(tsearch_stringbuf_ptr ptr);
 
 
 // ------------------------------------------------------------------------------------------
@@ -29,7 +28,7 @@ int _IsValidCString(const char *cString, const size_t length);
 
 @interface GNEMutableStringTests : XCTestCase
 {
-    GNEMutableStringPtr _mutableStringPtr;
+    tsearch_stringbuf_ptr _mutableStringPtr;
 }
 
 @end
@@ -47,13 +46,13 @@ int _IsValidCString(const char *cString, const size_t length);
 - (void)setUp
 {
     [super setUp];
-    _mutableStringPtr = GNEMutableStringCreate();
+    _mutableStringPtr = tsearch_stringbuf_init();
 }
 
 
 - (void)tearDown
 {
-    GNEMutableStringDestroy(_mutableStringPtr);
+    tsearch_stringbuf_free(_mutableStringPtr);
     [super tearDown];
 }
 
@@ -72,12 +71,12 @@ int _IsValidCString(const char *cString, const size_t length);
 
 - (void)testInitialization_WithCStringABCD_NotNilAndContainsString
 {
-    GNEMutableStringDestroy(_mutableStringPtr);
+    tsearch_stringbuf_free(_mutableStringPtr);
     _mutableStringPtr = NULL;
 
     const char *cString = "ABCD";
     size_t length = 4;
-    _mutableStringPtr = GNEMutableStringCreateWithCString(cString, length);
+    _mutableStringPtr = tsearch_stringbuf_init_with_cstring(cString, length);
     XCTAssertTrue(_mutableStringPtr != NULL);
     XCTAssertTrue(_mutableStringPtr->buffer != NULL);
     [self assertCString:cString isEqualToCString:_mutableStringPtr->buffer length:length];
@@ -88,12 +87,12 @@ int _IsValidCString(const char *cString, const size_t length);
 
 - (void)testInitialization_WithCStringABCDE_NotNilAndContainsString
 {
-    GNEMutableStringDestroy(_mutableStringPtr);
+    tsearch_stringbuf_free(_mutableStringPtr);
     _mutableStringPtr = NULL;
 
     const char *cString = "ABCDE";
     size_t length = 5;
-    _mutableStringPtr = GNEMutableStringCreateWithCString(cString, length);
+    _mutableStringPtr = tsearch_stringbuf_init_with_cstring(cString, length);
     XCTAssertTrue(_mutableStringPtr != NULL);
     XCTAssertTrue(_mutableStringPtr->buffer != NULL);
     [self assertCString:cString isEqualToCString:_mutableStringPtr->buffer length:length];
@@ -104,12 +103,12 @@ int _IsValidCString(const char *cString, const size_t length);
 
 - (void)testInitialization_WithCStringABCDEFGHIJK_NotNilAndContainsString
 {
-    GNEMutableStringDestroy(_mutableStringPtr);
+    tsearch_stringbuf_free(_mutableStringPtr);
     _mutableStringPtr = NULL;
 
     const char *cString = "ABCDEFGHIJK";
     size_t length = 11;
-    _mutableStringPtr = GNEMutableStringCreateWithCString(cString, length);
+    _mutableStringPtr = tsearch_stringbuf_init_with_cstring(cString, length);
     XCTAssertTrue(_mutableStringPtr != NULL);
     XCTAssertTrue(_mutableStringPtr->buffer != NULL);
     [self assertCString:cString isEqualToCString:_mutableStringPtr->buffer length:length];
@@ -120,12 +119,12 @@ int _IsValidCString(const char *cString, const size_t length);
 
 - (void)testInitialization_WithLongChineseCString_NotNilAndContainsString
 {
-    GNEMutableStringDestroy(_mutableStringPtr);
+    tsearch_stringbuf_free(_mutableStringPtr);
     _mutableStringPtr = NULL;
 
     const char *cString = [self longChineseString].UTF8String;
     size_t length = [[self longChineseString] lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-    _mutableStringPtr = GNEMutableStringCreateWithCString(cString, length);
+    _mutableStringPtr = tsearch_stringbuf_init_with_cstring(cString, length);
     XCTAssertTrue(_mutableStringPtr != NULL);
     XCTAssertTrue(_mutableStringPtr->buffer != NULL);
     [self assertCString:cString isEqualToCString:_mutableStringPtr->buffer length:length];
@@ -140,7 +139,7 @@ int _IsValidCString(const char *cString, const size_t length);
 - (void)testLength_EmptyCString_0
 {
     XCTAssertEqual(0, _mutableStringPtr->length);
-    XCTAssertEqual(0, GNEMutableStringGetLength(_mutableStringPtr));
+    XCTAssertEqual(0, tsearch_stringbuf_get_len(_mutableStringPtr));
 }
 
 
@@ -148,9 +147,9 @@ int _IsValidCString(const char *cString, const size_t length);
 {
     const char *cString = "ABCD";
     size_t length = 4;
-    GNEMutableStringAppendCString(_mutableStringPtr, cString, length);
+    tsearch_stringbuf_append_cstring(_mutableStringPtr, cString, length);
     XCTAssertEqual(length, _mutableStringPtr->length);
-    XCTAssertEqual(length, GNEMutableStringGetLength(_mutableStringPtr));
+    XCTAssertEqual(length, tsearch_stringbuf_get_len(_mutableStringPtr));
 }
 
 
@@ -158,9 +157,9 @@ int _IsValidCString(const char *cString, const size_t length);
 {
     const char *cString = "ABCDE";
     size_t length = 5;
-    GNEMutableStringAppendCString(_mutableStringPtr, cString, length);
+    tsearch_stringbuf_append_cstring(_mutableStringPtr, cString, length);
     XCTAssertEqual(length, _mutableStringPtr->length);
-    XCTAssertEqual(length, GNEMutableStringGetLength(_mutableStringPtr));
+    XCTAssertEqual(length, tsearch_stringbuf_get_len(_mutableStringPtr));
 }
 
 
@@ -168,9 +167,9 @@ int _IsValidCString(const char *cString, const size_t length);
 {
     const char *cString = [self longChineseString].UTF8String;
     size_t length = [[self longChineseString] lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-    GNEMutableStringAppendCString(_mutableStringPtr, cString, length);
+    tsearch_stringbuf_append_cstring(_mutableStringPtr, cString, length);
     XCTAssertEqual(length, _mutableStringPtr->length);
-    XCTAssertEqual(length, GNEMutableStringGetLength(_mutableStringPtr));
+    XCTAssertEqual(length, tsearch_stringbuf_get_len(_mutableStringPtr));
 }
 
 
@@ -181,11 +180,11 @@ int _IsValidCString(const char *cString, const size_t length);
 {
     const char *cString = "ABCDE";
     size_t length = 5;
-    GNEMutableStringAppendCString(_mutableStringPtr, cString, length);
+    tsearch_stringbuf_append_cstring(_mutableStringPtr, cString, length);
 
     for (size_t i = 0; i < length; i++)
     {
-        XCTAssertEqual(cString[i], GNEMutableStringGetCharAtIndex(_mutableStringPtr, i));
+        XCTAssertEqual(cString[i], tsearch_stringbuf_get_char_at_idx(_mutableStringPtr, i));
     }
 }
 
@@ -194,18 +193,18 @@ int _IsValidCString(const char *cString, const size_t length);
 {
     const char *cString = [self longChineseString].UTF8String;
     size_t length = [[self longChineseString] lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-    GNEMutableStringAppendCString(_mutableStringPtr, cString, length);
+    tsearch_stringbuf_append_cstring(_mutableStringPtr, cString, length);
 
     for (size_t i = 0; i < length; i++)
     {
-        XCTAssertEqual(cString[i], GNEMutableStringGetCharAtIndex(_mutableStringPtr, i));
+        XCTAssertEqual(cString[i], tsearch_stringbuf_get_char_at_idx(_mutableStringPtr, i));
     }
 }
 
 
 - (void)testGetChar_NullPointer_NullChar
 {
-    XCTAssertEqual('\0', GNEMutableStringGetCharAtIndex(NULL, 1));
+    XCTAssertEqual('\0', tsearch_stringbuf_get_char_at_idx(NULL, 1));
 }
 
 
@@ -213,9 +212,9 @@ int _IsValidCString(const char *cString, const size_t length);
 {
     const char *cString = "ABCDE";
     size_t length = 5;
-    GNEMutableStringAppendCString(_mutableStringPtr, cString, length);
+    tsearch_stringbuf_append_cstring(_mutableStringPtr, cString, length);
 
-    XCTAssertEqual('\0', GNEMutableStringGetCharAtIndex(_mutableStringPtr, length));
+    XCTAssertEqual('\0', tsearch_stringbuf_get_char_at_idx(_mutableStringPtr, length));
 }
 
 
@@ -226,21 +225,21 @@ int _IsValidCString(const char *cString, const size_t length);
 {
     XCTAssertEqual(0, _mutableStringPtr->length);
     XCTAssertEqual(5, _mutableStringPtr->capacity);
-    XCTAssertEqual(5, _GNEMutableStringGetMaxCharacterCount(_mutableStringPtr));
+    XCTAssertEqual(5, _tsearch_stringbuf_get_max_char_count(_mutableStringPtr));
 
     const char *cString = "ABCDE";
     size_t length = 5;
     for (size_t i = 0; i < length; i++)
     {
-        GNEMutableStringAppendCString(_mutableStringPtr, (cString + i), 1);
+        tsearch_stringbuf_append_cstring(_mutableStringPtr, (cString + i), 1);
     }
 
     XCTAssertEqual(length, _mutableStringPtr->length);
-    XCTAssertEqual(length, GNEMutableStringGetLength(_mutableStringPtr));
+    XCTAssertEqual(length, tsearch_stringbuf_get_len(_mutableStringPtr));
     XCTAssertEqual(10, _mutableStringPtr->capacity);
-    XCTAssertEqual(10, _GNEMutableStringGetMaxCharacterCount(_mutableStringPtr));
+    XCTAssertEqual(10, _tsearch_stringbuf_get_max_char_count(_mutableStringPtr));
     XCTAssertEqual(0, memcmp(cString, _mutableStringPtr->buffer, length));
-    [self assertCString:cString isEqualToCString:GNEMutableStringCopyContents(_mutableStringPtr) length:length];
+    [self assertCString:cString isEqualToCString:tsearch_stringbuf_copy_cstring(_mutableStringPtr) length:length];
 }
 
 
@@ -248,7 +247,7 @@ int _IsValidCString(const char *cString, const size_t length);
 {
     XCTAssertEqual(0, _mutableStringPtr->length);
     XCTAssertEqual(5, _mutableStringPtr->capacity);
-    XCTAssertEqual(5, _GNEMutableStringGetMaxCharacterCount(_mutableStringPtr));
+    XCTAssertEqual(5, _tsearch_stringbuf_get_max_char_count(_mutableStringPtr));
 
     size_t count = 5;
 
@@ -257,18 +256,18 @@ int _IsValidCString(const char *cString, const size_t length);
     {
         NSString *string = [NSString stringWithFormat:@"%@\n", [self longChineseString]];
         size_t length = [string lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-        GNEMutableStringAppendCString(_mutableStringPtr, string.UTF8String, length);
+        tsearch_stringbuf_append_cstring(_mutableStringPtr, string.UTF8String, length);
         [targetString appendString:string];
     }
 
     size_t length = [targetString lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 
     XCTAssertEqual(length, _mutableStringPtr->length);
-    XCTAssertEqual(length, GNEMutableStringGetLength(_mutableStringPtr));
+    XCTAssertEqual(length, tsearch_stringbuf_get_len(_mutableStringPtr));
     XCTAssertEqual(43184, _mutableStringPtr->capacity);
-    XCTAssertEqual(43184, _GNEMutableStringGetMaxCharacterCount(_mutableStringPtr));
+    XCTAssertEqual(43184, _tsearch_stringbuf_get_max_char_count(_mutableStringPtr));
     XCTAssertEqual(0, memcmp(targetString.UTF8String, _mutableStringPtr->buffer, length));
-    [self assertCString:targetString.UTF8String isEqualToCString:GNEMutableStringCopyContents(_mutableStringPtr) length:length];
+    [self assertCString:targetString.UTF8String isEqualToCString:tsearch_stringbuf_copy_cstring(_mutableStringPtr) length:length];
 }
 
 
@@ -279,9 +278,9 @@ int _IsValidCString(const char *cString, const size_t length);
 {
     const char *cString = "ABCDE";
     size_t length = 5;
-    GNEMutableStringAppendCString(_mutableStringPtr, cString, length);
+    tsearch_stringbuf_append_cstring(_mutableStringPtr, cString, length);
 
-    const char *copy = GNEMutableStringCopyContents(_mutableStringPtr);
+    const char *copy = tsearch_stringbuf_copy_cstring(_mutableStringPtr);
     XCTAssertEqual(0, memcmp(cString, copy, length));
     XCTAssertEqual(length, strlen(copy));
     XCTAssertEqual('\0', copy[strlen(copy)]);
@@ -294,9 +293,9 @@ int _IsValidCString(const char *cString, const size_t length);
 {
     const char *cString = [self longChineseString].UTF8String;
     size_t length = [[self longChineseString] lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-    GNEMutableStringAppendCString(_mutableStringPtr, cString, length);
+    tsearch_stringbuf_append_cstring(_mutableStringPtr, cString, length);
 
-    const char *copy = GNEMutableStringCopyContents(_mutableStringPtr);
+    const char *copy = tsearch_stringbuf_copy_cstring(_mutableStringPtr);
     XCTAssertEqual(0, memcmp(cString, copy, length));
     XCTAssertEqual(length, strlen(copy));
     XCTAssertEqual('\0', copy[strlen(copy)]);
