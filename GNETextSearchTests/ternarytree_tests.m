@@ -14,13 +14,6 @@
 // ------------------------------------------------------------------------------------------
 
 
-// Private function implemented in GNETernaryTree.
-int _tsearch_ternarytree_increase_char_buf(char **outBuffer, size_t *outBufferLength, size_t amount);
-
-
-// ------------------------------------------------------------------------------------------
-
-
 @interface GNETernaryTreeTests : XCTestCase
 {
     tsearch_ternarytree_ptr _treePtr;
@@ -462,70 +455,6 @@ int _tsearch_ternarytree_increase_char_buf(char **outBuffer, size_t *outBufferLe
 
     [self assertCanFindWords:firstWords documentID:firstID inTree:_treePtr];
     [self assertCanFindWords:thirdWords documentID:thirdID inTree:_treePtr];
-}
-
-
-// ------------------------------------------------------------------------------------------
-#pragma mark - Private Tests
-// ------------------------------------------------------------------------------------------
-- (void)testIncreaseCharBuffer_NullBufferPointer_ReturnsNullBufferAnd0Length
-{
-    size_t length = 100;
-    XCTAssertEqual(0, _tsearch_ternarytree_increase_char_buf(NULL, &length, length));
-    XCTAssertEqual(0, length);
-}
-
-
-- (void)testIncreaseCharBuffer_NullBuffer_ReturnsNullBufferAnd0Length
-{
-    size_t length = 100;
-    char *buffer = NULL;
-    XCTAssertEqual(0, _tsearch_ternarytree_increase_char_buf(&buffer, &length, length));
-    XCTAssertTrue(buffer == NULL);
-    XCTAssertEqual(0, length);
-}
-
-
-- (void)testIncreaseCharBuffer_NullLengthPointer_ReturnsNullBuffer
-{
-    size_t length = 100;
-    char *buffer = malloc(length * sizeof(char));
-    XCTAssertEqual(0, _tsearch_ternarytree_increase_char_buf(&buffer, NULL, length));
-    XCTAssertTrue(buffer == NULL);
-    free(buffer);
-}
-
-
-- (void)testIncreaseCharBuffer_DoubleBufferLength_ReturnsValidBufferAndLength
-{
-    size_t length = 100;
-    char *buffer = malloc(length * sizeof(char));
-    XCTAssertEqual(1, _tsearch_ternarytree_increase_char_buf(&buffer, &length, length));
-    XCTAssertTrue(buffer != NULL);
-    XCTAssertEqual(200, length);
-    free(buffer);
-}
-
-
-- (void)testIncreaseCharBuffer_IncreasePastMax_ReturnsNullPointerAnd0Length
-{
-    size_t remainder = 10;
-    size_t length = (SIZE_MAX / sizeof(char)) - remainder;
-    char *buffer = malloc(1000); // Malloc fails when trying to allocate SIZE_MAX memory.
-    XCTAssertEqual(0, _tsearch_ternarytree_increase_char_buf(&buffer, &length, remainder + 1));
-    XCTAssertTrue(buffer == NULL);
-    XCTAssertTrue(length == 0);
-}
-
-
-- (void)testIncreaseCharBuffer_AmountIsTooLarge_ReturnsNullPointerAnd0Length
-{
-    size_t remainder = 10;
-    size_t length = (SIZE_MAX / sizeof(char)) - remainder;
-    char *buffer = malloc(1000); // Malloc fails when trying to allocate SIZE_MAX memory.
-    XCTAssertEqual(0, _tsearch_ternarytree_increase_char_buf(&buffer, &length, remainder));
-    XCTAssertTrue(buffer == NULL);
-    XCTAssertTrue(length == 0);
 }
 
 

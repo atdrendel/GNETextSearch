@@ -20,7 +20,6 @@ result _tsearch_ternarytree_copy_word(tsearch_ternarytree_ptr ptr, tsearch_strin
 result _tsearch_ternarytree_is_leaf(tsearch_ternarytree_ptr ptr);
 size_t _tsearch_ternarytree_get_word_len(tsearch_ternarytree_ptr ptr);
 result _tsearch_ternarytree_has_valid_document_ids(tsearch_ternarytree_ptr ptr);
-result _tsearch_ternarytree_increase_char_buf(char **outBuffer, size_t *outBufferLength, size_t amount);
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Tree
@@ -299,53 +298,4 @@ result _tsearch_ternarytree_has_valid_document_ids(tsearch_ternarytree_ptr ptr)
 {
     if (ptr == NULL || ptr->documentIDs == NULL) { return false; }
     return (tsearch_countedset_get_count(ptr->documentIDs) > 0) ? true : false;
-}
-
-
-/// Increases the specified char buffer (of the specified length) by the specified amount.
-/// Returns success if the realloc operation succeed, otherwise failure. In case of failure,
-/// the outBuffer is freed.
-result _tsearch_ternarytree_increase_char_buf(char **outBuffer, size_t *outBufferLength, size_t amount)
-{
-    if (amount == 0)
-    {
-        return success;
-    }
-
-    if (outBuffer == NULL || (*outBuffer) == NULL || outBufferLength == NULL)
-    {
-        if (outBuffer && *outBuffer) { free((*outBuffer)); *outBuffer = NULL; }
-        if (outBufferLength) { *outBufferLength = 0; }
-
-        return failure;
-    }
-
-    char *buffer = *outBuffer;
-    size_t bufferLength = *outBufferLength;
-
-    // Fail if the resulting buffer length is too large.
-    if ((SIZE_MAX - (amount * sizeof(char))) < bufferLength)
-    {
-        free(buffer);
-        *outBuffer = NULL;
-        if (outBufferLength) { *outBufferLength = 0; }
-
-        return failure;
-    }
-
-    bufferLength = bufferLength + amount;
-    char *newBuffer = realloc(buffer, sizeof(char) * bufferLength);
-    if (newBuffer == NULL)
-    {
-        free(buffer);
-        *outBuffer = NULL;
-        if (outBufferLength) { *outBufferLength = 0; }
-
-        return failure;
-    }
-
-    *outBuffer = newBuffer;
-    *outBufferLength = bufferLength;
-
-    return success;
 }
