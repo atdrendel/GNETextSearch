@@ -117,6 +117,8 @@
 					<real>1.1</real>
 					<key>baselineIntegrationDisplayName</key>
 					<string>Local Baseline</string>
+					<key>maxPercentRelativeStandardDeviation</key>
+					<real>35</real>
 				</dict>
 			</dict>
 			<key>testPrefixSearchBible_a__0_035</key>
