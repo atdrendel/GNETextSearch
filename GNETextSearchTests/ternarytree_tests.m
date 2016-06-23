@@ -461,7 +461,7 @@
 // ------------------------------------------------------------------------------------------
 #pragma mark - Performance
 // ------------------------------------------------------------------------------------------
-- (void)testInsertingBible_0_630
+- (void)testInsertingBible_0_650
 {
     NSDictionary *bible = [self bibleDictionary];
 
