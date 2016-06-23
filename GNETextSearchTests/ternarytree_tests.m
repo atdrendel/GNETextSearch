@@ -461,17 +461,19 @@
 // ------------------------------------------------------------------------------------------
 #pragma mark - Performance
 // ------------------------------------------------------------------------------------------
-- (void)testInsertingBible_0_650
+- (void)testInsertingBible__1_100
 {
     NSDictionary *bible = [self bibleDictionary];
 
     [self measureBlock:^()
     {
+        tsearch_ternarytree_ptr tree = tsearch_ternarytree_init();
         [bible enumerateKeysAndObjectsUsingBlock:^(NSNumber *documentID, NSArray *words, BOOL *stop) {
             for (NSString *word in words) {
-                tsearch_ternarytree_insert(_treePtr, word.UTF8String, documentID.longLongValue);
+                tsearch_ternarytree_insert(tree, word.UTF8String, documentID.longLongValue);
             }
         }];
+        tsearch_ternarytree_free(tree);
     }];
 }
 
