@@ -18,23 +18,23 @@ extern "C" {
 
 typedef struct tsearch_ternarytree_node *tsearch_ternarytree_ptr;
 
-extern tsearch_ternarytree_ptr tsearch_ternarytree_init(void);
-extern void tsearch_ternarytree_free(tsearch_ternarytree_ptr ptr);
-extern tsearch_ternarytree_ptr tsearch_ternarytree_insert(tsearch_ternarytree_ptr ptr, const char *newCharacter, GNEInteger documentID);
-extern result tsearch_ternarytree_remove(tsearch_ternarytree_ptr ptr, GNEInteger documentID);
+tsearch_ternarytree_ptr tsearch_ternarytree_init(void);
+void tsearch_ternarytree_free(tsearch_ternarytree_ptr ptr);
+tsearch_ternarytree_ptr tsearch_ternarytree_insert(tsearch_ternarytree_ptr ptr, const char *newCharacter, GNEInteger documentID);
+result tsearch_ternarytree_remove(tsearch_ternarytree_ptr ptr, GNEInteger documentID);
 
 /// Returns a GNEIntegerCountedSet with the IDs of the documents containing the target. The caller is
 /// responsible for calling tsearch_countedset_free().
-extern tsearch_countedset_ptr tsearch_ternarytree_copy_search_results(tsearch_ternarytree_ptr ptr, const char *target);
+tsearch_countedset_ptr tsearch_ternarytree_copy_search_results(tsearch_ternarytree_ptr ptr, const char *target);
 
 /// Returns a tsearch_countedset_ptr with the IDs of the documents containing the target prefix. The caller
 /// is responsible for calling tsearch_countedset_free().
-extern tsearch_countedset_ptr tsearch_ternarytree_copy_prefix_search_results(tsearch_ternarytree_ptr ptr, const char *prefix);
+tsearch_countedset_ptr tsearch_ternarytree_copy_prefix_search_results(tsearch_ternarytree_ptr ptr, const char *prefix);
 
 /// Copies all words contained in the tree into outResults (which much be freed by the caller).
-extern result tsearch_ternarytree_copy_contents(tsearch_ternarytree_ptr ptr, char **outResults, size_t *outLength);
+result tsearch_ternarytree_copy_contents(tsearch_ternarytree_ptr ptr, char **outResults, size_t *outLength);
 
-extern void tsearch_ternarytree_print(tsearch_ternarytree_ptr ptr);
+void tsearch_ternarytree_print(tsearch_ternarytree_ptr ptr);
 
 #ifdef __cplusplus
 }
