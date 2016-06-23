@@ -459,6 +459,67 @@
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Performance
+// ------------------------------------------------------------------------------------------
+- (void)testInsertingBible_0_630
+{
+    NSDictionary *bible = [self bibleDictionary];
+
+    [self measureBlock:^()
+    {
+        [bible enumerateKeysAndObjectsUsingBlock:^(NSNumber *documentID, NSArray *words, BOOL *stop) {
+            for (NSString *word in words) {
+                tsearch_ternarytree_insert(_treePtr, word.UTF8String, documentID.longLongValue);
+            }
+        }];
+    }];
+}
+
+
+- (void)testSearchBible_god__0_000
+{
+    [self insertBibleIntoTree:_treePtr];
+    __block tsearch_countedset_ptr results = NULL;
+    NSString *word = @"god";
+
+    [self measureBlock:^()
+    {
+        results = tsearch_ternarytree_copy_search_results(_treePtr, word.UTF8String);
+    }];
+    XCTAssertEqual([self numberOfVersesInBibleContainingWord:word], tsearch_countedset_get_count(results));
+}
+
+
+- (void)testSearchBible_the__0_001
+{
+    [self insertBibleIntoTree:_treePtr];
+    __block tsearch_countedset_ptr results = NULL;
+    NSString *word = @"the";
+
+    [self measureBlock:^()
+    {
+        results = tsearch_ternarytree_copy_search_results(_treePtr, word.UTF8String);
+    }];
+    XCTAssertEqual([self numberOfVersesInBibleContainingWord:word], tsearch_countedset_get_count(results));
+}
+
+
+- (void)testPrefixSearchBible_a__0_035
+{
+    [self insertBibleIntoTree:_treePtr];
+    __block tsearch_countedset_ptr results = NULL;
+    NSString *prefix = @"a";
+
+    [self measureBlock:^()
+    {
+        results = tsearch_ternarytree_copy_prefix_search_results(_treePtr, prefix.UTF8String);
+    }];
+
+    XCTAssertEqual([self numberOfVersesInBibleContainingPrefix:prefix], tsearch_countedset_get_count(results));
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Helpers
 // ------------------------------------------------------------------------------------------
 - (void)insertWords:(NSArray *)words intoTree:(tsearch_ternarytree_ptr)treePtr
@@ -599,6 +660,49 @@
 }
 
 
+- (void)insertBibleIntoTree:(tsearch_ternarytree_ptr)treePtr
+{
+    NSDictionary *bible = [self bibleDictionary];
+    [bible enumerateKeysAndObjectsUsingBlock:^(NSNumber *documentID, NSArray *words, BOOL *stop) {
+        for (NSString *word in words) {
+            tsearch_ternarytree_insert(_treePtr, word.UTF8String, documentID.longLongValue);
+        }
+    }];
+}
+
+
+- (NSInteger)numberOfVersesInBibleContainingWord:(NSString *)word
+{
+    __block NSInteger count = 0;
+    NSDictionary *bible = [self bibleDictionary];
+    [bible enumerateKeysAndObjectsUsingBlock:^(id verse, NSArray<NSString *> *words, BOOL *stop) {
+        NSInteger wordCount = [words indexesOfObjectsPassingTest:^BOOL(NSString *obj, NSUInteger idx, BOOL *stop)
+        {
+            return [obj isEqualToString:word];
+        }].count;
+        count += (wordCount > 0) ? 1 : 0;
+    }];
+
+    return count;
+}
+
+
+- (NSInteger)numberOfVersesInBibleContainingPrefix:(NSString *)prefix
+{
+    __block NSInteger count = 0;
+    NSDictionary *bible = [self bibleDictionary];
+    [bible enumerateKeysAndObjectsUsingBlock:^(id verse, NSArray<NSString *> *words, BOOL *stop) {
+        NSInteger wordCount = [words indexesOfObjectsPassingTest:^BOOL(NSString *obj, NSUInteger idx, BOOL *stop)
+        {
+            return [obj hasPrefix:prefix];
+        }].count;
+        count += (wordCount > 0) ? 1 : 0;
+    }];
+    
+    return count;
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - Word Lists
 // ------------------------------------------------------------------------------------------
@@ -621,6 +725,21 @@
     NSAssert2(error == nil, @"Could not open %@: %@", path, error);
 
     return [wordsString componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+}
+
+
+- (NSDictionary *)bibleDictionary
+{
+    static NSDictionary *dictionary = nil;
+
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSString *path = [[NSBundle bundleForClass:[self class]] pathForResource:@"bible" ofType:@"archive"];
+        NSParameterAssert(path);
+        dictionary = [NSKeyedUnarchiver unarchiveObjectWithFile:path];
+    });
+
+    return dictionary;
 }
 
 

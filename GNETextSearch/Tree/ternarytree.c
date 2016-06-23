@@ -256,7 +256,7 @@ result _tsearch_ternarytree_copy_word(tsearch_ternarytree_ptr ptr, tsearch_strin
     }
 
     int ret = tsearch_stringbuf_append_cstring(contentsPtr, word, wordLength);
-    free((void *)word);
+    free(word);
 
     return ret;
 }
