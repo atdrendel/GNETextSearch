@@ -23,6 +23,7 @@
 		57633FC11BF79A2B006B1541 /* countedset.c in Sources */ = {isa = PBXBuildFile; fileRef = 57633FBF1BF79A2B006B1541 /* countedset.c */; };
 		57633FC21BF79A2B006B1541 /* countedset.h in Headers */ = {isa = PBXBuildFile; fileRef = 57633FC01BF79A2B006B1541 /* countedset.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		57633FC51BF7C958006B1541 /* countedset_tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 57633FC41BF7C958006B1541 /* countedset_tests.m */; };
+		578467941D1B5C600046A3DE /* bible.archive in Resources */ = {isa = PBXBuildFile; fileRef = 578467931D1B5C600046A3DE /* bible.archive */; };
 		57A46B0E1BF3604B008809A3 /* stringbuf.c in Sources */ = {isa = PBXBuildFile; fileRef = 57A46B0C1BF3604B008809A3 /* stringbuf.c */; };
 		57A46B0F1BF3604B008809A3 /* stringbuf.h in Headers */ = {isa = PBXBuildFile; fileRef = 57A46B0D1BF3604B008809A3 /* stringbuf.h */; };
 		57A46B111BF37456008809A3 /* stringbuf_tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 57A46B101BF37456008809A3 /* stringbuf_tests.m */; };
@@ -74,6 +75,7 @@
 		57633FC01BF79A2B006B1541 /* countedset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = countedset.h; sourceTree = "<group>"; };
 		57633FC31BF79A74006B1541 /* GNETextSearchPrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GNETextSearchPrivate.h; sourceTree = "<group>"; };
 		57633FC41BF7C958006B1541 /* countedset_tests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = countedset_tests.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		578467931D1B5C600046A3DE /* bible.archive */ = {isa = PBXFileReference; lastKnownFileType = file.bplist; path = bible.archive; sourceTree = "<group>"; };
 		57A46B0C1BF3604B008809A3 /* stringbuf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stringbuf.c; sourceTree = "<group>"; };
 		57A46B0D1BF3604B008809A3 /* stringbuf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stringbuf.h; sourceTree = "<group>"; };
 		57A46B101BF37456008809A3 /* stringbuf_tests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = stringbuf_tests.m; sourceTree = "<group>"; };
@@ -140,6 +142,7 @@
 				5711A8091B94B29F0088910A /* ternarytree_tests.m */,
 				5762112D1C385FFA003B3623 /* tokenize_tests.m */,
 				5711A7FA1B949E440088910A /* Info.plist */,
+				578467931D1B5C600046A3DE /* bible.archive */,
 				57A46B121BF3B5F8008809A3 /* words-beginning-with-A.txt */,
 				573847E11BFD1E2400A71CF9 /* random-integers-100000-1.txt */,
 				573847E21BFD1E2400A71CF9 /* random-integers-100000-2.txt */,
@@ -292,6 +295,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				578467941D1B5C600046A3DE /* bible.archive in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
