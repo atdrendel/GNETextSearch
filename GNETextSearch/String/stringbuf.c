@@ -49,7 +49,7 @@ tsearch_stringbuf_ptr tsearch_stringbuf_init_with_cstring(const char *cString, c
 {
 #if DEBUG
     if (_is_valid_cstring(cString, length) == false) {
-        printf("C string parameter is not valid");
+        printf("C string parameter is not valid\n");
         return NULL;
     }
 #endif
@@ -89,11 +89,23 @@ char tsearch_stringbuf_get_char_at_idx(tsearch_stringbuf_ptr ptr, size_t index)
 }
 
 
+result tsearch_stringbuf_append_char(tsearch_stringbuf_ptr ptr, const char character)
+{
+    if (ptr == NULL) { return  failure; }
+    size_t currentLength = ptr->length;
+    size_t newLength = currentLength + 1;
+    if (_tsearch_stringbuf_increase_capacity(ptr, newLength) == failure) { return failure; }
+    ptr->buffer[currentLength] = character;
+    ptr->length = newLength;
+    return success;
+}
+
+
 int tsearch_stringbuf_append_cstring(tsearch_stringbuf_ptr ptr, const char *cString, const size_t length)
 {
 #if DEBUG
     if (_is_valid_cstring(cString, length) == false) {
-        printf("C string parameter is not valid");
+        printf("C string parameter is not valid\n");
         return failure;
     }
 #endif
@@ -136,10 +148,10 @@ const char * tsearch_stringbuf_copy_cstring(tsearch_stringbuf_ptr ptr)
 
 void tsearch_stringbuf_print(tsearch_stringbuf_ptr ptr)
 {
-    if (ptr == NULL) { printf("%p is NULL", ptr); }
+    if (ptr == NULL) { printf("%p is NULL\n", ptr); }
 
     const char *contents = tsearch_stringbuf_copy_cstring(ptr);
-    printf("<GNEMutableString, %p> %s\n", ptr, contents);
+    printf("<tsearch_stringbuf, %p> %s\n", ptr, contents);
     free((void *)contents);
 }
 

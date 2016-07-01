@@ -13,10 +13,18 @@
 
 // ------------------------------------------------------------------------------------------
 
+typedef void(*reverse_search_func)(const char character, size_t index, void *context);
+
+// ------------------------------------------------------------------------------------------
+
 tsearch_ternarytree_ptr _tsearch_ternarytree_search(tsearch_ternarytree_ptr ptr, const char *target);
 result _tsearch_ternarytree_search_from_node(tsearch_ternarytree_ptr ptr, tsearch_countedset_ptr results);
+result _tsearch_ternarytree_reverse_search_from_node(tsearch_ternarytree_ptr ptr,
+                                                     reverse_search_func callback,
+                                                     void *context);
 result _tsearch_ternarytree_copy_contents(tsearch_ternarytree_ptr ptr, tsearch_stringbuf_ptr contentsPtr);
 result _tsearch_ternarytree_copy_word(tsearch_ternarytree_ptr ptr, tsearch_stringbuf_ptr contentsPtr);
+void _tsearch_ternarytree_copy_word_callback(const char character, size_t index, void *context);
 result _tsearch_ternarytree_is_leaf(tsearch_ternarytree_ptr ptr);
 size_t _tsearch_ternarytree_get_word_len(tsearch_ternarytree_ptr ptr);
 result _tsearch_ternarytree_has_valid_document_ids(tsearch_ternarytree_ptr ptr);
@@ -204,11 +212,12 @@ result _tsearch_ternarytree_search_from_node(tsearch_ternarytree_ptr ptr, tsearc
 {
     if (ptr == NULL) { return success; }
 
+    if (_tsearch_ternarytree_search_from_node(ptr->lower, results) == failure) { return failure; }
+
     if (_tsearch_ternarytree_has_valid_document_ids(ptr) == true) {
         if (tsearch_countedset_union(results, ptr->documentIDs) == failure) { return failure; }
     }
 
-    if (_tsearch_ternarytree_search_from_node(ptr->lower, results) == failure) { return failure; }
     if (_tsearch_ternarytree_search_from_node(ptr->same, results) == failure) { return failure; }
     return _tsearch_ternarytree_search_from_node(ptr->higher, results);
 }
@@ -219,12 +228,13 @@ result _tsearch_ternarytree_copy_contents(tsearch_ternarytree_ptr ptr, tsearch_s
     if (contentsPtr == NULL) { return failure; }
     if (ptr == NULL) { return success; }
 
+    if (_tsearch_ternarytree_copy_contents(ptr->lower, contentsPtr) == failure) { return failure; }
+
     // We've found the end of a word. Append it to the results array.
     if (_tsearch_ternarytree_has_valid_document_ids(ptr) == true) {
         if (_tsearch_ternarytree_copy_word(ptr, contentsPtr) == failure) { return failure; }
     }
 
-    if (_tsearch_ternarytree_copy_contents(ptr->lower, contentsPtr) == failure) { return failure; }
     if (_tsearch_ternarytree_copy_contents(ptr->same, contentsPtr) == failure) { return failure; }
     return _tsearch_ternarytree_copy_contents(ptr->higher, contentsPtr);
 }
@@ -237,28 +247,47 @@ result _tsearch_ternarytree_copy_word(tsearch_ternarytree_ptr ptr, tsearch_strin
     size_t wordLength = _tsearch_ternarytree_get_word_len(ptr) + 1; // Add one for the newline.
     if (wordLength == 1) { return success; }
     char *word = calloc((wordLength), sizeof(char));
+    word[wordLength - 1] = '\n';
 
-    size_t characterIndex = wordLength - 1;
-    word[characterIndex] = '\n';
-    characterIndex -= 1;
-
-    word[characterIndex] = ptr->character;
-    characterIndex -= 1;
-
-    while (ptr != NULL) {
-        if (ptr->parent != NULL && ptr->parent->same == ptr) {
-            word[characterIndex] = ptr->parent->character;
-            if (characterIndex == 0) { break; }
-            characterIndex -= 1;
-        }
-
-        ptr = ptr->parent;
-    }
+    _tsearch_ternarytree_reverse_search_from_node(ptr, _tsearch_ternarytree_copy_word_callback, word);
 
     int ret = tsearch_stringbuf_append_cstring(contentsPtr, word, wordLength);
     free(word);
 
     return ret;
+}
+
+
+void _tsearch_ternarytree_copy_word_callback(const char character, size_t index, void *context)
+{
+    char *word = context;
+    word[index] = character;
+}
+
+
+result _tsearch_ternarytree_reverse_search_from_node(tsearch_ternarytree_ptr ptr,
+                                                     reverse_search_func callback,
+                                                     void *context)
+{
+    if (ptr == NULL) { return success; }
+    if (callback == NULL) { return failure; }
+
+    size_t wordLength = _tsearch_ternarytree_get_word_len(ptr);
+    if (wordLength == 0) { return success; }
+    size_t characterIndex = wordLength - 1;
+
+    callback(ptr->character, characterIndex, context);
+    characterIndex -= 1;
+
+    while (ptr != NULL) {
+        if (ptr->parent != NULL && ptr->parent->same == ptr) {
+            callback(ptr->parent->character, characterIndex, context);
+            if (characterIndex == 0) { break; }
+            characterIndex -= 1;
+        }
+        ptr = ptr->parent;
+    }
+    return success;
 }
 
 
