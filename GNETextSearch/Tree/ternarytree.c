@@ -13,21 +13,36 @@
 
 // ------------------------------------------------------------------------------------------
 
-typedef void(*reverse_search_func)(const char character, size_t index, void *context);
+typedef int callback_signal;
+#define callback_continue 0
+#define callback_stop 1
+typedef callback_signal(*reverse_search_func)(const char character, const size_t index, const void *context);
+
+typedef struct _tsearch_string_search
+{
+    const char *string;
+    const size_t length;
+    size_t currentIndex;
+    bool didMatch;
+} _tsearch_string_search;
 
 // ------------------------------------------------------------------------------------------
 
 tsearch_ternarytree_ptr _tsearch_ternarytree_search(tsearch_ternarytree_ptr ptr, const char *target);
 result _tsearch_ternarytree_search_from_node(tsearch_ternarytree_ptr ptr, tsearch_countedset_ptr results);
-result _tsearch_ternarytree_reverse_search_from_node(tsearch_ternarytree_ptr ptr,
-                                                     reverse_search_func callback,
+result _tsearch_ternarytree_find_suffix(tsearch_ternarytree_ptr ptr, const char *suffix,
+                                        const size_t length, tsearch_countedset_ptr results);
+result _tsearch_ternarytree_reverse_search_from_node(tsearch_ternarytree_ptr ptr, reverse_search_func callback,
                                                      void *context);
 result _tsearch_ternarytree_copy_contents(tsearch_ternarytree_ptr ptr, tsearch_stringbuf_ptr contentsPtr);
 result _tsearch_ternarytree_copy_word(tsearch_ternarytree_ptr ptr, tsearch_stringbuf_ptr contentsPtr);
-void _tsearch_ternarytree_copy_word_callback(const char character, size_t index, void *context);
+callback_signal _tsearch_ternarytree_suffix_search_callback(const char character,
+                                                            const size_t index, const void *context);
+callback_signal _tsearch_ternarytree_copy_word_callback(const char character,
+                                                        const size_t index, const void *context);
 result _tsearch_ternarytree_is_leaf(tsearch_ternarytree_ptr ptr);
 size_t _tsearch_ternarytree_get_word_len(tsearch_ternarytree_ptr ptr);
-result _tsearch_ternarytree_has_valid_document_ids(tsearch_ternarytree_ptr ptr);
+bool _tsearch_ternarytree_has_valid_document_ids(tsearch_ternarytree_ptr ptr);
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Tree
@@ -121,7 +136,7 @@ result tsearch_ternarytree_remove(tsearch_ternarytree_ptr ptr, GNEInteger docume
 tsearch_countedset_ptr tsearch_ternarytree_copy_search_results(tsearch_ternarytree_ptr ptr, const char *target)
 {
     tsearch_ternarytree_ptr foundPtr = _tsearch_ternarytree_search(ptr, target);
-    int hasResults = _tsearch_ternarytree_has_valid_document_ids(foundPtr);
+    bool hasResults = _tsearch_ternarytree_has_valid_document_ids(foundPtr);
     return (hasResults == true) ? tsearch_countedset_copy(foundPtr->documentIDs) : NULL;
 }
 
@@ -129,11 +144,9 @@ tsearch_countedset_ptr tsearch_ternarytree_copy_search_results(tsearch_ternarytr
 tsearch_countedset_ptr tsearch_ternarytree_copy_prefix_search_results(tsearch_ternarytree_ptr ptr, const char *prefix)
 {
     tsearch_ternarytree_ptr foundPtr = _tsearch_ternarytree_search(ptr, prefix);
-
     if (foundPtr == NULL) { return NULL; }
 
     tsearch_countedset_ptr resultsPtr = tsearch_countedset_init();
-
     if (resultsPtr == NULL) { return NULL; }
 
     if (_tsearch_ternarytree_has_valid_document_ids(foundPtr) == true) {
@@ -144,6 +157,27 @@ tsearch_countedset_ptr tsearch_ternarytree_copy_prefix_search_results(tsearch_te
         tsearch_countedset_free(resultsPtr);
         return NULL;
     }
+
+    if (tsearch_countedset_get_count(resultsPtr) == 0) {
+        tsearch_countedset_free(resultsPtr);
+        resultsPtr = NULL;
+    }
+
+    return resultsPtr;
+}
+
+
+tsearch_countedset_ptr tsearch_ternarytree_copy_suffix_search_results(tsearch_ternarytree_ptr ptr,
+                                                                      const char *suffix, 
+                                                                      const size_t length)
+{
+    if (ptr == NULL) { return NULL; }
+    if (suffix == NULL) { return NULL; }
+
+    tsearch_countedset_ptr resultsPtr = tsearch_countedset_init();
+    if (resultsPtr == NULL) { return NULL; }
+    
+    _tsearch_ternarytree_find_suffix(ptr, suffix, length, resultsPtr);
 
     if (tsearch_countedset_get_count(resultsPtr) == 0) {
         tsearch_countedset_free(resultsPtr);
@@ -223,6 +257,56 @@ result _tsearch_ternarytree_search_from_node(tsearch_ternarytree_ptr ptr, tsearc
 }
 
 
+result _tsearch_ternarytree_find_suffix(tsearch_ternarytree_ptr ptr, const char *suffix,
+                                        const size_t length, tsearch_countedset_ptr results)
+{
+    if (ptr == NULL) { return success; }
+    if (results == NULL) { return failure; }
+
+    if (_tsearch_ternarytree_find_suffix(ptr->lower, suffix, length, results) == failure) { return failure; }
+
+    if (_tsearch_ternarytree_has_valid_document_ids(ptr) == true &&
+        ptr->character == suffix[length - 1]) {
+        _tsearch_string_search search = (_tsearch_string_search){suffix, length, length - 1, true};
+        _tsearch_ternarytree_reverse_search_from_node(ptr,
+                                                      _tsearch_ternarytree_suffix_search_callback,
+                                                      &search);
+        if (search.didMatch == true) {
+            tsearch_countedset_union(results, ptr->documentIDs);
+        }
+    }
+
+    if (_tsearch_ternarytree_find_suffix(ptr->same, suffix, length, results) == failure) { return failure; }
+    return _tsearch_ternarytree_find_suffix(ptr->higher, suffix, length, results);
+}
+
+
+result _tsearch_ternarytree_reverse_search_from_node(tsearch_ternarytree_ptr ptr,
+                                                     reverse_search_func callback,
+                                                     void *context)
+{
+    if (ptr == NULL) { return success; }
+    if (callback == NULL) { return failure; }
+
+    size_t wordLength = _tsearch_ternarytree_get_word_len(ptr);
+    if (wordLength == 0) { return success; }
+    size_t characterIndex = wordLength - 1;
+
+    if (callback(ptr->character, characterIndex, context) == callback_stop) { return success; }
+    characterIndex -= 1;
+
+    while (ptr != NULL) {
+        if (ptr->parent != NULL && ptr->parent->same == ptr) {
+            if (callback(ptr->parent->character, characterIndex, context) == callback_stop) { break; }
+            if (characterIndex == 0) { break; }
+            characterIndex -= 1;
+        }
+        ptr = ptr->parent;
+    }
+    return success;
+}
+
+
 result _tsearch_ternarytree_copy_contents(tsearch_ternarytree_ptr ptr, tsearch_stringbuf_ptr contentsPtr)
 {
     if (contentsPtr == NULL) { return failure; }
@@ -258,36 +342,36 @@ result _tsearch_ternarytree_copy_word(tsearch_ternarytree_ptr ptr, tsearch_strin
 }
 
 
-void _tsearch_ternarytree_copy_word_callback(const char character, size_t index, void *context)
+callback_signal _tsearch_ternarytree_suffix_search_callback(const char character,
+                                                            const size_t index,
+                                                            const void *context)
 {
-    char *word = context;
-    word[index] = character;
+    if (context == NULL) { return callback_stop; }
+    _tsearch_string_search *search = (_tsearch_string_search *)context;
+    size_t currentIndex = search->currentIndex;
+    char target = search->string[currentIndex];
+    if (character == target) {
+        if (currentIndex > 0) {
+            search->currentIndex = currentIndex - 1;
+            return callback_continue;
+        } else {
+            return callback_stop;
+        }
+    } else {
+        search->didMatch = false;
+        return callback_stop;
+    }
 }
 
 
-result _tsearch_ternarytree_reverse_search_from_node(tsearch_ternarytree_ptr ptr,
-                                                     reverse_search_func callback,
-                                                     void *context)
+callback_signal _tsearch_ternarytree_copy_word_callback(const char character,
+                                                        const size_t index,
+                                                        const void *context)
 {
-    if (ptr == NULL) { return success; }
-    if (callback == NULL) { return failure; }
-
-    size_t wordLength = _tsearch_ternarytree_get_word_len(ptr);
-    if (wordLength == 0) { return success; }
-    size_t characterIndex = wordLength - 1;
-
-    callback(ptr->character, characterIndex, context);
-    characterIndex -= 1;
-
-    while (ptr != NULL) {
-        if (ptr->parent != NULL && ptr->parent->same == ptr) {
-            callback(ptr->parent->character, characterIndex, context);
-            if (characterIndex == 0) { break; }
-            characterIndex -= 1;
-        }
-        ptr = ptr->parent;
-    }
-    return success;
+    if (context == NULL) { return callback_stop; }
+    char *word = (char *)context;
+    word[index] = character;
+    return callback_continue;
 }
 
 
@@ -323,7 +407,7 @@ size_t _tsearch_ternarytree_get_word_len(tsearch_ternarytree_ptr ptr)
 
 
 /// Return true if the specified node contains one or more document IDs, otherwise false;
-result _tsearch_ternarytree_has_valid_document_ids(tsearch_ternarytree_ptr ptr)
+bool _tsearch_ternarytree_has_valid_document_ids(tsearch_ternarytree_ptr ptr)
 {
     if (ptr == NULL || ptr->documentIDs == NULL) { return false; }
     return (tsearch_countedset_get_count(ptr->documentIDs) > 0) ? true : false;
