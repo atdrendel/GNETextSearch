@@ -176,7 +176,7 @@ tsearch_countedset_ptr tsearch_ternarytree_copy_suffix_search_results(tsearch_te
 
     tsearch_countedset_ptr resultsPtr = tsearch_countedset_init();
     if (resultsPtr == NULL) { return NULL; }
-    
+
     _tsearch_ternarytree_find_suffix(ptr, suffix, length, resultsPtr);
 
     if (tsearch_countedset_get_count(resultsPtr) == 0) {
