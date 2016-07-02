@@ -59,7 +59,7 @@ static const uint8_t utf8d[] =
 };
 
 
-static inline uint32_t utf8_decode(uint32_t *state, uint32_t *codePoint, uint8_t byte)
+static inline uint32_t utf8_decode(uint32_t *state, uint32_t *codePoint, const uint8_t byte)
 {
     uint32_t type = utf8d[byte];
     *codePoint = (*state != UTF8_ACCEPT) ? ((byte & 0x3fu) | (*codePoint << 6)) :
@@ -71,6 +71,7 @@ static inline uint32_t utf8_decode(uint32_t *state, uint32_t *codePoint, uint8_t
 
 int utf8_isValid(const char *s)
 {
+    if (s == NULL) { return false; }
 	uint32_t codePoint = 0;
 	uint32_t state = UTF8_ACCEPT;
 	while (*s) { utf8_decode(&state, &codePoint, *s++); }
