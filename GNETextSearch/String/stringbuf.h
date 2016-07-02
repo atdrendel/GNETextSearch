@@ -26,28 +26,28 @@ tsearch_stringbuf_ptr tsearch_stringbuf_init(void);
 /// the null terminator.
 tsearch_stringbuf_ptr tsearch_stringbuf_init_with_cstring(const char *cString, const size_t length);
 
-void tsearch_stringbuf_free(tsearch_stringbuf_ptr ptr);
+void tsearch_stringbuf_free(const tsearch_stringbuf_ptr ptr);
 
 /// Returns the length of the string buffer. The length does not include space for a null terminator.
-size_t tsearch_stringbuf_get_len(tsearch_stringbuf_ptr ptr);
+size_t tsearch_stringbuf_get_len(const tsearch_stringbuf_ptr ptr);
 
 /// Returns the char at the specified index of the string buffer.
 /// Returns '\0' if the index is past the bounds of the string or if the string buffer is NULL.
-char tsearch_stringbuf_get_char_at_idx(tsearch_stringbuf_ptr ptr, size_t index);
+char tsearch_stringbuf_get_char_at_idx(const tsearch_stringbuf_ptr ptr, const size_t index);
 
 /// Appends the specified char to the string buffer. Returns 1 if successful, otherwise 0.
-result tsearch_stringbuf_append_char(tsearch_stringbuf_ptr ptr, const char character);
+result tsearch_stringbuf_append_char(const tsearch_stringbuf_ptr ptr, const char character);
 
 /// Appends the specified C char array into the string buffer. Returns 1 if successful, otherwise 0.
 /// The length parameter refers to the number of chars in cString, but should not include
 /// the null terminator.
-result tsearch_stringbuf_append_cstring(tsearch_stringbuf_ptr ptr, const char *cString, const size_t length);
+result tsearch_stringbuf_append_cstring(const tsearch_stringbuf_ptr ptr, const char *cString, const size_t length);
 
 /// Returns a null-terminated char representation of the mutable string's contents.
 /// The returned char array must be freed by the caller.
-const char * tsearch_stringbuf_copy_cstring(tsearch_stringbuf_ptr ptr);
+const char * tsearch_stringbuf_copy_cstring(const tsearch_stringbuf_ptr ptr);
 
-void tsearch_stringbuf_print(tsearch_stringbuf_ptr ptr);
+void tsearch_stringbuf_print(const tsearch_stringbuf_ptr ptr);
 
 #ifdef __cplusplus
 }

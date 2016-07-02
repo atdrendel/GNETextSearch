@@ -13,8 +13,8 @@
 
 // ------------------------------------------------------------------------------------------
 
-result _tsearch_stringbuf_increase_capacity(tsearch_stringbuf_ptr ptr, size_t newLength);
-size_t _tsearch_stringbuf_get_max_char_count(tsearch_stringbuf_ptr ptr);
+result _tsearch_stringbuf_increase_capacity(const tsearch_stringbuf_ptr ptr, const size_t newLength);
+size_t _tsearch_stringbuf_get_max_char_count(const tsearch_stringbuf_ptr ptr);
 bool _is_valid_cstring(const char *cString, const size_t length);
 
 // ------------------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ tsearch_stringbuf_ptr tsearch_stringbuf_init_with_cstring(const char *cString, c
 }
 
 
-void tsearch_stringbuf_free(tsearch_stringbuf_ptr ptr)
+void tsearch_stringbuf_free(const tsearch_stringbuf_ptr ptr)
 {
     if (ptr != NULL) {
         free(ptr->buffer);
@@ -76,20 +76,20 @@ void tsearch_stringbuf_free(tsearch_stringbuf_ptr ptr)
 }
 
 
-size_t tsearch_stringbuf_get_len(tsearch_stringbuf_ptr ptr)
+size_t tsearch_stringbuf_get_len(const tsearch_stringbuf_ptr ptr)
 {
     return (ptr == NULL) ? 0 : ptr->length;
 }
 
 
-char tsearch_stringbuf_get_char_at_idx(tsearch_stringbuf_ptr ptr, size_t index)
+char tsearch_stringbuf_get_char_at_idx(const tsearch_stringbuf_ptr ptr, const size_t index)
 {
     if (ptr == NULL || ptr->buffer == NULL || index >= ptr->length) { return '\0'; }
     return ptr->buffer[index];
 }
 
 
-result tsearch_stringbuf_append_char(tsearch_stringbuf_ptr ptr, const char character)
+result tsearch_stringbuf_append_char(const tsearch_stringbuf_ptr ptr, const char character)
 {
     if (ptr == NULL) { return  failure; }
     size_t currentLength = ptr->length;
@@ -101,7 +101,7 @@ result tsearch_stringbuf_append_char(tsearch_stringbuf_ptr ptr, const char chara
 }
 
 
-int tsearch_stringbuf_append_cstring(tsearch_stringbuf_ptr ptr, const char *cString, const size_t length)
+int tsearch_stringbuf_append_cstring(const tsearch_stringbuf_ptr ptr, const char *cString, const size_t length)
 {
 #if DEBUG
     if (_is_valid_cstring(cString, length) == false) {
@@ -127,7 +127,7 @@ int tsearch_stringbuf_append_cstring(tsearch_stringbuf_ptr ptr, const char *cStr
 }
 
 
-const char * tsearch_stringbuf_copy_cstring(tsearch_stringbuf_ptr ptr)
+const char * tsearch_stringbuf_copy_cstring(const tsearch_stringbuf_ptr ptr)
 {
     if (ptr == NULL || ptr->buffer == NULL) { return NULL; }
 
@@ -146,7 +146,7 @@ const char * tsearch_stringbuf_copy_cstring(tsearch_stringbuf_ptr ptr)
 }
 
 
-void tsearch_stringbuf_print(tsearch_stringbuf_ptr ptr)
+void tsearch_stringbuf_print(const tsearch_stringbuf_ptr ptr)
 {
     if (ptr == NULL) { printf("%p is NULL\n", ptr); }
 
@@ -159,7 +159,7 @@ void tsearch_stringbuf_print(tsearch_stringbuf_ptr ptr)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private
 // ------------------------------------------------------------------------------------------
-int _tsearch_stringbuf_increase_capacity(tsearch_stringbuf_ptr ptr, size_t newLength)
+int _tsearch_stringbuf_increase_capacity(const tsearch_stringbuf_ptr ptr, const size_t newLength)
 {
     if (ptr == NULL || ptr->buffer == NULL) { return failure; }
 
@@ -178,7 +178,7 @@ int _tsearch_stringbuf_increase_capacity(tsearch_stringbuf_ptr ptr, size_t newLe
 }
 
 
-size_t _tsearch_stringbuf_get_max_char_count(tsearch_stringbuf_ptr ptr)
+size_t _tsearch_stringbuf_get_max_char_count(const tsearch_stringbuf_ptr ptr)
 {
     if (ptr == NULL || ptr->buffer == NULL) { return 0; }
 

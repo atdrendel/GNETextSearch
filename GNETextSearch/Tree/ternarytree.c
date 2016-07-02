@@ -28,21 +28,21 @@ typedef struct _tsearch_string_search
 
 // ------------------------------------------------------------------------------------------
 
-tsearch_ternarytree_ptr _tsearch_ternarytree_search(tsearch_ternarytree_ptr ptr, const char *target);
-result _tsearch_ternarytree_search_from_node(tsearch_ternarytree_ptr ptr, tsearch_countedset_ptr results);
-result _tsearch_ternarytree_find_suffix(tsearch_ternarytree_ptr ptr, const char *suffix,
+tsearch_ternarytree_ptr _tsearch_ternarytree_search(const tsearch_ternarytree_ptr ptr, const char *target);
+result _tsearch_ternarytree_search_from_node(const tsearch_ternarytree_ptr ptr, tsearch_countedset_ptr results);
+result _tsearch_ternarytree_find_suffix(const tsearch_ternarytree_ptr ptr, const char *suffix,
                                         const size_t length, tsearch_countedset_ptr results);
 result _tsearch_ternarytree_reverse_search_from_node(tsearch_ternarytree_ptr ptr, reverse_search_func callback,
                                                      void *context);
 result _tsearch_ternarytree_copy_contents(tsearch_ternarytree_ptr ptr, tsearch_stringbuf_ptr contentsPtr);
-result _tsearch_ternarytree_copy_word(tsearch_ternarytree_ptr ptr, tsearch_stringbuf_ptr contentsPtr);
+result _tsearch_ternarytree_copy_word(const tsearch_ternarytree_ptr ptr, const tsearch_stringbuf_ptr contentsPtr);
 callback_signal _tsearch_ternarytree_suffix_search_callback(const char character,
                                                             const size_t index, const void *context);
 callback_signal _tsearch_ternarytree_copy_word_callback(const char character,
                                                         const size_t index, const void *context);
-result _tsearch_ternarytree_is_leaf(tsearch_ternarytree_ptr ptr);
-size_t _tsearch_ternarytree_get_word_len(tsearch_ternarytree_ptr ptr);
-bool _tsearch_ternarytree_has_valid_document_ids(tsearch_ternarytree_ptr ptr);
+result _tsearch_ternarytree_is_leaf(const tsearch_ternarytree_ptr ptr);
+size_t _tsearch_ternarytree_get_word_len(const tsearch_ternarytree_ptr ptr);
+bool _tsearch_ternarytree_has_valid_document_ids(const tsearch_ternarytree_ptr ptr);
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Tree
@@ -72,7 +72,7 @@ tsearch_ternarytree_ptr tsearch_ternarytree_init(void)
 }
 
 
-void tsearch_ternarytree_free(tsearch_ternarytree_ptr ptr)
+void tsearch_ternarytree_free(const tsearch_ternarytree_ptr ptr)
 {
     if (ptr != NULL) {
         ptr->parent = NULL;
@@ -86,7 +86,9 @@ void tsearch_ternarytree_free(tsearch_ternarytree_ptr ptr)
 }
 
 
-tsearch_ternarytree_ptr tsearch_ternarytree_insert(tsearch_ternarytree_ptr ptr, const char *newCharacter, GNEInteger documentID)
+tsearch_ternarytree_ptr tsearch_ternarytree_insert(tsearch_ternarytree_ptr ptr,
+                                                   const char *newCharacter,
+                                                   const GNEInteger documentID)
 {
     if (newCharacter == NULL) { return ptr; }
 
@@ -117,7 +119,7 @@ tsearch_ternarytree_ptr tsearch_ternarytree_insert(tsearch_ternarytree_ptr ptr, 
 }
 
 
-result tsearch_ternarytree_remove(tsearch_ternarytree_ptr ptr, GNEInteger documentID)
+result tsearch_ternarytree_remove(const tsearch_ternarytree_ptr ptr, const GNEInteger documentID)
 {
     if (ptr == NULL) { return success; }
 
@@ -133,7 +135,7 @@ result tsearch_ternarytree_remove(tsearch_ternarytree_ptr ptr, GNEInteger docume
 }
 
 
-tsearch_countedset_ptr tsearch_ternarytree_copy_search_results(tsearch_ternarytree_ptr ptr, const char *target)
+tsearch_countedset_ptr tsearch_ternarytree_copy_search_results(const tsearch_ternarytree_ptr ptr, const char *target)
 {
     tsearch_ternarytree_ptr foundPtr = _tsearch_ternarytree_search(ptr, target);
     bool hasResults = _tsearch_ternarytree_has_valid_document_ids(foundPtr);
@@ -141,7 +143,7 @@ tsearch_countedset_ptr tsearch_ternarytree_copy_search_results(tsearch_ternarytr
 }
 
 
-tsearch_countedset_ptr tsearch_ternarytree_copy_prefix_search_results(tsearch_ternarytree_ptr ptr, const char *prefix)
+tsearch_countedset_ptr tsearch_ternarytree_copy_prefix_search_results(const tsearch_ternarytree_ptr ptr, const char *prefix)
 {
     tsearch_ternarytree_ptr foundPtr = _tsearch_ternarytree_search(ptr, prefix);
     if (foundPtr == NULL) { return NULL; }
@@ -167,7 +169,7 @@ tsearch_countedset_ptr tsearch_ternarytree_copy_prefix_search_results(tsearch_te
 }
 
 
-tsearch_countedset_ptr tsearch_ternarytree_copy_suffix_search_results(tsearch_ternarytree_ptr ptr,
+tsearch_countedset_ptr tsearch_ternarytree_copy_suffix_search_results(const tsearch_ternarytree_ptr ptr,
                                                                       const char *suffix, 
                                                                       const size_t length)
 {
@@ -225,7 +227,7 @@ void tsearch_ternarytree_print(tsearch_ternarytree_ptr ptr)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private
 // ------------------------------------------------------------------------------------------
-tsearch_ternarytree_ptr _tsearch_ternarytree_search(tsearch_ternarytree_ptr ptr, const char *target)
+tsearch_ternarytree_ptr _tsearch_ternarytree_search(const tsearch_ternarytree_ptr ptr, const char *target)
 {
     if (ptr == NULL) { return NULL; }
 
@@ -242,7 +244,7 @@ tsearch_ternarytree_ptr _tsearch_ternarytree_search(tsearch_ternarytree_ptr ptr,
 }
 
 
-result _tsearch_ternarytree_search_from_node(tsearch_ternarytree_ptr ptr, tsearch_countedset_ptr results)
+result _tsearch_ternarytree_search_from_node(const tsearch_ternarytree_ptr ptr, tsearch_countedset_ptr results)
 {
     if (ptr == NULL) { return success; }
 
@@ -257,7 +259,7 @@ result _tsearch_ternarytree_search_from_node(tsearch_ternarytree_ptr ptr, tsearc
 }
 
 
-result _tsearch_ternarytree_find_suffix(tsearch_ternarytree_ptr ptr, const char *suffix,
+result _tsearch_ternarytree_find_suffix(const tsearch_ternarytree_ptr ptr, const char *suffix,
                                         const size_t length, tsearch_countedset_ptr results)
 {
     if (ptr == NULL) { return success; }
@@ -324,7 +326,7 @@ result _tsearch_ternarytree_copy_contents(tsearch_ternarytree_ptr ptr, tsearch_s
 }
 
 
-result _tsearch_ternarytree_copy_word(tsearch_ternarytree_ptr ptr, tsearch_stringbuf_ptr contentsPtr)
+result _tsearch_ternarytree_copy_word(const tsearch_ternarytree_ptr ptr, const tsearch_stringbuf_ptr contentsPtr)
 {
     if (ptr == NULL) { return success; }
 
@@ -377,7 +379,7 @@ callback_signal _tsearch_ternarytree_copy_word_callback(const char character,
 
 /// Returns true if the specified pointer is a leaf node (i.e., its lower, same, and
 /// higher pointers are NULL), otherwise false.
-result _tsearch_ternarytree_is_leaf(tsearch_ternarytree_ptr ptr)
+result _tsearch_ternarytree_is_leaf(const tsearch_ternarytree_ptr ptr)
 {
     if (ptr != NULL && ptr->lower == NULL && ptr->same == NULL && ptr->higher == NULL)
     {
@@ -389,17 +391,17 @@ result _tsearch_ternarytree_is_leaf(tsearch_ternarytree_ptr ptr)
 
 /// Returns the length of the beginning at the specified pointer.
 /// The length does NOT include the trailing null terminator.
-size_t _tsearch_ternarytree_get_word_len(tsearch_ternarytree_ptr ptr)
+size_t _tsearch_ternarytree_get_word_len(const tsearch_ternarytree_ptr ptr)
 {
     if (ptr == NULL || ptr->documentIDs == NULL) { return 0; }
-
+    tsearch_ternarytree_ptr wordPtr = ptr;
     size_t length = 1;
 
-    while (ptr != NULL) {
-        if (ptr->parent != NULL && ptr->parent->same == ptr) {
+    while (wordPtr != NULL) {
+        if (wordPtr->parent != NULL && wordPtr->parent->same == wordPtr) {
             length = length + 1;
         }
-        ptr = ptr->parent;
+        wordPtr = wordPtr->parent;
     }
 
     return length;
@@ -407,7 +409,7 @@ size_t _tsearch_ternarytree_get_word_len(tsearch_ternarytree_ptr ptr)
 
 
 /// Return true if the specified node contains one or more document IDs, otherwise false;
-bool _tsearch_ternarytree_has_valid_document_ids(tsearch_ternarytree_ptr ptr)
+bool _tsearch_ternarytree_has_valid_document_ids(const tsearch_ternarytree_ptr ptr)
 {
     if (ptr == NULL || ptr->documentIDs == NULL) { return false; }
     return (tsearch_countedset_get_count(ptr->documentIDs) > 0) ? true : false;
