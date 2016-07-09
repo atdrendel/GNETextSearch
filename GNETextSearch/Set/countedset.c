@@ -37,21 +37,23 @@ typedef struct tsearch_countedset
 // ------------------------------------------------------------------------------------------
 
 _tsearch_countedset_node * _tsearch_countedset_copy_nodes(const tsearch_countedset_ptr ptr);
-int _tsearch_countedset_copy_ints(const tsearch_countedset_ptr ptr, GNEInteger *integers,
+result _tsearch_countedset_copy_ints(const tsearch_countedset_ptr ptr, GNEInteger *integers,
                                   const size_t integersCount);
 int _tsearch_countedset_compare(const void *valuePtr1, const void *valuePtr2);
-int _tsearch_countedset_add_int(tsearch_countedset_ptr ptr, GNEInteger newInteger, size_t countToAdd);
-_tsearch_countedset_node * _tsearch_countedset_get_node_for_int(tsearch_countedset_ptr ptr, GNEInteger integer);
-size_t _tsearch_countedset_get_node_idx_for_int_insert(tsearch_countedset_ptr ptr, GNEInteger integer);
-size_t _tsearch_countedset_get_node_and_parent_idx_for_int_insert(tsearch_countedset_ptr ptr,
-                                                                  GNEInteger integer,
+result _tsearch_countedset_add_int(const tsearch_countedset_ptr ptr,
+                                   const GNEInteger newInteger, const size_t countToAdd);
+_tsearch_countedset_node * _tsearch_countedset_get_node_for_int(const tsearch_countedset_ptr ptr,
+                                                                const GNEInteger integer);
+size_t _tsearch_countedset_get_node_idx_for_int_insert(const tsearch_countedset_ptr ptr, const GNEInteger integer);
+size_t _tsearch_countedset_get_node_and_parent_idx_for_int_insert(const tsearch_countedset_ptr ptr,
+                                                                  const GNEInteger integer,
                                                                   size_t *outParentIndex);
-int _tsearch_countedset_balance_node_at_idx(_tsearch_countedset_node *nodes, size_t index);
-void _tsearch_countedset_rotate_left(_tsearch_countedset_node *nodes, size_t index);
-void _tsearch_countedset_rotate_right(_tsearch_countedset_node *nodes, size_t index);
-int _tsearch_countedset_node_init(tsearch_countedset_ptr ptr, GNEInteger integer,
-                                  size_t count, size_t *outIndex);
-int _tsearch_countedset_increase_values_buf(tsearch_countedset_ptr ptr);
+int _tsearch_countedset_balance_node_at_idx(_tsearch_countedset_node *nodes, const size_t index);
+void _tsearch_countedset_rotate_left(_tsearch_countedset_node *nodes, const size_t index);
+void _tsearch_countedset_rotate_right(_tsearch_countedset_node *nodes, const size_t index);
+result _tsearch_countedset_node_init(const tsearch_countedset_ptr ptr, const GNEInteger integer,
+                                     const size_t count, size_t *outIndex);
+result _tsearch_countedset_increase_values_buf(const tsearch_countedset_ptr ptr);
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Counted Set
@@ -74,7 +76,7 @@ tsearch_countedset_ptr tsearch_countedset_init(void)
 }
 
 
-tsearch_countedset_ptr tsearch_countedset_copy(tsearch_countedset_ptr ptr)
+tsearch_countedset_ptr tsearch_countedset_copy(const tsearch_countedset_ptr ptr)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return NULL; }
 
@@ -94,7 +96,7 @@ tsearch_countedset_ptr tsearch_countedset_copy(tsearch_countedset_ptr ptr)
 }
 
 
-void tsearch_countedset_free(tsearch_countedset_ptr ptr)
+void tsearch_countedset_free(const tsearch_countedset_ptr ptr)
 {
     if (ptr != NULL) {
         free(ptr->nodes);
@@ -107,20 +109,20 @@ void tsearch_countedset_free(tsearch_countedset_ptr ptr)
 }
 
 
-size_t tsearch_countedset_get_count(tsearch_countedset_ptr ptr)
+size_t tsearch_countedset_get_count(const tsearch_countedset_ptr ptr)
 {
     return (ptr == NULL) ? 0 : ptr->count;
 }
 
 
-bool tsearch_countedset_contains_int(tsearch_countedset_ptr ptr, GNEInteger integer)
+bool tsearch_countedset_contains_int(const tsearch_countedset_ptr ptr, const GNEInteger integer)
 {
     _tsearch_countedset_node *nodePtr = _tsearch_countedset_get_node_for_int(ptr, integer);
     return (nodePtr == NULL || nodePtr->count == 0) ? false : true;
 }
 
 
-size_t tsearch_countedset_get_count_for_int(tsearch_countedset_ptr ptr, GNEInteger integer)
+size_t tsearch_countedset_get_count_for_int(const tsearch_countedset_ptr ptr, const GNEInteger integer)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return 0; }
     _tsearch_countedset_node *nodePtr = _tsearch_countedset_get_node_for_int(ptr, integer);
@@ -128,7 +130,7 @@ size_t tsearch_countedset_get_count_for_int(tsearch_countedset_ptr ptr, GNEInteg
 }
 
 
-result tsearch_countedset_copy_ints(tsearch_countedset_ptr ptr, GNEInteger **outIntegers, size_t *outCount)
+result tsearch_countedset_copy_ints(const tsearch_countedset_ptr ptr, GNEInteger **outIntegers, size_t *outCount)
 {
     if (ptr == NULL || ptr->nodes == NULL || outIntegers == NULL || outCount == NULL) { return failure; }
     size_t integersCount = ptr->count;
@@ -145,13 +147,13 @@ result tsearch_countedset_copy_ints(tsearch_countedset_ptr ptr, GNEInteger **out
 }
 
 
-int tsearch_countedset_add_int(tsearch_countedset_ptr ptr, GNEInteger integer)
+result tsearch_countedset_add_int(const tsearch_countedset_ptr ptr, const GNEInteger integer)
 {
     return _tsearch_countedset_add_int(ptr, integer, 1);
 }
 
 
-int tsearch_countedset_remove_int(tsearch_countedset_ptr ptr, GNEInteger integer)
+result tsearch_countedset_remove_int(const tsearch_countedset_ptr ptr, const GNEInteger integer)
 {
     if (ptr == NULL) { return failure; }
     _tsearch_countedset_node *nodePtr = _tsearch_countedset_get_node_for_int(ptr, integer);
@@ -162,7 +164,7 @@ int tsearch_countedset_remove_int(tsearch_countedset_ptr ptr, GNEInteger integer
 }
 
 
-int tsearch_countedset_remove_all_ints(tsearch_countedset_ptr ptr)
+result tsearch_countedset_remove_all_ints(const tsearch_countedset_ptr ptr)
 {
     if (ptr == NULL) { return failure; }
     size_t count = ptr->insertIndex;
@@ -174,7 +176,7 @@ int tsearch_countedset_remove_all_ints(tsearch_countedset_ptr ptr)
 }
 
 
-int tsearch_countedset_union(tsearch_countedset_ptr ptr, tsearch_countedset_ptr otherPtr)
+result tsearch_countedset_union(const tsearch_countedset_ptr ptr, const tsearch_countedset_ptr otherPtr)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     if (otherPtr == NULL || otherPtr->nodes == NULL) { return success; }
@@ -190,7 +192,7 @@ int tsearch_countedset_union(tsearch_countedset_ptr ptr, tsearch_countedset_ptr 
 }
 
 
-int tsearch_countedset_intersect(tsearch_countedset_ptr ptr, tsearch_countedset_ptr otherPtr)
+result tsearch_countedset_intersect(const tsearch_countedset_ptr ptr, const tsearch_countedset_ptr otherPtr)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     if (otherPtr == NULL || otherPtr->nodes == NULL) {
@@ -222,7 +224,7 @@ int tsearch_countedset_intersect(tsearch_countedset_ptr ptr, tsearch_countedset_
 }
 
 
-int tsearch_countedset_minus(tsearch_countedset_ptr ptr, tsearch_countedset_ptr otherPtr)
+result tsearch_countedset_minus(const tsearch_countedset_ptr ptr, const tsearch_countedset_ptr otherPtr)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     if (otherPtr == NULL || otherPtr->nodes == NULL) { return success; }
@@ -259,8 +261,8 @@ _tsearch_countedset_node * _tsearch_countedset_copy_nodes(const tsearch_counteds
 }
 
 
-int _tsearch_countedset_copy_ints(const tsearch_countedset_ptr ptr, GNEInteger *integers,
-                                  const size_t integersCount)
+result _tsearch_countedset_copy_ints(const tsearch_countedset_ptr ptr, GNEInteger *integers,
+                                     const size_t integersCount)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     if (integers == NULL || integersCount == 0) { return failure; }
@@ -298,7 +300,9 @@ int _tsearch_countedset_compare(const void *valuePtr1, const void *valuePtr2)
 }
 
 
-int _tsearch_countedset_add_int(tsearch_countedset_ptr ptr, GNEInteger newInteger, size_t countToAdd)
+result _tsearch_countedset_add_int(const tsearch_countedset_ptr ptr,
+                                   const GNEInteger newInteger,
+                                   const size_t countToAdd)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     if (ptr->insertIndex == 0) {
@@ -310,8 +314,8 @@ int _tsearch_countedset_add_int(tsearch_countedset_ptr ptr, GNEInteger newIntege
 
     size_t parentIndex = SIZE_MAX;
     size_t insertIndex = _tsearch_countedset_get_node_and_parent_idx_for_int_insert(ptr,
-                                                                                             newInteger,
-                                                                                             &parentIndex);
+                                                                                    newInteger,
+                                                                                    &parentIndex);
     if (insertIndex == SIZE_MAX) { return failure; }
 
     _tsearch_countedset_node *nodePtr = &(ptr->nodes[insertIndex]);
@@ -339,7 +343,8 @@ int _tsearch_countedset_add_int(tsearch_countedset_ptr ptr, GNEInteger newIntege
 
 /// Returns the exact node containing the specified integer or NULL if the integer isn't
 /// present in the counted set.
-_tsearch_countedset_node * _tsearch_countedset_get_node_for_int(tsearch_countedset_ptr ptr, GNEInteger integer)
+_tsearch_countedset_node * _tsearch_countedset_get_node_for_int(const tsearch_countedset_ptr ptr,
+                                                                const GNEInteger integer)
 {
     if (ptr == NULL || ptr->nodes == NULL || ptr->count == 0) { return NULL; }
     size_t index = _tsearch_countedset_get_node_idx_for_int_insert(ptr, integer);
@@ -349,17 +354,17 @@ _tsearch_countedset_node * _tsearch_countedset_get_node_for_int(tsearch_counteds
 }
 
 
-/// Returns the node representing the specified integer or the parent node into which
-/// a new node should be inserted. Return NULL on failure.
-size_t _tsearch_countedset_get_node_idx_for_int_insert(tsearch_countedset_ptr ptr, GNEInteger integer)
+/// Returns the index for the node representing the specified integer or the parent node into which
+/// a new node should be inserted. Returns SIZE_MAX on failure.
+size_t _tsearch_countedset_get_node_idx_for_int_insert(const tsearch_countedset_ptr ptr, const GNEInteger integer)
 {
     return _tsearch_countedset_get_node_and_parent_idx_for_int_insert(ptr, integer, NULL);
 }
 
 
-size_t _tsearch_countedset_get_node_and_parent_idx_for_int_insert(tsearch_countedset_ptr ptr,
-                                                                           GNEInteger integer,
-                                                                           size_t *outParentIndex)
+size_t _tsearch_countedset_get_node_and_parent_idx_for_int_insert(const tsearch_countedset_ptr ptr,
+                                                                  const GNEInteger integer,
+                                                                  size_t *outParentIndex)
 {
     if (ptr == NULL || ptr->nodes == NULL || ptr->insertIndex == 0) { return SIZE_MAX; }
 
@@ -378,7 +383,7 @@ size_t _tsearch_countedset_get_node_and_parent_idx_for_int_insert(tsearch_counte
 }
 
 
-int _tsearch_countedset_balance_node_at_idx(_tsearch_countedset_node *nodes, size_t index)
+int _tsearch_countedset_balance_node_at_idx(_tsearch_countedset_node *nodes, const size_t index)
 {
     if (nodes == NULL || index == SIZE_MAX) { return 0; }
     int leftHeight = _tsearch_countedset_balance_node_at_idx(nodes, nodes[index].left);
@@ -397,7 +402,7 @@ int _tsearch_countedset_balance_node_at_idx(_tsearch_countedset_node *nodes, siz
 }
 
 
-void _tsearch_countedset_rotate_left(_tsearch_countedset_node *nodes, size_t index)
+void _tsearch_countedset_rotate_left(_tsearch_countedset_node *nodes, const size_t index)
 {
     _tsearch_countedset_node node = nodes[index];
     size_t childIndex = node.left;
@@ -435,7 +440,7 @@ void _tsearch_countedset_rotate_left(_tsearch_countedset_node *nodes, size_t ind
 }
 
 
-void _tsearch_countedset_rotate_right(_tsearch_countedset_node *nodes, size_t index)
+void _tsearch_countedset_rotate_right(_tsearch_countedset_node *nodes, const size_t index)
 {
     _tsearch_countedset_node node = nodes[index];
     size_t childIndex = node.right;
@@ -476,8 +481,8 @@ void _tsearch_countedset_rotate_right(_tsearch_countedset_node *nodes, size_t in
 
 
 /// Returns a pointer to a new counted set node and increments the GNEIntegerCountedSet's count.
-int _tsearch_countedset_node_init(tsearch_countedset_ptr ptr, GNEInteger integer,
-                                               size_t count, size_t *outIndex)
+result _tsearch_countedset_node_init(const tsearch_countedset_ptr ptr, const GNEInteger integer,
+                                     const size_t count, size_t *outIndex)
 {
     if (outIndex == NULL) { return failure; }
     if (ptr == NULL || ptr->nodes == NULL) { *outIndex = SIZE_MAX; return failure; }
@@ -499,7 +504,7 @@ int _tsearch_countedset_node_init(tsearch_countedset_ptr ptr, GNEInteger integer
 }
 
 
-int _tsearch_countedset_increase_values_buf(tsearch_countedset_ptr ptr)
+result _tsearch_countedset_increase_values_buf(const tsearch_countedset_ptr ptr)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     size_t usedCount = ptr->insertIndex;

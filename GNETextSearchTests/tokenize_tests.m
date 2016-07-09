@@ -278,7 +278,8 @@
 }
 
 
-void p_processTestToken(const char *string, tsearch_range range, uint32_t *token, size_t length, void *context)
+void p_processTestToken(const char *string, const tsearch_range range, uint32_t *token,
+                        const size_t length, const void *context)
 {
     NSMutableArray *processedTokens = (__bridge NSMutableArray *)context;
     assert([processedTokens isKindOfClass:[NSMutableArray class]]);

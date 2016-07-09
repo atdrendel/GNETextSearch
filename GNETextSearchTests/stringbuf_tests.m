@@ -221,6 +221,30 @@ size_t _tsearch_stringbuf_get_max_char_count(tsearch_stringbuf_ptr ptr);
 // ------------------------------------------------------------------------------------------
 #pragma mark - Appending
 // ------------------------------------------------------------------------------------------
+- (void)testAppending_FiveOneChars_CorrectLengthAndContents
+{
+    XCTAssertEqual(0, _mutableStringPtr->length);
+    XCTAssertEqual(5, _mutableStringPtr->capacity);
+    XCTAssertEqual(5, _tsearch_stringbuf_get_max_char_count(_mutableStringPtr));
+
+    const char *cString = "ABCDE";
+    size_t length = 5;
+
+    XCTAssertEqual(success, tsearch_stringbuf_append_char(_mutableStringPtr, 'A'));
+    XCTAssertEqual(success, tsearch_stringbuf_append_char(_mutableStringPtr, 'B'));
+    XCTAssertEqual(success, tsearch_stringbuf_append_char(_mutableStringPtr, 'C'));
+    XCTAssertEqual(success, tsearch_stringbuf_append_char(_mutableStringPtr, 'D'));
+    XCTAssertEqual(success, tsearch_stringbuf_append_char(_mutableStringPtr, 'E'));
+
+    XCTAssertEqual(length, _mutableStringPtr->length);
+    XCTAssertEqual(length, tsearch_stringbuf_get_len(_mutableStringPtr));
+    XCTAssertEqual(10, _mutableStringPtr->capacity);
+    XCTAssertEqual(10, _tsearch_stringbuf_get_max_char_count(_mutableStringPtr));
+    XCTAssertEqual(0, memcmp(cString, _mutableStringPtr->buffer, length));
+    [self assertCString:cString isEqualToCString:tsearch_stringbuf_copy_cstring(_mutableStringPtr) length:length];
+}
+
+
 - (void)testAppending_FiveOneCharStrings_CorrectLengthAndContents
 {
     XCTAssertEqual(0, _mutableStringPtr->length);

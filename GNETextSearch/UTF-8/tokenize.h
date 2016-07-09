@@ -16,7 +16,8 @@ extern "C" {
 #endif
 
 typedef struct {size_t location; size_t length;} tsearch_range;
-typedef void(*process_token_func)(const char *string, tsearch_range range, uint32_t *token, size_t length, void *context);
+typedef void(*process_token_func)(const char *string, const tsearch_range range, uint32_t *token,
+                                  const size_t length, const void *context);
 
 result tsearch_cstring_tokenize(const char *cString, process_token_func process, void *context);
 
