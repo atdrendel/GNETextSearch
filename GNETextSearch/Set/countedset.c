@@ -324,6 +324,9 @@ result _tsearch_countedset_add_int(const tsearch_countedset_ptr ptr,
     if (nodeInteger == newInteger) {
         size_t newCount = ((SIZE_MAX - nodePtr->count) >= countToAdd) ? (nodePtr->count + countToAdd) : SIZE_MAX;
         nodePtr->count = newCount;
+        if (newCount == 1) {
+            ptr->count += 1;
+        }
         return success;
     }
 

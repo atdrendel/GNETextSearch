@@ -500,6 +500,24 @@
 }
 
 
+- (void)testRemove_RemoveWordAndThenReinsertWord_SuccessAndOneSearchResult
+{
+    GNEInteger documentID = 1010;
+    NSString *text = @"word";
+    [self insertWords:@[text] documentID:documentID intoTree:_treePtr];
+    XCTAssertEqual(1, [self resultsInTree:_treePtr].count);
+    [self assertCanFindWords:@[text] documentID:documentID inTree:_treePtr];
+
+    XCTAssertEqual(success, tsearch_ternarytree_remove(_treePtr, documentID));
+    XCTAssertEqual(0, [self resultsInTree:_treePtr].count);
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(_treePtr, text.UTF8String));
+
+    [self insertWords:@[text] documentID:documentID intoTree:_treePtr];
+    XCTAssertEqual(1, [self resultsInTree:_treePtr].count);
+    [self assertCanFindWords:@[text] documentID:documentID inTree:_treePtr];
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - Performance
 // ------------------------------------------------------------------------------------------
