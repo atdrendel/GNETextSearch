@@ -29,7 +29,9 @@ typedef struct _tsearch_string_search
 // ------------------------------------------------------------------------------------------
 
 tsearch_ternarytree_ptr _tsearch_ternarytree_search(const tsearch_ternarytree_ptr ptr, const char *target);
-result _tsearch_ternarytree_search_from_node(const tsearch_ternarytree_ptr ptr, tsearch_countedset_ptr results);
+result _tsearch_ternarytree_copy_words_from_node(const tsearch_ternarytree_ptr ptr, tsearch_countedset_ptr results);
+result _tsearch_ternarytree_find_partial_match(const tsearch_ternarytree_ptr ptr, const char *target, const size_t length,
+                                               size_t currentIndex, tsearch_countedset_ptr results);
 result _tsearch_ternarytree_find_suffix(const tsearch_ternarytree_ptr ptr, const char *suffix,
                                         const size_t length, tsearch_countedset_ptr results);
 result _tsearch_ternarytree_reverse_search_from_node(tsearch_ternarytree_ptr ptr, reverse_search_func callback,
@@ -155,10 +157,31 @@ tsearch_countedset_ptr tsearch_ternarytree_copy_prefix_search_results(const tsea
         tsearch_countedset_union(resultsPtr, foundPtr->documentIDs);
     }
 
-    if (_tsearch_ternarytree_search_from_node(foundPtr->same, resultsPtr) == failure) {
+    if (_tsearch_ternarytree_copy_words_from_node(foundPtr->same, resultsPtr) == failure) {
         tsearch_countedset_free(resultsPtr);
         return NULL;
     }
+
+    if (tsearch_countedset_get_count(resultsPtr) == 0) {
+        tsearch_countedset_free(resultsPtr);
+        resultsPtr = NULL;
+    }
+
+    return resultsPtr;
+}
+
+
+tsearch_countedset_ptr tsearch_ternarytree_copy_partial_search_results(const tsearch_ternarytree_ptr ptr,
+                                                                       const char *target,
+                                                                       const size_t length)
+{
+    if (ptr == NULL) { return NULL; }
+    if (target == NULL) { return NULL; }
+
+    tsearch_countedset_ptr resultsPtr = tsearch_countedset_init();
+    if (resultsPtr == NULL) { return  NULL; }
+
+    _tsearch_ternarytree_find_partial_match(ptr, target, length, 0, resultsPtr);
 
     if (tsearch_countedset_get_count(resultsPtr) == 0) {
         tsearch_countedset_free(resultsPtr);
@@ -244,18 +267,44 @@ tsearch_ternarytree_ptr _tsearch_ternarytree_search(const tsearch_ternarytree_pt
 }
 
 
-result _tsearch_ternarytree_search_from_node(const tsearch_ternarytree_ptr ptr, tsearch_countedset_ptr results)
+result _tsearch_ternarytree_copy_words_from_node(const tsearch_ternarytree_ptr ptr, tsearch_countedset_ptr results)
 {
     if (ptr == NULL) { return success; }
 
-    if (_tsearch_ternarytree_search_from_node(ptr->lower, results) == failure) { return failure; }
+    if (_tsearch_ternarytree_copy_words_from_node(ptr->lower, results) == failure) { return failure; }
 
     if (_tsearch_ternarytree_has_valid_document_ids(ptr) == true) {
         if (tsearch_countedset_union(results, ptr->documentIDs) == failure) { return failure; }
     }
 
-    if (_tsearch_ternarytree_search_from_node(ptr->same, results) == failure) { return failure; }
-    return _tsearch_ternarytree_search_from_node(ptr->higher, results);
+    if (_tsearch_ternarytree_copy_words_from_node(ptr->same, results) == failure) { return failure; }
+    return _tsearch_ternarytree_copy_words_from_node(ptr->higher, results);
+}
+
+
+result _tsearch_ternarytree_find_partial_match(const tsearch_ternarytree_ptr ptr, const char *target, const size_t length,
+                                               size_t currentIndex, tsearch_countedset_ptr results)
+{
+    if (ptr == NULL) { return success; }
+    if (results == NULL) { return failure; }
+
+    if (_tsearch_ternarytree_find_partial_match(ptr->lower, target, length, currentIndex, results) == failure) { return failure; }
+    if (_tsearch_ternarytree_find_partial_match(ptr->higher, target, length, currentIndex, results) == failure) { return failure; }
+
+    if (currentIndex == (length - 1) && ptr->character == target[currentIndex]) {
+        if (_tsearch_ternarytree_has_valid_document_ids(ptr) == true) {
+            tsearch_countedset_union(results, ptr->documentIDs);
+        }
+        return _tsearch_ternarytree_copy_words_from_node(ptr->same, results);
+    }
+
+    size_t nextIndex = 0;
+    if (ptr->character == target[currentIndex]) {
+        nextIndex = currentIndex + 1;
+    } else if (ptr->character == target[0]) {
+        nextIndex = 1;
+    }
+    return _tsearch_ternarytree_find_partial_match(ptr->same, target, length, nextIndex, results);
 }
 
 

@@ -121,6 +121,16 @@
 					<real>35</real>
 				</dict>
 			</dict>
+			<key>testPartialMatchBible_go__007</key>
+			<dict>
+				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
+				<dict>
+					<key>baselineAverage</key>
+					<real>0.0071368</real>
+					<key>baselineIntegrationDisplayName</key>
+					<string>Local Baseline</string>
+				</dict>
+			</dict>
 			<key>testPrefixSearchBible_a__0_035</key>
 			<dict>
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
