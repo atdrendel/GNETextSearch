@@ -379,6 +379,95 @@
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Partial Match Tests
+// ------------------------------------------------------------------------------------------
+- (void)testPartialMatch_AddThreeWords_ThreeMatchesForAN
+{
+    NSString *target = @"an";
+    NSArray *words = @[@"anna", @"banana", @"dan"];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:_treePtr]);
+    NSArray *exptectedWords = [self wordsInArray:randomizedWords withPartialMatch:target];
+    [self assertResultsInTree:_treePtr matchingPartialTarget:target equalWords:exptectedWords];
+}
+
+
+- (void)testPartialMatch_AddFourWordsInFailingOrder1_TwoMatchesForAN
+{
+    NSString *target = @"an";
+    NSArray *words = @[@"bang", @"dammit", @"dang", @"it"];
+    XCTAssertNoThrow([self insertWords:words intoTree:_treePtr]);
+    NSArray *exptectedWords = [self wordsInArray:words withPartialMatch:target];
+    [self assertResultsInTree:_treePtr matchingPartialTarget:target equalWords:exptectedWords];
+}
+
+
+- (void)testPartialMatch_AddFourWordsInFailingOrder2_TwoMatchesForAN
+{
+    NSString *target = @"an";
+    NSArray *words = @[@"bang", @"it", @"dammit", @"dang"];
+    XCTAssertNoThrow([self insertWords:words intoTree:_treePtr]);
+    NSArray *exptectedWords = [self wordsInArray:words withPartialMatch:target];
+    [self assertResultsInTree:_treePtr matchingPartialTarget:target equalWords:exptectedWords];
+}
+
+
+- (void)testPartialMatch_AddFourWords_TwoMatchesForAN
+{
+    NSString *target = @"an";
+    NSArray *words = @[@"bang", @"dang", @"dammit", @"it"];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:_treePtr]);
+    NSArray *exptectedWords = [self wordsInArray:randomizedWords withPartialMatch:target];
+    [self assertResultsInTree:_treePtr matchingPartialTarget:target equalWords:exptectedWords];
+}
+
+
+- (void)testPartialMatch_AddNineWords_ThreeMatchesForTO
+{
+    NSString *target = @"to";
+    NSArray *words = @[@"pick", @"up", @"mom", @"today", @"buy",
+                       @"Amaretto", @"make", @"it", @"automagical"];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:_treePtr]);
+    NSArray *expectedWords = [self wordsInArray:randomizedWords withPartialMatch:target];
+    [self assertResultsInTree:_treePtr matchingPartialTarget:target equalWords:expectedWords];
+}
+
+
+- (void)testPartialMatch_AddNineWordsInFailingOrder1_ThreeMatchesForTO
+{
+    NSString *target = @"to";
+    NSArray *words = @[@"buy", @"today", @"mom", @"Amaretto", @"make",
+                       @"up", @"pick", @"it", @"automagical"];
+    XCTAssertNoThrow([self insertWords:words intoTree:_treePtr]);
+    NSArray *expectedWords = [self wordsInArray:words withPartialMatch:target];
+    [self assertResultsInTree:_treePtr matchingPartialTarget:target equalWords:expectedWords];
+}
+
+
+- (void)testPartialMatch_LMNInFailingOrder_162MatchesForLI
+{
+    NSString *target = @"li";
+    NSArray *words = [self wordsBeginningWithLMN];
+    XCTAssertNoThrow([self insertWords:words intoTree:_treePtr]);
+    NSArray *expectedWords = [self wordsInArray:words withPartialMatch:target];
+    [self assertResultsInTree:_treePtr matchingPartialTarget:target equalWords:expectedWords];
+}
+
+
+- (void)testPartialMatch_LMN_162MatchesForLI
+{
+    NSString *target = @"li";
+    NSArray *words = [self wordsBeginningWithLMN];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    XCTAssertNoThrow([self insertWords:randomizedWords intoTree:_treePtr]);
+    NSArray *expectedWords = [self wordsInArray:randomizedWords withPartialMatch:target];
+    [self assertResultsInTree:_treePtr matchingPartialTarget:target equalWords:expectedWords];
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Suffix Search Tests
 // ------------------------------------------------------------------------------------------
 - (void)testSuffixSearch_AddTwelveWords_ZeroMatchesForZ
@@ -584,6 +673,23 @@
 }
 
 
+- (void)testPartialMatchBible_go__007
+{
+    [self insertBibleIntoTree:_treePtr];
+    __block tsearch_countedset_ptr results = NULL;
+    NSString *target = @"go";
+    size_t length = [target lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+
+    [self measureBlock:^()
+    {
+        results = tsearch_ternarytree_copy_partial_search_results(_treePtr, target.UTF8String, length);
+    }];
+
+    XCTAssertEqual([self numberOfVersesInBibleContainingTarget:target], tsearch_countedset_get_count(results));
+    tsearch_countedset_free(results);
+}
+
+
 - (void)testSuffixSearchBible_t__0_038
 {
     [self insertBibleIntoTree:_treePtr];
@@ -686,12 +792,42 @@
 
 
 - (void)assertResultsInTree:(tsearch_ternarytree_ptr)ptr
+      matchingPartialTarget:(NSString *)target
+                 equalWords:(NSArray *)words
+{
+    NSUInteger length = [target lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+    tsearch_countedset_ptr resultsPtr = tsearch_ternarytree_copy_partial_search_results(ptr,
+                                                                                        target.UTF8String,
+                                                                                        length);
+    XCTAssert((words.count == 0 && resultsPtr == NULL) ||
+              (words.count == tsearch_countedset_get_count(resultsPtr)));
+
+    NSMutableArray *missingWords = [NSMutableArray array];
+    for (NSString *word in words)
+    {
+        bool containsInt = tsearch_countedset_contains_int(resultsPtr, (GNEInteger)word.hash);
+        XCTAssertEqual(true, containsInt);
+        if (containsInt == false)
+        {
+            [missingWords addObject:word];
+        }
+    }
+    if (missingWords.count > 0)
+    {
+        NSLog(@"Target: %@\nMissing:\n%@", target, missingWords);
+    }
+    tsearch_countedset_free(resultsPtr);
+}
+
+
+- (void)assertResultsInTree:(tsearch_ternarytree_ptr)ptr
              matchingSuffix:(NSString *)suffix
                  equalWords:(NSArray *)words
 {
+    NSUInteger length = [suffix lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
     tsearch_countedset_ptr resultsPtr = tsearch_ternarytree_copy_suffix_search_results(ptr,
                                                                                        suffix.UTF8String,
-                                                                                       suffix.length);
+                                                                                       length);
 
     XCTAssert((words.count == 0 && resultsPtr == NULL) ||
               (words.count == tsearch_countedset_get_count(resultsPtr)));
@@ -759,6 +895,21 @@
 }
 
 
+- (NSArray *)wordsInArray:(NSArray *)words withPartialMatch:(NSString *)target
+{
+    NSMutableArray *wordsContainingTarget = [NSMutableArray array];
+    for (NSString *word in words)
+    {
+        if ([word containsString:target])
+        {
+            [wordsContainingTarget addObject:word];
+        }
+    }
+
+    return [wordsContainingTarget copy];
+}
+
+
 - (NSArray *)wordsInArray:(NSArray *)words withSuffix:(NSString *)suffix
 {
     NSMutableArray *wordsWithSuffix = [NSMutableArray array];
@@ -809,6 +960,22 @@
         NSInteger wordCount = [words indexesOfObjectsPassingTest:^BOOL(NSString *obj, NSUInteger idx, BOOL *stop)
         {
             return [obj hasPrefix:prefix];
+        }].count;
+        count += (wordCount > 0) ? 1 : 0;
+    }];
+    
+    return count;
+}
+
+
+- (NSInteger)numberOfVersesInBibleContainingTarget:(NSString *)target
+{
+    __block NSInteger count = 0;
+    NSDictionary *bible = [self bibleDictionary];
+    [bible enumerateKeysAndObjectsUsingBlock:^(id verse, NSArray<NSString *> *words, BOOL *stop) {
+        NSInteger wordCount = [words indexesOfObjectsPassingTest:^BOOL(NSString *obj, NSUInteger idx, BOOL *stop)
+        {
+            return [obj containsString:target];
         }].count;
         count += (wordCount > 0) ? 1 : 0;
     }];

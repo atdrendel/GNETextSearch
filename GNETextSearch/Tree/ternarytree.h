@@ -32,6 +32,12 @@ tsearch_countedset_ptr tsearch_ternarytree_copy_search_results(const tsearch_ter
 /// is responsible for calling tsearch_countedset_free().
 tsearch_countedset_ptr tsearch_ternarytree_copy_prefix_search_results(const tsearch_ternarytree_ptr ptr, const char *prefix);
 
+/// Returns a tsearch_countedset_ptr with the IDs of the documents containing the target string. The caller
+/// is responsible for calling tsearch_countedset_free().
+tsearch_countedset_ptr tsearch_ternarytree_copy_partial_search_results(const tsearch_ternarytree_ptr ptr,
+                                                                       const char *target,
+                                                                       const size_t length);
+
 /// Returns a tsearch_countedset_ptr with the IDs of the documents containing the target suffix. The caller
 /// is responsible for calling tsearch_countedset_free().
 tsearch_countedset_ptr tsearch_ternarytree_copy_suffix_search_results(const tsearch_ternarytree_ptr ptr,
