@@ -285,9 +285,7 @@ result _tsearch_ternarytree_copy_words_from_node(const tsearch_ternarytree_ptr p
 result _tsearch_ternarytree_find_partial_match(const tsearch_ternarytree_ptr ptr, const char *target, const size_t length,
                                                size_t currentIndex, tsearch_countedset_ptr results)
 {
-    if (ptr == NULL) {
-        return success;
-    }
+    if (ptr == NULL) { return success; }
     if (results == NULL) { return failure; }
 
     if (_tsearch_ternarytree_find_partial_match(ptr->lower, target, length, currentIndex, results) == failure) { return failure; }
