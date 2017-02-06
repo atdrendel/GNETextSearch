@@ -28,6 +28,27 @@
 		57A46B0F1BF3604B008809A3 /* stringbuf.h in Headers */ = {isa = PBXBuildFile; fileRef = 57A46B0D1BF3604B008809A3 /* stringbuf.h */; };
 		57A46B111BF37456008809A3 /* stringbuf_tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 57A46B101BF37456008809A3 /* stringbuf_tests.m */; };
 		57A46B151BF3B926008809A3 /* words-beginning-with-A.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 57A46B121BF3B5F8008809A3 /* words-beginning-with-A.txt */; };
+		AE417E171E493769007F6BE5 /* GNETextSearch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE417E0E1E493769007F6BE5 /* GNETextSearch.framework */; };
+		AE417E261E493792007F6BE5 /* countedset.c in Sources */ = {isa = PBXBuildFile; fileRef = 57633FBF1BF79A2B006B1541 /* countedset.c */; };
+		AE417E271E49379A007F6BE5 /* countedset.h in Headers */ = {isa = PBXBuildFile; fileRef = 57633FC01BF79A2B006B1541 /* countedset.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		AE417E281E4937A0007F6BE5 /* stringbuf.h in Headers */ = {isa = PBXBuildFile; fileRef = 57A46B0D1BF3604B008809A3 /* stringbuf.h */; };
+		AE417E291E4937A4007F6BE5 /* stringbuf.c in Sources */ = {isa = PBXBuildFile; fileRef = 57A46B0C1BF3604B008809A3 /* stringbuf.c */; };
+		AE417E2A1E4937A7007F6BE5 /* ternarytree.h in Headers */ = {isa = PBXBuildFile; fileRef = 5711A8041B949E960088910A /* ternarytree.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		AE417E2B1E4937AB007F6BE5 /* ternarytree.c in Sources */ = {isa = PBXBuildFile; fileRef = 5711A8051B949E960088910A /* ternarytree.c */; };
+		AE417E2C1E4937AD007F6BE5 /* utf8_utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 576211321C418CC4003B3623 /* utf8_utils.h */; };
+		AE417E2D1E4937B2007F6BE5 /* tokenize.h in Headers */ = {isa = PBXBuildFile; fileRef = 5762112F1C38610E003B3623 /* tokenize.h */; };
+		AE417E2E1E4937B5007F6BE5 /* tokenize.c in Sources */ = {isa = PBXBuildFile; fileRef = 576211291C37177E003B3623 /* tokenize.c */; };
+		AE417E2F1E4937B9007F6BE5 /* GNETextSearch.h in Headers */ = {isa = PBXBuildFile; fileRef = 5711A7EC1B949E440088910A /* GNETextSearch.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		AE417E301E4937BD007F6BE5 /* GNETextSearchPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = 57633FC31BF79A74006B1541 /* GNETextSearchPrivate.h */; };
+		AE417E311E4937C2007F6BE5 /* GNETextSearchPublic.h in Headers */ = {isa = PBXBuildFile; fileRef = 576211341C418E00003B3623 /* GNETextSearchPublic.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		AE417E321E4937FF007F6BE5 /* countedset_tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 57633FC41BF7C958006B1541 /* countedset_tests.m */; };
+		AE417E331E493802007F6BE5 /* stringbuf_tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 57A46B101BF37456008809A3 /* stringbuf_tests.m */; };
+		AE417E341E493805007F6BE5 /* ternarytree_tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 5711A8091B94B29F0088910A /* ternarytree_tests.m */; };
+		AE417E351E493808007F6BE5 /* tokenize_tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 5762112D1C385FFA003B3623 /* tokenize_tests.m */; };
+		AE417E361E493813007F6BE5 /* bible.archive in Resources */ = {isa = PBXBuildFile; fileRef = 578467931D1B5C600046A3DE /* bible.archive */; };
+		AE417E371E493816007F6BE5 /* words-beginning-with-A.txt in Resources */ = {isa = PBXBuildFile; fileRef = 57A46B121BF3B5F8008809A3 /* words-beginning-with-A.txt */; };
+		AE417E381E493819007F6BE5 /* random-integers-100000-1.txt in Resources */ = {isa = PBXBuildFile; fileRef = 573847E11BFD1E2400A71CF9 /* random-integers-100000-1.txt */; };
+		AE417E391E49381B007F6BE5 /* random-integers-100000-2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 573847E21BFD1E2400A71CF9 /* random-integers-100000-2.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,6 +58,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 5711A7E81B949E440088910A;
 			remoteInfo = GNETextSearch;
+		};
+		AE417E181E493769007F6BE5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5711A7E01B949E440088910A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AE417E0D1E493769007F6BE5;
+			remoteInfo = "GNETextSearch iOS";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -80,6 +108,10 @@
 		57A46B0D1BF3604B008809A3 /* stringbuf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stringbuf.h; sourceTree = "<group>"; };
 		57A46B101BF37456008809A3 /* stringbuf_tests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = stringbuf_tests.m; sourceTree = "<group>"; };
 		57A46B121BF3B5F8008809A3 /* words-beginning-with-A.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "words-beginning-with-A.txt"; sourceTree = "<group>"; };
+		AE417E0E1E493769007F6BE5 /* GNETextSearch.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GNETextSearch.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE417E111E493769007F6BE5 /* GNETextSearch */ = {isa = PBXFileReference; lastKnownFileType = folder; path = GNETextSearch; sourceTree = SOURCE_ROOT; };
+		AE417E161E493769007F6BE5 /* GNETextSearch iOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "GNETextSearch iOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE417E1D1E49376A007F6BE5 /*  */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ""; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,6 +127,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				5711A7F41B949E440088910A /* GNETextSearch.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AE417E0A1E493769007F6BE5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AE417E131E493769007F6BE5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE417E171E493769007F6BE5 /* GNETextSearch.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,6 +162,8 @@
 			children = (
 				5711A7E91B949E440088910A /* GNETextSearch.framework */,
 				5711A7F31B949E440088910A /* GNETextSearchTests.xctest */,
+				AE417E0E1E493769007F6BE5 /* GNETextSearch.framework */,
+				AE417E161E493769007F6BE5 /* GNETextSearch iOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -130,6 +179,7 @@
 				57633FC31BF79A74006B1541 /* GNETextSearchPrivate.h */,
 				576211341C418E00003B3623 /* GNETextSearchPublic.h */,
 				5711A7EE1B949E440088910A /* Info.plist */,
+				AE417E111E493769007F6BE5 /* GNETextSearch */,
 			);
 			path = GNETextSearch;
 			sourceTree = "<group>";
@@ -142,6 +192,7 @@
 				5711A8091B94B29F0088910A /* ternarytree_tests.m */,
 				5762112D1C385FFA003B3623 /* tokenize_tests.m */,
 				5711A7FA1B949E440088910A /* Info.plist */,
+				AE417E1D1E49376A007F6BE5 /*  */,
 				578467931D1B5C600046A3DE /* bible.archive */,
 				57A46B121BF3B5F8008809A3 /* words-beginning-with-A.txt */,
 				573847E11BFD1E2400A71CF9 /* random-integers-100000-1.txt */,
@@ -208,6 +259,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AE417E0B1E493769007F6BE5 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE417E2F1E4937B9007F6BE5 /* GNETextSearch.h in Headers */,
+				AE417E2C1E4937AD007F6BE5 /* utf8_utils.h in Headers */,
+				AE417E2D1E4937B2007F6BE5 /* tokenize.h in Headers */,
+				AE417E2A1E4937A7007F6BE5 /* ternarytree.h in Headers */,
+				AE417E301E4937BD007F6BE5 /* GNETextSearchPrivate.h in Headers */,
+				AE417E311E4937C2007F6BE5 /* GNETextSearchPublic.h in Headers */,
+				AE417E271E49379A007F6BE5 /* countedset.h in Headers */,
+				AE417E281E4937A0007F6BE5 /* stringbuf.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
@@ -248,6 +314,42 @@
 			productReference = 5711A7F31B949E440088910A /* GNETextSearchTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		AE417E0D1E493769007F6BE5 /* GNETextSearch iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AE417E231E49376A007F6BE5 /* Build configuration list for PBXNativeTarget "GNETextSearch iOS" */;
+			buildPhases = (
+				AE417E091E493769007F6BE5 /* Sources */,
+				AE417E0A1E493769007F6BE5 /* Frameworks */,
+				AE417E0B1E493769007F6BE5 /* Headers */,
+				AE417E0C1E493769007F6BE5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "GNETextSearch iOS";
+			productName = "GNETextSearch iOS";
+			productReference = AE417E0E1E493769007F6BE5 /* GNETextSearch.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		AE417E151E493769007F6BE5 /* GNETextSearch iOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AE417E241E49376A007F6BE5 /* Build configuration list for PBXNativeTarget "GNETextSearch iOSTests" */;
+			buildPhases = (
+				AE417E121E493769007F6BE5 /* Sources */,
+				AE417E131E493769007F6BE5 /* Frameworks */,
+				AE417E141E493769007F6BE5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AE417E191E493769007F6BE5 /* PBXTargetDependency */,
+			);
+			name = "GNETextSearch iOSTests";
+			productName = "GNETextSearch iOSTests";
+			productReference = AE417E161E493769007F6BE5 /* GNETextSearch iOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -262,6 +364,14 @@
 					};
 					5711A7F21B949E440088910A = {
 						CreatedOnToolsVersion = 7.0;
+					};
+					AE417E0D1E493769007F6BE5 = {
+						CreatedOnToolsVersion = 8.2.1;
+						ProvisioningStyle = Automatic;
+					};
+					AE417E151E493769007F6BE5 = {
+						CreatedOnToolsVersion = 8.2.1;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -279,6 +389,8 @@
 			targets = (
 				5711A7E81B949E440088910A /* GNETextSearch */,
 				5711A7F21B949E440088910A /* GNETextSearchTests */,
+				AE417E0D1E493769007F6BE5 /* GNETextSearch iOS */,
+				AE417E151E493769007F6BE5 /* GNETextSearch iOSTests */,
 			);
 		};
 /* End PBXProject section */
@@ -296,6 +408,24 @@
 			buildActionMask = 2147483647;
 			files = (
 				578467941D1B5C600046A3DE /* bible.archive in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AE417E0C1E493769007F6BE5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AE417E141E493769007F6BE5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE417E371E493816007F6BE5 /* words-beginning-with-A.txt in Resources */,
+				AE417E361E493813007F6BE5 /* bible.archive in Resources */,
+				AE417E391E49381B007F6BE5 /* random-integers-100000-2.txt in Resources */,
+				AE417E381E493819007F6BE5 /* random-integers-100000-1.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -324,6 +454,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AE417E091E493769007F6BE5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE417E2E1E4937B5007F6BE5 /* tokenize.c in Sources */,
+				AE417E2B1E4937AB007F6BE5 /* ternarytree.c in Sources */,
+				AE417E291E4937A4007F6BE5 /* stringbuf.c in Sources */,
+				AE417E261E493792007F6BE5 /* countedset.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AE417E121E493769007F6BE5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE417E341E493805007F6BE5 /* ternarytree_tests.m in Sources */,
+				AE417E331E493802007F6BE5 /* stringbuf_tests.m in Sources */,
+				AE417E351E493808007F6BE5 /* tokenize_tests.m in Sources */,
+				AE417E321E4937FF007F6BE5 /* countedset_tests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -331,6 +483,11 @@
 			isa = PBXTargetDependency;
 			target = 5711A7E81B949E440088910A /* GNETextSearch */;
 			targetProxy = 5711A7F51B949E440088910A /* PBXContainerItemProxy */;
+		};
+		AE417E191E493769007F6BE5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AE417E0D1E493769007F6BE5 /* GNETextSearch iOS */;
+			targetProxy = AE417E181E493769007F6BE5 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -476,6 +633,92 @@
 			};
 			name = Release;
 		};
+		AE417E1F1E49376A007F6BE5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CODE_SIGN_IDENTITY = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = "GNETextSearch/Info-iOS.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.goneeast.GNETextSearch-iOS";
+				PRODUCT_NAME = GNETextSearch;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AE417E201E49376A007F6BE5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CODE_SIGN_IDENTITY = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = "GNETextSearch/Info-iOS.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.goneeast.GNETextSearch-iOS";
+				PRODUCT_NAME = GNETextSearch;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		AE417E211E49376A007F6BE5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				INFOPLIST_FILE = "GNETextSearchTests/Info-iOS.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.goneeast.GNETextSearch-iOSTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		AE417E221E49376A007F6BE5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				INFOPLIST_FILE = "GNETextSearchTests/Info-iOS.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.goneeast.GNETextSearch-iOSTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -505,6 +748,22 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		AE417E231E49376A007F6BE5 /* Build configuration list for PBXNativeTarget "GNETextSearch iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE417E1F1E49376A007F6BE5 /* Debug */,
+				AE417E201E49376A007F6BE5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		AE417E241E49376A007F6BE5 /* Build configuration list for PBXNativeTarget "GNETextSearch iOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE417E211E49376A007F6BE5 /* Debug */,
+				AE417E221E49376A007F6BE5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};
