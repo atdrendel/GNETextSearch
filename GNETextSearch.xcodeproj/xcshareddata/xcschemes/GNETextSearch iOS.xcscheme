@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AE417E0D1E493769007F6BE5"
-               BuildableName = "GNETextSearch iOS.framework"
+               BuildableName = "GNETextSearch.framework"
                BlueprintName = "GNETextSearch iOS"
                ReferencedContainer = "container:GNETextSearch.xcodeproj">
             </BuildableReference>
@@ -43,7 +43,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AE417E0D1E493769007F6BE5"
-            BuildableName = "GNETextSearch iOS.framework"
+            BuildableName = "GNETextSearch.framework"
             BlueprintName = "GNETextSearch iOS"
             ReferencedContainer = "container:GNETextSearch.xcodeproj">
          </BuildableReference>
@@ -65,7 +65,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AE417E0D1E493769007F6BE5"
-            BuildableName = "GNETextSearch iOS.framework"
+            BuildableName = "GNETextSearch.framework"
             BlueprintName = "GNETextSearch iOS"
             ReferencedContainer = "container:GNETextSearch.xcodeproj">
          </BuildableReference>
@@ -83,7 +83,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AE417E0D1E493769007F6BE5"
-            BuildableName = "GNETextSearch iOS.framework"
+            BuildableName = "GNETextSearch.framework"
             BlueprintName = "GNETextSearch iOS"
             ReferencedContainer = "container:GNETextSearch.xcodeproj">
          </BuildableReference>
