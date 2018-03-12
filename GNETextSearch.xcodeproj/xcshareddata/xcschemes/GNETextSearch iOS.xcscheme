@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0700"
+   LastUpgradeVersion = "0820"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "5711A7E81B949E440088910A"
+               BlueprintIdentifier = "AE417E0D1E493769007F6BE5"
                BuildableName = "GNETextSearch.framework"
-               BlueprintName = "GNETextSearch"
+               BlueprintName = "GNETextSearch iOS"
                ReferencedContainer = "container:GNETextSearch.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -26,17 +26,15 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "NO"
-      codeCoverageEnabled = "YES"
-      enableAddressSanitizer = "YES">
+      shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
          <TestableReference
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "5711A7F21B949E440088910A"
-               BuildableName = "GNETextSearchTests.xctest"
-               BlueprintName = "GNETextSearchTests"
+               BlueprintIdentifier = "AE417E151E493769007F6BE5"
+               BuildableName = "GNETextSearch iOSTests.xctest"
+               BlueprintName = "GNETextSearch iOSTests"
                ReferencedContainer = "container:GNETextSearch.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -44,19 +42,12 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "5711A7E81B949E440088910A"
+            BlueprintIdentifier = "AE417E0D1E493769007F6BE5"
             BuildableName = "GNETextSearch.framework"
-            BlueprintName = "GNETextSearch"
+            BlueprintName = "GNETextSearch iOS"
             ReferencedContainer = "container:GNETextSearch.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
-      <EnvironmentVariables>
-         <EnvironmentVariable
-            key = "ASAN_OPTIONS"
-            value = "allocator_may_return_null=1"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-      </EnvironmentVariables>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -73,9 +64,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "5711A7E81B949E440088910A"
+            BlueprintIdentifier = "AE417E0D1E493769007F6BE5"
             BuildableName = "GNETextSearch.framework"
-            BlueprintName = "GNETextSearch"
+            BlueprintName = "GNETextSearch iOS"
             ReferencedContainer = "container:GNETextSearch.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -83,7 +74,7 @@
       </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Release"
       shouldUseLaunchSchemeArgsEnv = "YES"
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
@@ -91,9 +82,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "5711A7E81B949E440088910A"
+            BlueprintIdentifier = "AE417E0D1E493769007F6BE5"
             BuildableName = "GNETextSearch.framework"
-            BlueprintName = "GNETextSearch"
+            BlueprintName = "GNETextSearch iOS"
             ReferencedContainer = "container:GNETextSearch.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
