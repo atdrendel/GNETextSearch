@@ -702,6 +702,25 @@ typedef struct tsearch_countedset
 // ------------------------------------------------------------------------------------------
 #pragma mark - Union Set
 // ------------------------------------------------------------------------------------------
+- (void)testUnionSet_EmptySetAndSetWithTwoIntegersWithFirstIntegerRemovedAndEmpty_EqualToSetWithSecondInteger
+{
+    size_t count = 2;
+    GNEInteger integers[] = {1, 2};
+
+    tsearch_countedset_ptr otherCountedSet = tsearch_countedset_init();
+    [self p_addIntegers:integers count:count toCountedSet:otherCountedSet];
+    XCTAssertEqual(success, tsearch_countedset_remove_int(otherCountedSet, 1));
+    XCTAssertEqual(1, tsearch_countedset_get_count(otherCountedSet));
+
+    XCTAssertEqual(success, tsearch_countedset_union(_countedSet, otherCountedSet));
+    XCTAssertEqual(5 * sizeof(_tsearch_countedset_node), _countedSet->nodesCapacity);
+    XCTAssertEqual(1, _countedSet->count);
+    XCTAssertEqual(1, tsearch_countedset_get_count_for_int(_countedSet, 2));
+    XCTAssertEqual(0, tsearch_countedset_get_count_for_int(_countedSet, 1));
+
+    tsearch_countedset_free(otherCountedSet);
+}
+
 - (void)testUnionSet_PopulatedSetAndNull_EqualToPopulatedSetAndSuccess
 {
     size_t count = 10;

@@ -181,9 +181,10 @@ result tsearch_countedset_union(const tsearch_countedset_ptr ptr, const tsearch_
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     if (otherPtr == NULL || otherPtr->nodes == NULL) { return success; }
 
-    size_t otherCount = otherPtr->count;
+    size_t otherCount = otherPtr->insertIndex;
     _tsearch_countedset_node *otherNodes = otherPtr->nodes;
     for (size_t i = 0; i < otherCount; i++) {
+        if (otherNodes[i].count == 0) { continue; }
         _tsearch_countedset_node otherValue = otherNodes[i];
         int result = _tsearch_countedset_add_int(ptr, otherValue.integer, otherValue.count);
         if (result == failure) { return failure; }
