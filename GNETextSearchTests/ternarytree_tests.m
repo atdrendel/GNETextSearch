@@ -607,6 +607,20 @@
 }
 
 
+- (void)testRemove_RemoveFirstDocumentForWordBelongingToTwoDocuments_SuccessAndSecondDocumentRemains
+{
+    [self insertWords:@[@"test"] documentID:1 intoTree:_treePtr];
+    [self insertWords:@[@"test"] documentID:2 intoTree:_treePtr];
+
+    XCTAssertEqualObjects([NSIndexSet indexSetWithIndexesInRange:NSMakeRange(1, 2)],
+                          [self documentIDsPartiallyMatchingWord:@"test" inTree: _treePtr]);
+
+    XCTAssertEqual(success, tsearch_ternarytree_remove(_treePtr, 1));
+    XCTAssertEqualObjects([NSIndexSet indexSetWithIndexesInRange:NSMakeRange(2, 1)],
+                          [self documentIDsPartiallyMatchingWord:@"test" inTree: _treePtr]);
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - Performance
 // ------------------------------------------------------------------------------------------
@@ -861,6 +875,32 @@
     free(results);
 
     return (resultsStr.length > 0) ? [resultsStr componentsSeparatedByString:@"\n"] : @[];
+}
+
+
+- (NSIndexSet *)documentIDsPartiallyMatchingWord:(NSString *)word inTree:(tsearch_ternarytree_ptr)ptr
+{
+    tsearch_countedset_ptr countedSet =
+        tsearch_ternarytree_copy_partial_search_results(ptr, word.UTF8String,
+                                                        [word lengthOfBytesUsingEncoding:NSUTF8StringEncoding]);
+
+    if (countedSet == NULL) {
+        return [NSIndexSet indexSet];
+    }
+
+    GNEInteger *documentIDs = NULL;
+    size_t count = 0;
+    XCTAssertEqual(success, tsearch_countedset_copy_ints(countedSet, &documentIDs, &count));
+
+    NSMutableIndexSet *documentIDIndexSet = [NSMutableIndexSet indexSet];
+    for (size_t i = 0; i < count; i++) {
+        NSUInteger documentID = (NSUInteger)documentIDs[i];
+        NSParameterAssert([documentIDIndexSet containsIndex:documentID] == NO);
+        [documentIDIndexSet addIndex:documentID];
+    }
+
+    tsearch_countedset_free(countedSet);
+    return [documentIDIndexSet copy];
 }
 
 

@@ -89,9 +89,9 @@
 		5711A7EE1B949E440088910A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5711A7F31B949E440088910A /* GNETextSearchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GNETextSearchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5711A7FA1B949E440088910A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		5711A8041B949E960088910A /* ternarytree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = ternarytree.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		5711A8051B949E960088910A /* ternarytree.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = ternarytree.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
-		5711A8091B94B29F0088910A /* ternarytree_tests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = ternarytree_tests.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		5711A8041B949E960088910A /* ternarytree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = ternarytree.h; sourceTree = "<group>"; };
+		5711A8051B949E960088910A /* ternarytree.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = ternarytree.c; sourceTree = "<group>"; };
+		5711A8091B94B29F0088910A /* ternarytree_tests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = ternarytree_tests.m; sourceTree = "<group>"; };
 		573847E11BFD1E2400A71CF9 /* random-integers-100000-1.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "random-integers-100000-1.txt"; sourceTree = "<group>"; };
 		573847E21BFD1E2400A71CF9 /* random-integers-100000-2.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "random-integers-100000-2.txt"; sourceTree = "<group>"; };
 		576211291C37177E003B3623 /* tokenize.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tokenize.c; sourceTree = "<group>"; };
@@ -99,10 +99,10 @@
 		5762112F1C38610E003B3623 /* tokenize.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tokenize.h; sourceTree = "<group>"; };
 		576211321C418CC4003B3623 /* utf8_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utf8_utils.h; sourceTree = "<group>"; };
 		576211341C418E00003B3623 /* GNETextSearchPublic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GNETextSearchPublic.h; sourceTree = "<group>"; };
-		57633FBF1BF79A2B006B1541 /* countedset.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = countedset.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
+		57633FBF1BF79A2B006B1541 /* countedset.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = countedset.c; sourceTree = "<group>"; };
 		57633FC01BF79A2B006B1541 /* countedset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = countedset.h; sourceTree = "<group>"; };
 		57633FC31BF79A74006B1541 /* GNETextSearchPrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GNETextSearchPrivate.h; sourceTree = "<group>"; };
-		57633FC41BF7C958006B1541 /* countedset_tests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = countedset_tests.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		57633FC41BF7C958006B1541 /* countedset_tests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = countedset_tests.m; sourceTree = "<group>"; };
 		578467931D1B5C600046A3DE /* bible.archive */ = {isa = PBXFileReference; lastKnownFileType = file.bplist; path = bible.archive; sourceTree = "<group>"; };
 		57A46B0C1BF3604B008809A3 /* stringbuf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stringbuf.c; sourceTree = "<group>"; };
 		57A46B0D1BF3604B008809A3 /* stringbuf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stringbuf.h; sourceTree = "<group>"; };
@@ -356,7 +356,7 @@
 		5711A7E01B949E440088910A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0700;
+				LastUpgradeCheck = 0920;
 				ORGANIZATIONNAME = "Gone East LLC";
 				TargetAttributes = {
 					5711A7E81B949E440088910A = {
@@ -500,13 +500,21 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
@@ -545,13 +553,21 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
@@ -641,7 +657,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CODE_SIGN_IDENTITY = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -666,7 +682,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CODE_SIGN_IDENTITY = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -756,6 +772,7 @@
 				AE417E201E49376A007F6BE5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		AE417E241E49376A007F6BE5 /* Build configuration list for PBXNativeTarget "GNETextSearch iOSTests" */ = {
 			isa = XCConfigurationList;
@@ -764,6 +781,7 @@
 				AE417E221E49376A007F6BE5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
