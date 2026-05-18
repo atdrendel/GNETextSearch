@@ -127,6 +127,15 @@ void utf8_printUTF16CodePoints(const char *s)
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Range
+// ------------------------------------------------------------------------------------------
+TSEARCH_INLINE result _is_valid_range(tsearch_range range, size_t *outSum)
+{
+    return _tsearch_size_add_overflows(range.location, range.length, outSum) ? failure : success;
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Public
 // ------------------------------------------------------------------------------------------
 int tsearch_cstring_tokenize(const char *cstr, process_token_func process, void *context)
@@ -137,22 +146,23 @@ int tsearch_cstring_tokenize(const char *cstr, process_token_func process, void 
 
     uint32_t codePoint = 0;
     uint32_t state = UTF8_ACCEPT;
-    size_t offset = 0;
-    size_t codePointByteLength = 0;
 
     size_t tokenCapacity = 10;
     size_t tokenLength = 0;
     uint32_t *token = calloc(tokenCapacity, sizeof(uint32_t));
     if (token == NULL) { return failure; }
 
-    while (cstr[offset] != '\0') {
-        uint32_t decodeState = utf8_decode(&state, &codePoint, (uint8_t)cstr[offset]);
-        if (decodeState == UTF8_REJECT) {
+    while (true) {
+        size_t offset = 0;
+        if (_is_valid_range(range, &offset) == failure) {
             free(token);
             return failure;
         }
 
-        if (_tsearch_size_add_overflows(codePointByteLength, 1, &codePointByteLength)) {
+        if (cstr[offset] == '\0') { break; }
+
+        uint32_t decodeState = utf8_decode(&state, &codePoint, (uint8_t)cstr[offset]);
+        if (decodeState == UTF8_REJECT) {
             free(token);
             return failure;
         }
@@ -189,15 +199,12 @@ int tsearch_cstring_tokenize(const char *cstr, process_token_func process, void 
 
                 token[tokenLength] = codePoint;
                 if (_tsearch_size_add_overflows(tokenLength, 1, &tokenLength) ||
-                    _tsearch_size_add_overflows(range.length, codePointByteLength, &range.length)) {
+                    _tsearch_size_add_overflows(range.length, 1, &range.length)) {
                     free(token);
                     return failure;
                 }
             }
-            codePointByteLength = 0;
-        }
-
-        if (_tsearch_size_add_overflows(offset, 1, &offset)) {
+        } else if (_tsearch_size_add_overflows(range.length, 1, &range.length)) {
             free(token);
             return failure;
         }

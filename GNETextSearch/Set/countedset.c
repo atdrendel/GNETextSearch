@@ -212,15 +212,23 @@ result tsearch_countedset_union(const tsearch_countedset_ptr ptr, const tsearch_
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     if (otherPtr == NULL || otherPtr->nodes == NULL) { return success; }
 
+    tsearch_countedset_ptr copy = tsearch_countedset_copy(ptr);
+    if (copy == NULL) { return failure; }
+
     size_t otherCount = otherPtr->insertIndex;
     _tsearch_countedset_node *otherNodes = otherPtr->nodes;
     for (size_t i = 0; i < otherCount; i++) {
         if (otherNodes[i].count == 0) { continue; }
         _tsearch_countedset_node otherValue = otherNodes[i];
-        int result = _tsearch_countedset_add_int(ptr, otherValue.integer, otherValue.count);
-        if (result == failure) { return failure; }
+        int result = _tsearch_countedset_add_int(copy, otherValue.integer, otherValue.count);
+        if (result == failure) {
+            tsearch_countedset_free(copy);
+            return failure;
+        }
     }
 
+    _tsearch_countedset_swap_contents(ptr, copy);
+    tsearch_countedset_free(copy);
     return success;
 }
 
@@ -229,40 +237,65 @@ result tsearch_countedset_intersect(const tsearch_countedset_ptr ptr, const tsea
 {
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
 
+    tsearch_countedset_ptr copy = tsearch_countedset_copy(ptr);
+    if (copy == NULL) { return failure; }
+
     if (otherPtr == NULL || otherPtr->nodes == NULL || otherPtr->count == 0) {
-        return tsearch_countedset_remove_all_ints(ptr);
+        if (tsearch_countedset_remove_all_ints(copy) == failure) {
+            tsearch_countedset_free(copy);
+            return failure;
+        }
+
+        _tsearch_countedset_swap_contents(ptr, copy);
+        tsearch_countedset_free(copy);
+        return success;
     }
 
-    size_t actualCount = ptr->insertIndex;
-    if (actualCount == 0) { return success; }
+    size_t actualCount = copy->insertIndex;
+    if (actualCount == 0) {
+        tsearch_countedset_free(copy);
+        return success;
+    }
 
     // Copy all of the counted set's values so that we can iterate over them
     // while modifying the set.
-    _tsearch_countedset_node *nodesCopy = _tsearch_countedset_copy_nodes(ptr);
-    if (nodesCopy == NULL) { return failure; }
+    _tsearch_countedset_node *nodesCopy = _tsearch_countedset_copy_nodes(copy);
+    if (nodesCopy == NULL) {
+        tsearch_countedset_free(copy);
+        return failure;
+    }
 
     for (size_t i = 0; i < actualCount; i++) {
         _tsearch_countedset_node node = nodesCopy[i];
         if (node.count == 0) { continue; }
         _tsearch_countedset_node *nodePtr = _tsearch_countedset_get_node_for_int(otherPtr, node.integer);
         if (nodePtr == NULL || nodePtr->count == 0) {
-            int result = tsearch_countedset_remove_int(ptr, node.integer);
+            int result = tsearch_countedset_remove_int(copy, node.integer);
             if (result == failure) {
                 free(nodesCopy);
+                tsearch_countedset_free(copy);
                 return failure;
             }
         } else {
             size_t count = tsearch_countedset_get_count_for_int(otherPtr, node.integer);
-            int result = _tsearch_countedset_add_int(ptr, node.integer, count);
+            int result = _tsearch_countedset_add_int(copy, node.integer, count);
             if (result == failure) {
                 free(nodesCopy);
+                tsearch_countedset_free(copy);
                 return failure;
             }
         }
     }
 
     free(nodesCopy);
-    return _tsearch_countedset_compact_if_needed(ptr);
+    if (_tsearch_countedset_compact_if_needed(copy) == failure) {
+        tsearch_countedset_free(copy);
+        return failure;
+    }
+
+    _tsearch_countedset_swap_contents(ptr, copy);
+    tsearch_countedset_free(copy);
+    return success;
 }
 
 
@@ -271,24 +304,37 @@ result tsearch_countedset_minus(const tsearch_countedset_ptr ptr, const tsearch_
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     if (otherPtr == NULL || otherPtr->nodes == NULL) { return success; }
 
+    tsearch_countedset_ptr copy = tsearch_countedset_copy(ptr);
+    if (copy == NULL) { return failure; }
+
     size_t otherUsedCount = otherPtr->insertIndex;
     _tsearch_countedset_node *otherNodes = otherPtr->nodes;
     for (size_t i = 0; i < otherUsedCount; i++) {
         _tsearch_countedset_node otherValue = otherNodes[i];
         if (otherValue.count == 0) { continue; }
 
-        _tsearch_countedset_node *nodePtr = _tsearch_countedset_get_node_for_int(ptr, otherValue.integer);
+        _tsearch_countedset_node *nodePtr = _tsearch_countedset_get_node_for_int(copy, otherValue.integer);
         if (nodePtr == NULL || nodePtr->count == 0) { continue; }
 
         if (otherValue.count >= nodePtr->count) {
-            int result = tsearch_countedset_remove_int(ptr, otherValue.integer);
-            if (result == failure) { return failure; }
+            int result = tsearch_countedset_remove_int(copy, otherValue.integer);
+            if (result == failure) {
+                tsearch_countedset_free(copy);
+                return failure;
+            }
         } else {
             nodePtr->count -= otherValue.count;
         }
     }
 
-    return _tsearch_countedset_compact_if_needed(ptr);
+    if (_tsearch_countedset_compact_if_needed(copy) == failure) {
+        tsearch_countedset_free(copy);
+        return failure;
+    }
+
+    _tsearch_countedset_swap_contents(ptr, copy);
+    tsearch_countedset_free(copy);
+    return success;
 }
 
 

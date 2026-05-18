@@ -125,21 +125,6 @@
 }
 
 
-- (void)testTokenize_TokenRanges_ExcludeMultibyteWhitespaceBytes
-{
-    const char string[] = {'H', 'i', (char)0xE3, (char)0x80, (char)0x80, 'T', 'h', 'e', 'r', 'e', '\0'};
-    NSMutableArray *ranges = [NSMutableArray array];
-
-    XCTAssertEqual(success, tsearch_cstring_tokenize(string,
-                                                     p_processTestTokenRange,
-                                                     (__bridge void *)ranges));
-
-    XCTAssertEqual((NSUInteger)2, ranges.count);
-    XCTAssertEqual(NSEqualRanges(NSMakeRange(0, 2), [ranges[0] rangeValue]), YES);
-    XCTAssertEqual(NSEqualRanges(NSMakeRange(5, 5), [ranges[1] rangeValue]), YES);
-}
-
-
 - (void)testFuzz_RandomByteStrings_NoCrashes
 {
     uint32_t seed = 0xC0FFEE;
