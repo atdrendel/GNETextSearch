@@ -254,7 +254,7 @@ tsearch_countedset_ptr tsearch_ternarytree_copy_prefix_search_results(const tsea
     if (resultsPtr == NULL) { return NULL; }
 
     if (_tsearch_ternarytree_has_valid_document_ids(foundPtr) == true) {
-        if (_tsearch_countedset_union_in_place(resultsPtr, foundPtr->documentIDs) == failure) {
+        if (tsearch_countedset_union(resultsPtr, foundPtr->documentIDs) == failure) {
             tsearch_countedset_free(resultsPtr);
             return NULL;
         }
@@ -432,7 +432,7 @@ result _tsearch_ternarytree_copy_words_from_node(const tsearch_ternarytree_ptr p
 
         if (shouldProcess == true) {
             if (_tsearch_ternarytree_has_valid_document_ids(current) == true &&
-                _tsearch_countedset_union_in_place(results, current->documentIDs) == failure) {
+                tsearch_countedset_union(results, current->documentIDs) == failure) {
                 return failure;
             }
 
@@ -529,7 +529,7 @@ result _tsearch_ternarytree_find_partial_match(const tsearch_ternarytree_ptr ptr
         bool shouldSearchSame = true;
         if (nextIndex == length) {
             if (_tsearch_ternarytree_has_valid_document_ids(node) == true &&
-                _tsearch_countedset_union_in_place(results, node->documentIDs) == failure) {
+                tsearch_countedset_union(results, node->documentIDs) == failure) {
                 free(stack);
                 return failure;
             }
@@ -608,7 +608,7 @@ result _tsearch_ternarytree_find_suffix(const tsearch_ternarytree_ptr ptr, const
                 }
 
                 if (search.didMatch == true &&
-                    _tsearch_countedset_union_in_place(results, current->documentIDs) == failure) {
+                    tsearch_countedset_union(results, current->documentIDs) == failure) {
                     return failure;
                 }
             }

@@ -56,16 +56,16 @@ result tsearch_countedset_remove_int(const tsearch_countedset_ptr ptr, const GNE
 result tsearch_countedset_remove_all_ints(const tsearch_countedset_ptr ptr);
 
 /// Adds each integer and its count in the other counted set to specified set.
-/// If allocation or count overflow fails, the destination set is left unchanged.
+/// If allocation or count overflow fails, the destination set may have been partially mutated.
 result tsearch_countedset_union(const tsearch_countedset_ptr ptr, const tsearch_countedset_ptr otherPtr);
 
 /// Removes from the specified counted set each integer that isn’t a member of the other set.
 /// If an integer is present in both sets, its counts are added together.
-/// If allocation or count overflow fails, the destination set is left unchanged.
+/// If allocation or count overflow fails, the destination set may have been partially mutated.
 result tsearch_countedset_intersect(const tsearch_countedset_ptr ptr, const tsearch_countedset_ptr otherPtr);
 
 /// Removes each integer in the other counted set from the specified set, if present.
-/// If allocation fails, the destination set is left unchanged.
+/// If allocation fails, the destination set may have been partially mutated.
 result tsearch_countedset_minus(const tsearch_countedset_ptr ptr, const tsearch_countedset_ptr otherPtr);
 
 #ifdef __cplusplus
