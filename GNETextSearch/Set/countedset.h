@@ -9,7 +9,7 @@
 #ifndef tsearch_countedset_h
 #define tsearch_countedset_h
 
-#include "GNETextSearchPublic.h"
+#include <GNETextSearch/GNETextSearchPublic.h>
 
 #ifdef __cplusplus
 extern "C" {

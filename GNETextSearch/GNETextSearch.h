@@ -6,6 +6,5 @@
 //  Copyright © 2015 Gone East LLC. All rights reserved.
 //
 
-#import "ternarytree.h"
-#import "countedset.h"
-
+#import <GNETextSearch/ternarytree.h>
+#import <GNETextSearch/countedset.h>

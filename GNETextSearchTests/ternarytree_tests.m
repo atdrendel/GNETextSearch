@@ -1248,7 +1248,20 @@
     dispatch_once(&onceToken, ^{
         NSString *path = [[NSBundle bundleForClass:[self class]] pathForResource:@"bible" ofType:@"archive"];
         NSParameterAssert(path);
-        dictionary = [NSKeyedUnarchiver unarchiveObjectWithFile:path];
+        NSError *error = nil;
+        NSData *data = [NSData dataWithContentsOfFile:path options:0 error:&error];
+        NSAssert2(error == nil, @"Could not open %@: %@", path, error);
+
+        NSSet *classes = [NSSet setWithObjects:
+                          [NSDictionary class],
+                          [NSArray class],
+                          [NSNumber class],
+                          [NSString class],
+                          nil];
+        dictionary = [NSKeyedUnarchiver unarchivedObjectOfClasses:classes
+                                                         fromData:data
+                                                            error:&error];
+        NSAssert2(error == nil, @"Could not unarchive %@: %@", path, error);
     });
 
     return dictionary;
