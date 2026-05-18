@@ -215,20 +215,31 @@ result tsearch_countedset_union(const tsearch_countedset_ptr ptr, const tsearch_
     tsearch_countedset_ptr copy = tsearch_countedset_copy(ptr);
     if (copy == NULL) { return failure; }
 
+    if (_tsearch_countedset_union_in_place(copy, otherPtr) == failure) {
+        tsearch_countedset_free(copy);
+        return failure;
+    }
+
+    _tsearch_countedset_swap_contents(ptr, copy);
+    tsearch_countedset_free(copy);
+    return success;
+}
+
+
+result _tsearch_countedset_union_in_place(const tsearch_countedset_ptr ptr, const tsearch_countedset_ptr otherPtr)
+{
+    if (ptr == NULL || ptr->nodes == NULL) { return failure; }
+    if (otherPtr == NULL || otherPtr->nodes == NULL) { return success; }
+
     size_t otherCount = otherPtr->insertIndex;
     _tsearch_countedset_node *otherNodes = otherPtr->nodes;
     for (size_t i = 0; i < otherCount; i++) {
         if (otherNodes[i].count == 0) { continue; }
         _tsearch_countedset_node otherValue = otherNodes[i];
-        int result = _tsearch_countedset_add_int(copy, otherValue.integer, otherValue.count);
-        if (result == failure) {
-            tsearch_countedset_free(copy);
-            return failure;
-        }
+        int result = _tsearch_countedset_add_int(ptr, otherValue.integer, otherValue.count);
+        if (result == failure) { return failure; }
     }
 
-    _tsearch_countedset_swap_contents(ptr, copy);
-    tsearch_countedset_free(copy);
     return success;
 }
 

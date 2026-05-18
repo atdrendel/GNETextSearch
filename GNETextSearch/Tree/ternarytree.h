@@ -9,8 +9,21 @@
 #ifndef GNETernaryTree_h
 #define GNETernaryTree_h
 
-#include <GNETextSearch/countedset.h>
-#include <GNETextSearch/GNETextSearchPublic.h>
+#if defined(__has_include)
+    #if __has_include(<GNETextSearch/countedset.h>)
+        #include <GNETextSearch/countedset.h>
+    #else
+        #include "../Set/countedset.h"
+    #endif
+    #if __has_include(<GNETextSearch/GNETextSearchPublic.h>)
+        #include <GNETextSearch/GNETextSearchPublic.h>
+    #else
+        #include "../GNETextSearchPublic.h"
+    #endif
+#else
+    #include "../Set/countedset.h"
+    #include "../GNETextSearchPublic.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {

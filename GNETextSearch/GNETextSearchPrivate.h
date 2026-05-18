@@ -15,6 +15,13 @@
 extern "C" {
 #endif
 
+#ifndef tsearch_countedset_h
+typedef struct tsearch_countedset * tsearch_countedset_ptr;
+#endif
+
+result _tsearch_countedset_union_in_place(const tsearch_countedset_ptr ptr,
+                                          const tsearch_countedset_ptr otherPtr);
+
 #ifndef TSEARCH_INLINE
     #if defined(_MSC_VER) && !defined(__cplusplus)
         #define TSEARCH_INLINE __inline
