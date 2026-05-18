@@ -537,6 +537,18 @@
     [self assertResultsInTree:_treePtr matchingSuffix:suffix equalWords:exptectedWords];
 }
 
+
+- (void)testSuffixSearch_WordShorterThanSuffix_DoesNotMatchLastCharacterOnly
+{
+    NSString *suffix = @"ac";
+    NSArray *words = @[@"c", @"ac", @"xxac"];
+
+    XCTAssertNoThrow([self insertWords:words intoTree:_treePtr]);
+
+    [self assertResultsInTree:_treePtr matchingSuffix:suffix equalWords:@[@"ac", @"xxac"]];
+}
+
+
 - (void)testSuffixSearch_LMN_EightResultsForMen
 {
     NSString *suffix = @"est";

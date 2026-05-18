@@ -598,7 +598,8 @@ result _tsearch_ternarytree_find_suffix(const tsearch_ternarytree_ptr ptr, const
 
         if (shouldProcess == true) {
             if (_tsearch_ternarytree_has_valid_document_ids(current) == true &&
-                current->character == suffix[length - 1]) {
+                current->character == suffix[length - 1] &&
+                _tsearch_ternarytree_get_word_len(current) >= length) {
                 _tsearch_string_search search = (_tsearch_string_search){suffix, length, length - 1, true};
                 if (_tsearch_ternarytree_reverse_search_from_node(current,
                                                                   _tsearch_ternarytree_suffix_search_callback,
