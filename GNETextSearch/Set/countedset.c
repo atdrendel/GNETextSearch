@@ -8,13 +8,10 @@
 
 #include "countedset.h"
 #include "GNETextSearchPrivate.h"
+#include <limits.h>
 #include <string.h>
 
 // ------------------------------------------------------------------------------------------
-
-#define LEFT_HEAVY 1
-#define BALANCED 0
-#define RIGHT_HEAVY -1
 
 typedef struct _tsearch_countedset_node
 {
@@ -45,15 +42,33 @@ result _tsearch_countedset_add_int(const tsearch_countedset_ptr ptr,
 _tsearch_countedset_node * _tsearch_countedset_get_node_for_int(const tsearch_countedset_ptr ptr,
                                                                 const GNEInteger integer);
 size_t _tsearch_countedset_get_node_idx_for_int_insert(const tsearch_countedset_ptr ptr, const GNEInteger integer);
+size_t _tsearch_countedset_get_node_and_parent_idx_for_int_insert_with_path(const tsearch_countedset_ptr ptr,
+                                                                            const GNEInteger integer,
+                                                                            size_t *outParentIndex,
+                                                                            size_t **path,
+                                                                            size_t *pathCount,
+                                                                            size_t *pathCapacity);
 size_t _tsearch_countedset_get_node_and_parent_idx_for_int_insert(const tsearch_countedset_ptr ptr,
                                                                   const GNEInteger integer,
                                                                   size_t *outParentIndex);
 int _tsearch_countedset_balance_node_at_idx(_tsearch_countedset_node *nodes, const size_t index);
+static result _tsearch_countedset_rebalance_path(_tsearch_countedset_node *nodes,
+                                                 const size_t *path,
+                                                 const size_t pathCount);
+static int _tsearch_countedset_node_height(_tsearch_countedset_node *nodes, const size_t index);
+static void _tsearch_countedset_update_node_height(_tsearch_countedset_node *nodes, const size_t index);
+static int _tsearch_countedset_node_balance_factor(_tsearch_countedset_node *nodes, const size_t index);
 void _tsearch_countedset_rotate_left(_tsearch_countedset_node *nodes, const size_t index);
 void _tsearch_countedset_rotate_right(_tsearch_countedset_node *nodes, const size_t index);
 result _tsearch_countedset_node_init(const tsearch_countedset_ptr ptr, const GNEInteger integer,
                                      const size_t count, size_t *outIndex);
 result _tsearch_countedset_increase_values_buf(const tsearch_countedset_ptr ptr);
+static void _tsearch_countedset_swap_contents(tsearch_countedset_ptr a, tsearch_countedset_ptr b);
+static result _tsearch_countedset_compact_if_needed(tsearch_countedset_ptr ptr);
+static result _tsearch_countedset_index_stack_push(size_t **stack,
+                                                   size_t *count,
+                                                   size_t *capacity,
+                                                   size_t index);
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Counted Set
@@ -132,15 +147,29 @@ size_t tsearch_countedset_get_count_for_int(const tsearch_countedset_ptr ptr, co
 
 result tsearch_countedset_copy_ints(const tsearch_countedset_ptr ptr, GNEInteger **outIntegers, size_t *outCount)
 {
-    if (ptr == NULL || ptr->nodes == NULL || outIntegers == NULL || outCount == NULL) { return failure; }
+    if (outIntegers == NULL || outCount == NULL) { return failure; }
+    *outIntegers = NULL;
+    *outCount = 0;
+
+    if (ptr == NULL || ptr->nodes == NULL) { return failure; }
+
     size_t integersCount = ptr->count;
+    if (integersCount == 0) { return success; }
+
     size_t size = sizeof(GNEInteger);
-    GNEInteger *integers = calloc(integersCount, size);
-    if (_tsearch_countedset_copy_ints(ptr, integers, integersCount) == failure) {
-        free(integers);
-        *outCount = 0;
+    size_t byteLength = 0;
+    if (_tsearch_size_mul_overflows(integersCount, size, &byteLength)) {
         return failure;
     }
+
+    GNEInteger *integers = malloc(byteLength);
+    if (integers == NULL) { return failure; }
+
+    if (_tsearch_countedset_copy_ints(ptr, integers, integersCount) == failure) {
+        free(integers);
+        return failure;
+    }
+
     *outIntegers = integers;
     *outCount = integersCount;
     return success;
@@ -155,23 +184,25 @@ result tsearch_countedset_add_int(const tsearch_countedset_ptr ptr, const GNEInt
 
 result tsearch_countedset_remove_int(const tsearch_countedset_ptr ptr, const GNEInteger integer)
 {
-    if (ptr == NULL) { return failure; }
+    if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     _tsearch_countedset_node *nodePtr = _tsearch_countedset_get_node_for_int(ptr, integer);
     if (nodePtr == NULL || nodePtr->count == 0) { return success; }
     nodePtr->count = 0;
     ptr->count -= 1;
+    (void)_tsearch_countedset_compact_if_needed(ptr);
     return success;
 }
 
 
 result tsearch_countedset_remove_all_ints(const tsearch_countedset_ptr ptr)
 {
-    if (ptr == NULL) { return failure; }
+    if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     size_t count = ptr->insertIndex;
     for (size_t i = 0; i < count; i++) {
         ptr->nodes[i].count = 0;
     }
     ptr->count = 0;
+    (void)_tsearch_countedset_compact_if_needed(ptr);
     return success;
 }
 
@@ -181,14 +212,23 @@ result tsearch_countedset_union(const tsearch_countedset_ptr ptr, const tsearch_
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     if (otherPtr == NULL || otherPtr->nodes == NULL) { return success; }
 
+    tsearch_countedset_ptr copy = tsearch_countedset_copy(ptr);
+    if (copy == NULL) { return failure; }
+
     size_t otherCount = otherPtr->insertIndex;
     _tsearch_countedset_node *otherNodes = otherPtr->nodes;
     for (size_t i = 0; i < otherCount; i++) {
         if (otherNodes[i].count == 0) { continue; }
         _tsearch_countedset_node otherValue = otherNodes[i];
-        int result = _tsearch_countedset_add_int(ptr, otherValue.integer, otherValue.count);
-        if (result == failure) { return failure; }
+        int result = _tsearch_countedset_add_int(copy, otherValue.integer, otherValue.count);
+        if (result == failure) {
+            tsearch_countedset_free(copy);
+            return failure;
+        }
     }
+
+    _tsearch_countedset_swap_contents(ptr, copy);
+    tsearch_countedset_free(copy);
     return success;
 }
 
@@ -196,31 +236,65 @@ result tsearch_countedset_union(const tsearch_countedset_ptr ptr, const tsearch_
 result tsearch_countedset_intersect(const tsearch_countedset_ptr ptr, const tsearch_countedset_ptr otherPtr)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
-    if (otherPtr == NULL || otherPtr->nodes == NULL) {
-        return tsearch_countedset_remove_all_ints(ptr);
+
+    tsearch_countedset_ptr copy = tsearch_countedset_copy(ptr);
+    if (copy == NULL) { return failure; }
+
+    if (otherPtr == NULL || otherPtr->nodes == NULL || otherPtr->count == 0) {
+        if (tsearch_countedset_remove_all_ints(copy) == failure) {
+            tsearch_countedset_free(copy);
+            return failure;
+        }
+
+        _tsearch_countedset_swap_contents(ptr, copy);
+        tsearch_countedset_free(copy);
+        return success;
     }
 
-    size_t actualCount = ptr->insertIndex;
+    size_t actualCount = copy->insertIndex;
+    if (actualCount == 0) {
+        tsearch_countedset_free(copy);
+        return success;
+    }
 
     // Copy all of the counted set's values so that we can iterate over them
     // while modifying the set.
-    _tsearch_countedset_node *nodesCopy = _tsearch_countedset_copy_nodes(ptr);
-    if (nodesCopy == NULL) { return failure; }
+    _tsearch_countedset_node *nodesCopy = _tsearch_countedset_copy_nodes(copy);
+    if (nodesCopy == NULL) {
+        tsearch_countedset_free(copy);
+        return failure;
+    }
 
     for (size_t i = 0; i < actualCount; i++) {
         _tsearch_countedset_node node = nodesCopy[i];
         if (node.count == 0) { continue; }
         _tsearch_countedset_node *nodePtr = _tsearch_countedset_get_node_for_int(otherPtr, node.integer);
         if (nodePtr == NULL || nodePtr->count == 0) {
-            int result = tsearch_countedset_remove_int(ptr, node.integer);
-            if (result == failure) { free(nodesCopy); return failure; }
+            int result = tsearch_countedset_remove_int(copy, node.integer);
+            if (result == failure) {
+                free(nodesCopy);
+                tsearch_countedset_free(copy);
+                return failure;
+            }
         } else {
             size_t count = tsearch_countedset_get_count_for_int(otherPtr, node.integer);
-            int result = _tsearch_countedset_add_int(ptr, node.integer, count);
-            if (result == failure) { free(nodesCopy); return failure; }
+            int result = _tsearch_countedset_add_int(copy, node.integer, count);
+            if (result == failure) {
+                free(nodesCopy);
+                tsearch_countedset_free(copy);
+                return failure;
+            }
         }
     }
+
     free(nodesCopy);
+    if (_tsearch_countedset_compact_if_needed(copy) == failure) {
+        tsearch_countedset_free(copy);
+        return failure;
+    }
+
+    _tsearch_countedset_swap_contents(ptr, copy);
+    tsearch_countedset_free(copy);
     return success;
 }
 
@@ -230,19 +304,36 @@ result tsearch_countedset_minus(const tsearch_countedset_ptr ptr, const tsearch_
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
     if (otherPtr == NULL || otherPtr->nodes == NULL) { return success; }
 
+    tsearch_countedset_ptr copy = tsearch_countedset_copy(ptr);
+    if (copy == NULL) { return failure; }
+
     size_t otherUsedCount = otherPtr->insertIndex;
     _tsearch_countedset_node *otherNodes = otherPtr->nodes;
     for (size_t i = 0; i < otherUsedCount; i++) {
         _tsearch_countedset_node otherValue = otherNodes[i];
-        _tsearch_countedset_node *nodePtr = _tsearch_countedset_get_node_for_int(ptr, otherValue.integer);
-        if (nodePtr == NULL) { continue; }
+        if (otherValue.count == 0) { continue; }
+
+        _tsearch_countedset_node *nodePtr = _tsearch_countedset_get_node_for_int(copy, otherValue.integer);
+        if (nodePtr == NULL || nodePtr->count == 0) { continue; }
+
         if (otherValue.count >= nodePtr->count) {
-            int result = tsearch_countedset_remove_int(ptr, otherValue.integer);
-            if (result == failure) { return failure; }
+            int result = tsearch_countedset_remove_int(copy, otherValue.integer);
+            if (result == failure) {
+                tsearch_countedset_free(copy);
+                return failure;
+            }
         } else {
             nodePtr->count -= otherValue.count;
         }
     }
+
+    if (_tsearch_countedset_compact_if_needed(copy) == failure) {
+        tsearch_countedset_free(copy);
+        return failure;
+    }
+
+    _tsearch_countedset_swap_contents(ptr, copy);
+    tsearch_countedset_free(copy);
     return success;
 }
 
@@ -254,10 +345,18 @@ _tsearch_countedset_node * _tsearch_countedset_copy_nodes(const tsearch_counteds
 {
     if (ptr == NULL || ptr->nodes == NULL) { return NULL; }
     size_t actualCount = ptr->insertIndex;
+    if (actualCount == 0) { return NULL; }
+
     size_t size = sizeof(_tsearch_countedset_node);
-    _tsearch_countedset_node *nodesCopy = calloc(actualCount, size);
-    if (nodesCopy == NULL) { return failure; }
-    memcpy(nodesCopy, ptr->nodes, actualCount * size);
+    size_t byteLength = 0;
+    if (_tsearch_size_mul_overflows(actualCount, size, &byteLength)) {
+        return NULL;
+    }
+
+    _tsearch_countedset_node *nodesCopy = malloc(byteLength);
+    if (nodesCopy == NULL) { return NULL; }
+
+    memcpy(nodesCopy, ptr->nodes, byteLength);
     return nodesCopy;
 }
 
@@ -306,6 +405,8 @@ result _tsearch_countedset_add_int(const tsearch_countedset_ptr ptr,
                                    const size_t countToAdd)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
+    if (countToAdd == 0) { return success; }
+
     if (ptr->insertIndex == 0) {
         size_t index = SIZE_MAX;
         int result = _tsearch_countedset_node_init(ptr, newInteger, countToAdd, &index);
@@ -313,33 +414,61 @@ result _tsearch_countedset_add_int(const tsearch_countedset_ptr ptr,
         return success;
     }
 
-    size_t parentIndex = SIZE_MAX;
-    size_t insertIndex = _tsearch_countedset_get_node_and_parent_idx_for_int_insert(ptr,
-                                                                                    newInteger,
-                                                                                    &parentIndex);
-    if (insertIndex == SIZE_MAX) { return failure; }
+    size_t *path = NULL;
+    size_t pathCount = 0;
+    size_t pathCapacity = 0;
+    size_t insertIndex = _tsearch_countedset_get_node_and_parent_idx_for_int_insert_with_path(ptr,
+                                                                                              newInteger,
+                                                                                              NULL,
+                                                                                              &path,
+                                                                                              &pathCount,
+                                                                                              &pathCapacity);
+    if (insertIndex == SIZE_MAX) {
+        free(path);
+        return failure;
+    }
 
     _tsearch_countedset_node *nodePtr = &(ptr->nodes[insertIndex]);
     GNEInteger nodeInteger = nodePtr->integer;
 
     if (nodeInteger == newInteger) {
-        size_t newCount = ((SIZE_MAX - nodePtr->count) >= countToAdd) ? (nodePtr->count + countToAdd) : SIZE_MAX;
-        nodePtr->count = newCount;
-        if (newCount == 1) {
-            ptr->count += 1;
+        size_t newCount = 0;
+        if (_tsearch_size_add_overflows(nodePtr->count, countToAdd, &newCount)) {
+            free(path);
+            return failure;
         }
+
+        if (nodePtr->count == 0 && newCount > 0) {
+            size_t activeCount = 0;
+            if (_tsearch_size_add_overflows(ptr->count, 1, &activeCount)) {
+                free(path);
+                return failure;
+            }
+            ptr->count = activeCount;
+        }
+
+        nodePtr->count = newCount;
+        free(path);
         return success;
     }
 
     size_t index = SIZE_MAX;
     int result = _tsearch_countedset_node_init(ptr, newInteger, countToAdd, &index);
-    if (result == failure || index == SIZE_MAX) { return failure; }
+    if (result == failure || index == SIZE_MAX) {
+        free(path);
+        return failure;
+    }
     nodePtr = &(ptr->nodes[insertIndex]); // If ptr->nodes was realloced, we need to refresh the pointer.
 
     if (newInteger < nodeInteger) { nodePtr->left = index; }
     else { nodePtr->right = index; }
 
-    _tsearch_countedset_balance_node_at_idx(ptr->nodes, parentIndex);
+    if (_tsearch_countedset_rebalance_path(ptr->nodes, path, pathCount) == failure) {
+        free(path);
+        return failure;
+    }
+
+    free(path);
 
     return success;
 }
@@ -370,6 +499,22 @@ size_t _tsearch_countedset_get_node_and_parent_idx_for_int_insert(const tsearch_
                                                                   const GNEInteger integer,
                                                                   size_t *outParentIndex)
 {
+    return _tsearch_countedset_get_node_and_parent_idx_for_int_insert_with_path(ptr,
+                                                                                integer,
+                                                                                outParentIndex,
+                                                                                NULL,
+                                                                                NULL,
+                                                                                NULL);
+}
+
+
+size_t _tsearch_countedset_get_node_and_parent_idx_for_int_insert_with_path(const tsearch_countedset_ptr ptr,
+                                                                            const GNEInteger integer,
+                                                                            size_t *outParentIndex,
+                                                                            size_t **path,
+                                                                            size_t *pathCount,
+                                                                            size_t *pathCapacity)
+{
     if (ptr == NULL || ptr->nodes == NULL || ptr->insertIndex == 0) { return SIZE_MAX; }
 
     _tsearch_countedset_node *nodes = ptr->nodes;
@@ -378,6 +523,13 @@ size_t _tsearch_countedset_get_node_and_parent_idx_for_int_insert(const tsearch_
     do {
         if (outParentIndex != NULL) { *outParentIndex = parentIndex; }
         parentIndex = nextIndex;
+        if (path != NULL &&
+            pathCount != NULL &&
+            pathCapacity != NULL &&
+            _tsearch_countedset_index_stack_push(path, pathCount, pathCapacity, parentIndex) == failure) {
+            return SIZE_MAX;
+        }
+
         if (integer < nodes[parentIndex].integer) { nextIndex = nodes[parentIndex].left; }
         else if (integer > nodes[parentIndex].integer) { nextIndex = nodes[parentIndex].right; }
         else { return parentIndex; }
@@ -390,97 +542,114 @@ size_t _tsearch_countedset_get_node_and_parent_idx_for_int_insert(const tsearch_
 int _tsearch_countedset_balance_node_at_idx(_tsearch_countedset_node *nodes, const size_t index)
 {
     if (nodes == NULL || index == SIZE_MAX) { return 0; }
-    int leftHeight = _tsearch_countedset_balance_node_at_idx(nodes, nodes[index].left);
-    int rightHeight = _tsearch_countedset_balance_node_at_idx(nodes, nodes[index].right);
-    int height = leftHeight - rightHeight;
-    if (abs(leftHeight - rightHeight) > 1) {
-        if (height < 0) {
-            _tsearch_countedset_rotate_right(nodes, index);
-        } else {
+    _tsearch_countedset_update_node_height(nodes, index);
+    return _tsearch_countedset_node_height(nodes, index);
+}
+
+
+static result _tsearch_countedset_rebalance_path(_tsearch_countedset_node *nodes,
+                                                 const size_t *path,
+                                                 const size_t pathCount)
+{
+    if (nodes == NULL || path == NULL) { return failure; }
+
+    for (size_t i = pathCount; i > 0; i--) {
+        size_t index = path[i - 1];
+        if (index == SIZE_MAX) { return failure; }
+
+        _tsearch_countedset_update_node_height(nodes, index);
+        int balance = _tsearch_countedset_node_balance_factor(nodes, index);
+
+        if (balance > 1) {
+            size_t leftIndex = nodes[index].left;
+            if (leftIndex == SIZE_MAX) { return failure; }
+            if (_tsearch_countedset_node_balance_factor(nodes, leftIndex) < 0) {
+                _tsearch_countedset_rotate_right(nodes, leftIndex);
+            }
             _tsearch_countedset_rotate_left(nodes, index);
+        } else if (balance < -1) {
+            size_t rightIndex = nodes[index].right;
+            if (rightIndex == SIZE_MAX) { return failure; }
+            if (_tsearch_countedset_node_balance_factor(nodes, rightIndex) > 0) {
+                _tsearch_countedset_rotate_left(nodes, rightIndex);
+            }
+            _tsearch_countedset_rotate_right(nodes, index);
         }
-        height = BALANCED;
     }
-    nodes[index].balance = height;
-    return abs(height) + 1;
+
+    return success;
+}
+
+
+static int _tsearch_countedset_node_height(_tsearch_countedset_node *nodes, const size_t index)
+{
+    if (nodes == NULL || index == SIZE_MAX) { return 0; }
+    return nodes[index].balance;
+}
+
+
+static void _tsearch_countedset_update_node_height(_tsearch_countedset_node *nodes, const size_t index)
+{
+    if (nodes == NULL || index == SIZE_MAX) { return; }
+
+    int leftHeight = _tsearch_countedset_node_height(nodes, nodes[index].left);
+    int rightHeight = _tsearch_countedset_node_height(nodes, nodes[index].right);
+    int maxHeight = (leftHeight > rightHeight) ? leftHeight : rightHeight;
+    nodes[index].balance = (maxHeight == INT_MAX) ? INT_MAX : maxHeight + 1;
+}
+
+
+static int _tsearch_countedset_node_balance_factor(_tsearch_countedset_node *nodes, const size_t index)
+{
+    if (nodes == NULL || index == SIZE_MAX) { return 0; }
+
+    int leftHeight = _tsearch_countedset_node_height(nodes, nodes[index].left);
+    int rightHeight = _tsearch_countedset_node_height(nodes, nodes[index].right);
+    return leftHeight - rightHeight;
 }
 
 
 void _tsearch_countedset_rotate_left(_tsearch_countedset_node *nodes, const size_t index)
 {
+    if (nodes == NULL || index == SIZE_MAX) { return; }
+
     _tsearch_countedset_node node = nodes[index];
     size_t childIndex = node.left;
+    if (childIndex == SIZE_MAX) { return; }
+
     _tsearch_countedset_node childNode = nodes[childIndex];
-    size_t grandchildIndex = (childNode.balance > 0) ? childNode.left : childNode.right;
-    _tsearch_countedset_node grandchildNode = nodes[grandchildIndex];
-    if (childNode.balance > 0) {
-        //     8         7
-        //   7    ==>  2   8
-        // 2
-        nodes[index] = childNode;
-        nodes[index].left = grandchildIndex;
-        nodes[index].right = childIndex;
-        nodes[index].balance = BALANCED;
+    size_t grandchildIndex = childNode.right;
 
-        nodes[childIndex] = node;
-        nodes[childIndex].left = SIZE_MAX;
-        nodes[childIndex].balance = BALANCED;
-    } else {
-        //   8         7
-        // 2    ==>  2   8
-        //   7
-        nodes[index] = grandchildNode;
-        nodes[index].left = childIndex;
-        nodes[index].right = grandchildIndex;
-        nodes[index].balance = BALANCED;
+    nodes[index] = childNode;
+    nodes[index].right = childIndex;
 
-        nodes[grandchildIndex] = node;
-        nodes[grandchildIndex].left = SIZE_MAX;
-        nodes[grandchildIndex].balance = BALANCED;
+    nodes[childIndex] = node;
+    nodes[childIndex].left = grandchildIndex;
 
-        nodes[childIndex].right = SIZE_MAX;
-        nodes[childIndex].balance = BALANCED;
-    }
+    _tsearch_countedset_update_node_height(nodes, childIndex);
+    _tsearch_countedset_update_node_height(nodes, index);
 }
 
 
 void _tsearch_countedset_rotate_right(_tsearch_countedset_node *nodes, const size_t index)
 {
+    if (nodes == NULL || index == SIZE_MAX) { return; }
+
     _tsearch_countedset_node node = nodes[index];
     size_t childIndex = node.right;
+    if (childIndex == SIZE_MAX) { return; }
+
     _tsearch_countedset_node childNode = nodes[childIndex];
-    size_t grandchildIndex = (childNode.balance > 0) ? childNode.left : childNode.right;
-    _tsearch_countedset_node grandchildNode = nodes[grandchildIndex];
-    if (childNode.balance > 0) {
-        // 2           7
-        //   8  ==>  2   8
-        // 7
-        nodes[index] = grandchildNode;
-        nodes[index].left = grandchildIndex;
-        nodes[index].right = childIndex;
-        nodes[index].balance = BALANCED;
+    size_t grandchildIndex = childNode.left;
 
-        nodes[grandchildIndex] = node;
-        nodes[grandchildIndex].left = SIZE_MAX;
-        nodes[grandchildIndex].right = SIZE_MAX;
-        nodes[grandchildIndex].balance = BALANCED;
+    nodes[index] = childNode;
+    nodes[index].left = childIndex;
 
-        nodes[childIndex].left = SIZE_MAX;
-        nodes[childIndex].balance = BALANCED;
-    } else {
-        // 2             7
-        //   7    ==>  2   8
-        //     8
-        nodes[index] = childNode;
-        nodes[index].left = childIndex;
-        nodes[index].right = grandchildIndex;
-        nodes[index].balance = BALANCED;
+    nodes[childIndex] = node;
+    nodes[childIndex].right = grandchildIndex;
 
-        nodes[childIndex] = node;
-        nodes[childIndex].left = SIZE_MAX;
-        nodes[childIndex].right = SIZE_MAX;
-        nodes[childIndex].balance = BALANCED;
-    }
+    _tsearch_countedset_update_node_height(nodes, childIndex);
+    _tsearch_countedset_update_node_height(nodes, index);
 }
 
 
@@ -490,17 +659,27 @@ result _tsearch_countedset_node_init(const tsearch_countedset_ptr ptr, const GNE
 {
     if (outIndex == NULL) { return failure; }
     if (ptr == NULL || ptr->nodes == NULL) { *outIndex = SIZE_MAX; return failure; }
-    if (ptr->insertIndex == SIZE_MAX - 1) { *outIndex = SIZE_MAX; return failure; }
+    if (count == 0) { *outIndex = SIZE_MAX; return success; }
+
     if (_tsearch_countedset_increase_values_buf(ptr) == failure) {
         *outIndex = SIZE_MAX;
         return failure;
     }
+
     size_t index = ptr->insertIndex;
-    ptr->insertIndex += 1;
-    ptr->count += 1;
+    size_t nextInsertIndex = 0;
+    size_t activeCount = 0;
+    if (_tsearch_size_add_overflows(ptr->insertIndex, 1, &nextInsertIndex) ||
+        _tsearch_size_add_overflows(ptr->count, 1, &activeCount)) {
+        *outIndex = SIZE_MAX;
+        return failure;
+    }
+
+    ptr->insertIndex = nextInsertIndex;
+    ptr->count = activeCount;
     ptr->nodes[index].integer = integer;
     ptr->nodes[index].count = count;
-    ptr->nodes[index].balance = BALANCED;
+    ptr->nodes[index].balance = 1;
     ptr->nodes[index].left = SIZE_MAX;
     ptr->nodes[index].right = SIZE_MAX;
     *outIndex = index;
@@ -511,15 +690,94 @@ result _tsearch_countedset_node_init(const tsearch_countedset_ptr ptr, const GNE
 result _tsearch_countedset_increase_values_buf(const tsearch_countedset_ptr ptr)
 {
     if (ptr == NULL || ptr->nodes == NULL) { return failure; }
-    size_t usedCount = ptr->insertIndex;
-    size_t capacity = ptr->nodesCapacity;
-    size_t emptySpaces = (capacity / sizeof(_tsearch_countedset_node)) - usedCount;
-    if (emptySpaces <= 2) {
-        size_t newCapacity = capacity * 2;
-        _tsearch_countedset_node *newNodes = realloc(ptr->nodes, newCapacity);
-        if (newNodes == NULL) { return failure; }
-        ptr->nodes = newNodes;
-        ptr->nodesCapacity = newCapacity;
+
+    size_t nodeCountCapacity = ptr->nodesCapacity / sizeof(_tsearch_countedset_node);
+    if (ptr->insertIndex > nodeCountCapacity) { return failure; }
+
+    size_t emptySpaces = nodeCountCapacity - ptr->insertIndex;
+    if (emptySpaces > 2) { return success; }
+
+    size_t newCapacity = 0;
+    if (_tsearch_size_mul_overflows(ptr->nodesCapacity, 2, &newCapacity)) {
+        return failure;
     }
+
+    _tsearch_countedset_node *newNodes = realloc(ptr->nodes, newCapacity);
+    if (newNodes == NULL) { return failure; }
+
+    ptr->nodes = newNodes;
+    ptr->nodesCapacity = newCapacity;
+    return success;
+}
+
+
+static void _tsearch_countedset_swap_contents(tsearch_countedset_ptr a, tsearch_countedset_ptr b)
+{
+    if (a == NULL || b == NULL) { return; }
+
+    tsearch_countedset tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
+
+static result _tsearch_countedset_compact_if_needed(tsearch_countedset_ptr ptr)
+{
+    if (ptr == NULL || ptr->nodes == NULL) { return failure; }
+    if (ptr->insertIndex < 64) { return success; }
+
+    size_t tombstones = ptr->insertIndex - ptr->count;
+    if (tombstones < (ptr->insertIndex / 2)) { return success; }
+
+    tsearch_countedset_ptr rebuilt = tsearch_countedset_init();
+    if (rebuilt == NULL) { return failure; }
+
+    for (size_t i = 0; i < ptr->insertIndex; i++) {
+        _tsearch_countedset_node node = ptr->nodes[i];
+        if (node.count == 0) { continue; }
+        if (_tsearch_countedset_add_int(rebuilt, node.integer, node.count) == failure) {
+            tsearch_countedset_free(rebuilt);
+            return failure;
+        }
+    }
+
+    _tsearch_countedset_swap_contents(ptr, rebuilt);
+    tsearch_countedset_free(rebuilt);
+    return success;
+}
+
+
+static result _tsearch_countedset_index_stack_push(size_t **stack,
+                                                   size_t *count,
+                                                   size_t *capacity,
+                                                   size_t index)
+{
+    if (stack == NULL || count == NULL || capacity == NULL) { return failure; }
+
+    if (*count >= *capacity) {
+        size_t newCapacity = 0;
+        size_t byteLength = 0;
+
+        if (*capacity == 0) {
+            newCapacity = 64;
+            if (_tsearch_size_mul_overflows(newCapacity, sizeof(size_t), &byteLength)) {
+                return failure;
+            }
+        } else {
+            newCapacity = *capacity;
+            if (_tsearch_next_buf_len(&newCapacity, sizeof(size_t), &byteLength) == failure) {
+                return failure;
+            }
+        }
+
+        size_t *newStack = realloc(*stack, byteLength);
+        if (newStack == NULL) { return failure; }
+
+        *stack = newStack;
+        *capacity = newCapacity;
+    }
+
+    (*stack)[*count] = index;
+    *count += 1;
     return success;
 }

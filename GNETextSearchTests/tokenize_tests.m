@@ -96,9 +96,89 @@
 }
 
 
+- (void)testTokenize_NullString_Failure
+{
+    NSMutableArray *processedTokens = [NSMutableArray array];
+    XCTAssertEqual(failure, tsearch_cstring_tokenize(NULL, p_processTestToken, (__bridge void *)processedTokens));
+    XCTAssertEqual((NSUInteger)0, processedTokens.count);
+}
+
+
+- (void)testTokenize_NullCallback_Failure
+{
+    XCTAssertEqual(failure, tsearch_cstring_tokenize("Hello", NULL, NULL));
+}
+
+
+- (void)testTokenize_TokenRanges_ReportOriginalByteOffsets
+{
+    NSString *string = @"Hi 你好";
+    NSMutableArray *ranges = [NSMutableArray array];
+
+    XCTAssertEqual(success, tsearch_cstring_tokenize(string.UTF8String,
+                                                     p_processTestTokenRange,
+                                                     (__bridge void *)ranges));
+
+    XCTAssertEqual((NSUInteger)2, ranges.count);
+    XCTAssertEqual(NSEqualRanges(NSMakeRange(0, 2), [ranges[0] rangeValue]), YES);
+    XCTAssertEqual(NSEqualRanges(NSMakeRange(3, 6), [ranges[1] rangeValue]), YES);
+}
+
+
+- (void)testFuzz_RandomByteStrings_NoCrashes
+{
+    uint32_t seed = 0xC0FFEE;
+    for (NSUInteger iteration = 0; iteration < 200; iteration++)
+    {
+        char bytes[65] = {0};
+        for (NSUInteger i = 0; i < 64; i++)
+        {
+            seed = (1103515245 * seed) + 12345;
+            bytes[i] = (char)((seed >> 16) & 0xFF);
+        }
+        bytes[64] = '\0';
+
+        uint32_t *codePoints = NULL;
+        size_t length = 0;
+        result ret = tsearch_cstring_copy_code_points(bytes, &codePoints, &length);
+        if (ret == success) { free(codePoints); }
+
+        codePoints = NULL;
+        length = 0;
+        ret = tsearch_cstring_copy_utf16_code_points(bytes, &codePoints, &length);
+        if (ret == success) { free(codePoints); }
+
+        XCTAssertNoThrow(tsearch_cstring_tokenize(bytes, p_processNoopToken, NULL));
+    }
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - UTF-8 Code Points
 // ------------------------------------------------------------------------------------------
+- (void)testCopyCodePoints_NullString_FailureAndClearedOutputs
+{
+    uint32_t *codePoints = (uint32_t *)0x1;
+    size_t length = 999;
+
+    XCTAssertEqual(failure, tsearch_cstring_copy_code_points(NULL, &codePoints, &length));
+    XCTAssertEqual(NULL, codePoints);
+    XCTAssertEqual((size_t)0, length);
+}
+
+
+- (void)testCopyCodePoints_InvalidUTF8_FailureAndNoOutput
+{
+    const char invalid[] = { (char)0xE2, (char)0x82, '\0' };
+    uint32_t *codePoints = NULL;
+    size_t length = 0;
+
+    XCTAssertEqual(failure, tsearch_cstring_copy_code_points(invalid, &codePoints, &length));
+    XCTAssertEqual(NULL, codePoints);
+    XCTAssertEqual((size_t)0, length);
+}
+
+
 - (void)testUTF8_Hello_Five
 {
     NSString *string = @"Hello";
@@ -203,6 +283,29 @@
 // ------------------------------------------------------------------------------------------
 #pragma mark - UTF-16 Code Points
 // ------------------------------------------------------------------------------------------
+- (void)testCopyUTF16CodePoints_NullString_FailureAndClearedOutputs
+{
+    uint32_t *codePoints = (uint32_t *)0x1;
+    size_t length = 999;
+
+    XCTAssertEqual(failure, tsearch_cstring_copy_utf16_code_points(NULL, &codePoints, &length));
+    XCTAssertEqual(NULL, codePoints);
+    XCTAssertEqual((size_t)0, length);
+}
+
+
+- (void)testCopyUTF16CodePoints_InvalidUTF8_FailureAndNoOutput
+{
+    const char invalid[] = { (char)0xE2, (char)0x82, '\0' };
+    uint32_t *codePoints = NULL;
+    size_t length = 0;
+
+    XCTAssertEqual(failure, tsearch_cstring_copy_utf16_code_points(invalid, &codePoints, &length));
+    XCTAssertEqual(NULL, codePoints);
+    XCTAssertEqual((size_t)0, length);
+}
+
+
 - (void)testUTF16_Hello_Five
 {
     NSString *string = @"Hello";
@@ -296,6 +399,21 @@ void p_processTestToken(const char *string, const tsearch_range range, uint32_t 
     {
         [processedTokens addObject:tokenStr];
     }
+}
+
+
+void p_processTestTokenRange(const char *string, const tsearch_range range, uint32_t *token,
+                             const size_t length, const void *context)
+{
+    NSMutableArray *ranges = (__bridge NSMutableArray *)context;
+    assert([ranges isKindOfClass:[NSMutableArray class]]);
+    [ranges addObject:[NSValue valueWithRange:NSMakeRange(range.location, range.length)]];
+}
+
+
+void p_processNoopToken(const char *string, const tsearch_range range, uint32_t *token,
+                        const size_t length, const void *context)
+{
 }
 
 

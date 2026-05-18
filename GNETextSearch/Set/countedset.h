@@ -30,11 +30,14 @@ bool tsearch_countedset_contains_int(const tsearch_countedset_ptr ptr, const GNE
 size_t tsearch_countedset_get_count_for_int(const tsearch_countedset_ptr ptr, const GNEInteger integer);
 
 /// Creates an array of all of the integers in the specified counted set in descending order
-/// (the integer with the largest count is returned first). On return, the specified outIntegers
-/// pointer points at the array, which must be freed by the caller.
+/// (the integer with the largest count is returned first).
+/// On success, writes a newly allocated array to outIntegers and its length to outCount.
+/// For an empty set, writes NULL and 0 and returns success.
+/// On failure, writes NULL and 0. The caller must free a non-NULL outIntegers value.
 result tsearch_countedset_copy_ints(const tsearch_countedset_ptr ptr, GNEInteger **outIntegers, size_t *outCount);
 
 /// Adds the specified integer to the counted set. Returns 1 if successful, otherwise 0.
+/// If an existing integer count would overflow, returns failure and leaves the count unchanged.
 result tsearch_countedset_add_int(const tsearch_countedset_ptr ptr, const GNEInteger integer);
 
 /// Removes the specified integer from the counted set. Returns 1 if successful, otherwise 0.
@@ -45,13 +48,16 @@ result tsearch_countedset_remove_int(const tsearch_countedset_ptr ptr, const GNE
 result tsearch_countedset_remove_all_ints(const tsearch_countedset_ptr ptr);
 
 /// Adds each integer and its count in the other counted set to specified set.
+/// If allocation or count overflow fails, the destination set is left unchanged.
 result tsearch_countedset_union(const tsearch_countedset_ptr ptr, const tsearch_countedset_ptr otherPtr);
 
 /// Removes from the specified counted set each integer that isn’t a member of the other set.
 /// If an integer is present in both sets, its counts are added together.
+/// If allocation or count overflow fails, the destination set is left unchanged.
 result tsearch_countedset_intersect(const tsearch_countedset_ptr ptr, const tsearch_countedset_ptr otherPtr);
 
 /// Removes each integer in the other counted set from the specified set, if present.
+/// If allocation fails, the destination set is left unchanged.
 result tsearch_countedset_minus(const tsearch_countedset_ptr ptr, const tsearch_countedset_ptr otherPtr);
 
 #ifdef __cplusplus

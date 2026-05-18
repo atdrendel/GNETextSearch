@@ -36,15 +36,17 @@ size_t tsearch_stringbuf_get_len(const tsearch_stringbuf_ptr ptr);
 char tsearch_stringbuf_get_char_at_idx(const tsearch_stringbuf_ptr ptr, const size_t index);
 
 /// Appends the specified char to the string buffer. Returns 1 if successful, otherwise 0.
+/// Returns failure if the new length or allocation size would overflow.
 result tsearch_stringbuf_append_char(const tsearch_stringbuf_ptr ptr, const char character);
 
 /// Appends the specified C char array into the string buffer. Returns 1 if successful, otherwise 0.
 /// The length parameter refers to the number of chars in cString, but should not include
 /// the null terminator.
+/// Returns failure if the new length or allocation size would overflow.
 result tsearch_stringbuf_append_cstring(const tsearch_stringbuf_ptr ptr, const char *cString, const size_t length);
 
 /// Returns a null-terminated char representation of the mutable string's contents.
-/// The returned char array must be freed by the caller.
+/// The returned char array must be freed by the caller. Returns NULL on failure.
 const char * tsearch_stringbuf_copy_cstring(const tsearch_stringbuf_ptr ptr);
 
 void tsearch_stringbuf_print(const tsearch_stringbuf_ptr ptr);

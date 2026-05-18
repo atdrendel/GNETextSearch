@@ -48,6 +48,27 @@
 // ------------------------------------------------------------------------------------------
 #pragma mark - Search Tests
 // ------------------------------------------------------------------------------------------
+- (void)testSearch_NullAndEmptyTargets_NoCrashAndNoResults
+{
+    tsearch_ternarytree_insert(_treePtr, "alpha", 1);
+
+    XCTAssertEqual(NULL, tsearch_ternarytree_copy_search_results(_treePtr, NULL));
+    XCTAssertEqual(NULL, tsearch_ternarytree_copy_search_results(_treePtr, ""));
+    XCTAssertEqual(NULL, tsearch_ternarytree_copy_prefix_search_results(_treePtr, NULL));
+    XCTAssertEqual(NULL, tsearch_ternarytree_copy_prefix_search_results(_treePtr, ""));
+}
+
+
+- (void)testInsert_NullAndEmptyTargets_ReturnsOriginalTreeAndDoesNotMutate
+{
+    tsearch_ternarytree_ptr original = _treePtr;
+
+    XCTAssertEqual(original, tsearch_ternarytree_insert(_treePtr, NULL, 1));
+    XCTAssertEqual(original, tsearch_ternarytree_insert(_treePtr, "", 1));
+    XCTAssertEqual((NSUInteger)0, [self resultsInTree:_treePtr].count);
+}
+
+
 - (void)testSearch_AddOneWord_CanFind
 {
     NSString *word = @"Anthony";
@@ -467,6 +488,26 @@
 }
 
 
+- (void)testPartialMatch_OverlappingPattern_FindsAllMatches
+{
+    NSString *target = @"abab";
+    NSArray *words = @[@"ababa", @"zzababa", @"abab", @"aba"];
+    XCTAssertNoThrow([self insertWords:words intoTree:_treePtr]);
+
+    NSArray *expectedWords = [self wordsInArray:words withPartialMatch:target];
+    [self assertResultsInTree:_treePtr matchingPartialTarget:target equalWords:expectedWords];
+}
+
+
+- (void)testPartialAndSuffixSearch_ZeroLength_NoCrashAndNoResults
+{
+    tsearch_ternarytree_insert(_treePtr, "alpha", 1);
+
+    XCTAssertEqual(NULL, tsearch_ternarytree_copy_partial_search_results(_treePtr, "", 0));
+    XCTAssertEqual(NULL, tsearch_ternarytree_copy_suffix_search_results(_treePtr, "", 0));
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - Suffix Search Tests
 // ------------------------------------------------------------------------------------------
@@ -618,6 +659,38 @@
     XCTAssertEqual(success, tsearch_ternarytree_remove(_treePtr, 1));
     XCTAssertEqualObjects([NSIndexSet indexSetWithIndexesInRange:NSMakeRange(2, 1)],
                           [self documentIDsPartiallyMatchingWord:@"test" inTree: _treePtr]);
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Fuzz Tests
+// ------------------------------------------------------------------------------------------
+- (void)testFuzz_TreeRandomAsciiOperations_NoCrashes
+{
+    uint32_t seed = 0xBADC0DE;
+
+    for (NSUInteger iteration = 0; iteration < 50; iteration++)
+    {
+        tsearch_ternarytree_ptr tree = tsearch_ternarytree_init();
+        NSMutableArray<NSString *> *words = [NSMutableArray array];
+
+        for (NSUInteger i = 0; i < 100; i++)
+        {
+            NSString *word = [self randomASCIIWordWithSeed:&seed maxLength:24];
+            [words addObject:word];
+            XCTAssertNotEqual(NULL, tsearch_ternarytree_insert(tree, word.UTF8String, (GNEInteger)i + 1));
+        }
+
+        for (NSString *word in words)
+        {
+            tsearch_countedset_ptr results = tsearch_ternarytree_copy_search_results(tree, word.UTF8String);
+            XCTAssertNotEqual(NULL, results);
+            tsearch_countedset_free(results);
+        }
+
+        XCTAssertEqual(success, tsearch_ternarytree_remove(tree, 25));
+        tsearch_ternarytree_free(tree);
+    }
 }
 
 
@@ -917,6 +990,25 @@
     }
 
     return [randomized copy];
+}
+
+
+- (NSString *)randomASCIIWordWithSeed:(uint32_t *)seed maxLength:(NSUInteger)maxLength
+{
+    NSParameterAssert(seed != NULL);
+    NSParameterAssert(maxLength > 0 && maxLength < 64);
+
+    *seed = (1103515245 * (*seed)) + 12345;
+    NSUInteger length = ((*seed >> 16) % maxLength) + 1;
+
+    char chars[64] = {0};
+    for (NSUInteger i = 0; i < length; i++)
+    {
+        *seed = (1103515245 * (*seed)) + 12345;
+        chars[i] = (char)('a' + ((*seed >> 16) % 26));
+    }
+
+    return [[NSString alloc] initWithBytes:chars length:length encoding:NSASCIIStringEncoding];
 }
 
 
