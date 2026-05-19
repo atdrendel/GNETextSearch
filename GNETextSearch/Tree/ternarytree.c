@@ -48,6 +48,11 @@ result _tsearch_ternarytree_find_partial_match(const tsearch_ternarytree_ptr ptr
                                                const size_t *prefixTable,
                                                size_t currentIndex,
                                                tsearch_countedset_ptr results);
+result _tsearch_ternarytree_find_subsequence_match(const tsearch_ternarytree_ptr ptr,
+                                                   const char *target,
+                                                   const size_t length,
+                                                   size_t currentIndex,
+                                                   tsearch_countedset_ptr results);
 result _tsearch_ternarytree_find_suffix(const tsearch_ternarytree_ptr ptr, const char *suffix,
                                         const size_t length, tsearch_countedset_ptr results);
 result _tsearch_ternarytree_reverse_search_from_node(tsearch_ternarytree_ptr ptr, reverse_search_func callback,
@@ -296,6 +301,29 @@ tsearch_countedset_ptr tsearch_ternarytree_copy_partial_search_results(const tse
     }
 
     free(prefixTable);
+
+    if (tsearch_countedset_get_count(resultsPtr) == 0) {
+        tsearch_countedset_free(resultsPtr);
+        resultsPtr = NULL;
+    }
+
+    return resultsPtr;
+}
+
+
+tsearch_countedset_ptr tsearch_ternarytree_copy_subsequence_search_results(const tsearch_ternarytree_ptr ptr,
+                                                                           const char *target,
+                                                                           const size_t length)
+{
+    if (ptr == NULL || target == NULL || length == 0) { return NULL; }
+
+    tsearch_countedset_ptr resultsPtr = tsearch_countedset_init();
+    if (resultsPtr == NULL) { return NULL; }
+
+    if (_tsearch_ternarytree_find_subsequence_match(ptr, target, length, 0, resultsPtr) == failure) {
+        tsearch_countedset_free(resultsPtr);
+        return NULL;
+    }
 
     if (tsearch_countedset_get_count(resultsPtr) == 0) {
         tsearch_countedset_free(resultsPtr);
@@ -560,6 +588,73 @@ result _tsearch_ternarytree_find_partial_match(const tsearch_ternarytree_ptr ptr
                                                &stackCount,
                                                &stackCapacity,
                                                (_tsearch_partial_search_item){node->same, nextIndex}) == failure) {
+            free(stack);
+            return failure;
+        }
+    }
+
+    free(stack);
+    return success;
+}
+
+
+result _tsearch_ternarytree_find_subsequence_match(const tsearch_ternarytree_ptr ptr,
+                                                   const char *target,
+                                                   const size_t length,
+                                                   size_t currentIndex,
+                                                   tsearch_countedset_ptr results)
+{
+    if (ptr == NULL) { return success; }
+    if (target == NULL || length == 0 || results == NULL) { return failure; }
+
+    _tsearch_partial_search_item *stack = NULL;
+    size_t stackCount = 0;
+    size_t stackCapacity = 0;
+
+    if (_tsearch_partial_search_stack_push(&stack,
+                                           &stackCount,
+                                           &stackCapacity,
+                                           (_tsearch_partial_search_item){ptr, currentIndex}) == failure) {
+        return failure;
+    }
+
+    while (stackCount > 0) {
+        _tsearch_partial_search_item item = stack[--stackCount];
+        tsearch_ternarytree_ptr node = item.node;
+        if (node == NULL) { continue; }
+
+        size_t nextIndex = item.currentIndex;
+        if (nextIndex < length && node->character == target[nextIndex]) {
+            nextIndex += 1;
+        }
+
+        if (nextIndex == length) {
+            if (_tsearch_ternarytree_has_valid_document_ids(node) == true &&
+                tsearch_countedset_union(results, node->documentIDs) == failure) {
+                free(stack);
+                return failure;
+            }
+
+            if (_tsearch_ternarytree_copy_words_from_node(node->same, results) == failure) {
+                free(stack);
+                return failure;
+            }
+        } else if (_tsearch_partial_search_stack_push(&stack,
+                                                      &stackCount,
+                                                      &stackCapacity,
+                                                      (_tsearch_partial_search_item){node->same, nextIndex}) == failure) {
+            free(stack);
+            return failure;
+        }
+
+        if (_tsearch_partial_search_stack_push(&stack,
+                                               &stackCount,
+                                               &stackCapacity,
+                                               (_tsearch_partial_search_item){node->higher, item.currentIndex}) == failure ||
+            _tsearch_partial_search_stack_push(&stack,
+                                               &stackCount,
+                                               &stackCapacity,
+                                               (_tsearch_partial_search_item){node->lower, item.currentIndex}) == failure) {
             free(stack);
             return failure;
         }

@@ -509,6 +509,74 @@
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Subsequence Match Tests
+// ------------------------------------------------------------------------------------------
+- (void)testSubsequenceMatch_GNETextSearch_MatchesETxc
+{
+    NSArray *words = @[@"GNETextSearch", @"GNESearch", @"Text"];
+    [self insertWords:words intoTree:_treePtr];
+
+    [self assertResultsInTree:_treePtr
+    matchingSubsequenceTarget:@"ETxc"
+                   equalWords:@[@"GNETextSearch"]];
+}
+
+
+- (void)testSubsequenceMatch_OrderMatters
+{
+    NSArray *words = @[@"GNETextSearch"];
+    [self insertWords:words intoTree:_treePtr];
+
+    [self assertResultsInTree:_treePtr
+    matchingSubsequenceTarget:@"EcxT"
+                   equalWords:@[]];
+}
+
+
+- (void)testSubsequenceMatch_ContiguousMatchAlsoMatches
+{
+    NSArray *words = @[@"GNETextSearch", @"Search"];
+    [self insertWords:words intoTree:_treePtr];
+
+    NSArray *expectedWords = [self wordsInArray:words withSubsequenceMatch:@"Text"];
+    [self assertResultsInTree:_treePtr
+    matchingSubsequenceTarget:@"Text"
+                   equalWords:expectedWords];
+}
+
+
+- (void)testSubsequenceMatch_CaseSensitive
+{
+    NSArray *words = @[@"GNETextSearch"];
+    [self insertWords:words intoTree:_treePtr];
+
+    [self assertResultsInTree:_treePtr
+    matchingSubsequenceTarget:@"etxc"
+                   equalWords:@[]];
+}
+
+
+- (void)testSubsequenceMatch_RandomizedWords_MatchesExpectedSubsequences
+{
+    NSString *target = @"abc";
+    NSArray *words = @[@"abc", @"axbyc", @"acb", @"abbc", @"cab", @"aabbcc", @"def"];
+    NSArray *randomizedWords = [self randomizeWords:words];
+    [self insertWords:randomizedWords intoTree:_treePtr];
+
+    NSArray *expectedWords = [self wordsInArray:randomizedWords withSubsequenceMatch:target];
+    [self assertResultsInTree:_treePtr matchingSubsequenceTarget:target equalWords:expectedWords];
+}
+
+
+- (void)testSubsequenceMatch_ZeroLength_NoCrashAndNoResults
+{
+    tsearch_ternarytree_insert(_treePtr, "alpha", 1);
+
+    XCTAssertEqual(NULL, tsearch_ternarytree_copy_subsequence_search_results(_treePtr, "", 0));
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Suffix Search Tests
 // ------------------------------------------------------------------------------------------
 - (void)testSuffixSearch_AddTwelveWords_ZeroMatchesForZ
@@ -920,6 +988,25 @@
 
 
 - (void)assertResultsInTree:(tsearch_ternarytree_ptr)ptr
+  matchingSubsequenceTarget:(NSString *)target
+                 equalWords:(NSArray *)words
+{
+    NSUInteger length = [target lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+    tsearch_countedset_ptr resultsPtr = tsearch_ternarytree_copy_subsequence_search_results(ptr,
+                                                                                            target.UTF8String,
+                                                                                            length);
+    XCTAssert((words.count == 0 && resultsPtr == NULL) ||
+              (words.count == tsearch_countedset_get_count(resultsPtr)));
+
+    for (NSString *word in words)
+    {
+        XCTAssertEqual(1, tsearch_countedset_contains_int(resultsPtr, (GNEInteger)word.hash));
+    }
+    tsearch_countedset_free(resultsPtr);
+}
+
+
+- (void)assertResultsInTree:(tsearch_ternarytree_ptr)ptr
              matchingSuffix:(NSString *)suffix
                  equalWords:(NSArray *)words
 {
@@ -1051,6 +1138,36 @@
     }
 
     return [wordsContainingTarget copy];
+}
+
+
+- (NSArray *)wordsInArray:(NSArray *)words withSubsequenceMatch:(NSString *)target
+{
+    NSMutableArray *matches = [NSMutableArray array];
+    NSUInteger targetLength = [target lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+
+    for (NSString *word in words)
+    {
+        const char *wordBytes = word.UTF8String;
+        const char *targetBytes = target.UTF8String;
+        NSUInteger wordLength = [word lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+        NSUInteger targetIndex = 0;
+
+        for (NSUInteger wordIndex = 0; wordIndex < wordLength && targetIndex < targetLength; wordIndex++)
+        {
+            if (wordBytes[wordIndex] == targetBytes[targetIndex])
+            {
+                targetIndex += 1;
+            }
+        }
+
+        if (targetIndex == targetLength)
+        {
+            [matches addObject:word];
+        }
+    }
+
+    return [matches copy];
 }
 
 
@@ -1270,9 +1387,20 @@
                           [NSNumber class],
                           [NSString class],
                           nil];
-        dictionary = [NSKeyedUnarchiver unarchivedObjectOfClasses:classes
-                                                         fromData:data
-                                                            error:&error];
+        if (@available(macOS 10.13, *)) {
+            dictionary = [NSKeyedUnarchiver unarchivedObjectOfClasses:classes
+                                                             fromData:data
+                                                                error:&error];
+        } else {
+            id unarchivedObject = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+            if ([unarchivedObject isKindOfClass:[NSDictionary class]]) {
+                dictionary = (NSDictionary *)unarchivedObject;
+            } else {
+                error = [NSError errorWithDomain:NSCocoaErrorDomain
+                                            code:NSFileReadCorruptFileError
+                                        userInfo:@{ NSLocalizedDescriptionKey : @"Could not unarchive bible archive as NSDictionary" }];
+            }
+        }
         NSAssert2(error == nil, @"Could not unarchive %@: %@", path, error);
     });
 
