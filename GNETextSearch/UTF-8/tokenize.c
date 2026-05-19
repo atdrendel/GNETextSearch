@@ -127,64 +127,89 @@ void utf8_printUTF16CodePoints(const char *s)
 
 
 // ------------------------------------------------------------------------------------------
-#pragma mark - Range
-// ------------------------------------------------------------------------------------------
-TSEARCH_INLINE size_t _range_sum(tsearch_range range)
-{
-    return range.location + range.length;
-}
-
-
-// ------------------------------------------------------------------------------------------
 #pragma mark - Public
 // ------------------------------------------------------------------------------------------
 int tsearch_cstring_tokenize(const char *cstr, process_token_func process, void *context)
 {
-    if (process == NULL) { return failure; }
+    if (cstr == NULL || process == NULL) { return failure; }
 
     tsearch_range range = {0, 0};
 
     uint32_t codePoint = 0;
     uint32_t state = UTF8_ACCEPT;
+    size_t offset = 0;
+    size_t codePointByteLength = 0;
 
     size_t tokenCapacity = 10;
     size_t tokenLength = 0;
     uint32_t *token = calloc(tokenCapacity, sizeof(uint32_t));
     if (token == NULL) { return failure; }
 
-    while (cstr[_range_sum(range)] != '\0') {
-        if (utf8_decode(&state, &codePoint, cstr[_range_sum(range)]) == UTF8_ACCEPT) {
+    while (cstr[offset] != '\0') {
+        uint32_t decodeState = utf8_decode(&state, &codePoint, (uint8_t)cstr[offset]);
+        if (decodeState == UTF8_REJECT) {
+            free(token);
+            return failure;
+        }
+
+        if (_tsearch_size_add_overflows(codePointByteLength, 1, &codePointByteLength)) {
+            free(token);
+            return failure;
+        }
+
+        if (decodeState == UTF8_ACCEPT) {
             // TODO: Handle invalid control characters.
 
             if (utf8_isBreak(codePoint) == true) {
                 if (tokenLength > 0) {
-                    tsearch_range tokenRange = {0, 0};
-                    process(cstr, tokenRange, token, tokenLength, context);
+                    process(cstr, range, token, tokenLength, context);
                 }
 
-                range.location = _range_sum(range) + 1;
+                size_t nextLocation = 0;
+                if (_tsearch_size_add_overflows(offset, 1, &nextLocation)) {
+                    free(token);
+                    return failure;
+                }
+
+                range.location = nextLocation;
                 range.length = 0;
                 tokenLength = 0;
             } else {
-                token[tokenLength] = codePoint;
-                tokenLength += 1;
-                range.length += 1;
+                if (tokenLength >= tokenCapacity) {
+                    size_t bufferLength = 0;
+                    if (_tsearch_next_buf_len(&tokenCapacity, sizeof(uint32_t), &bufferLength) == failure) {
+                        free(token);
+                        return failure;
+                    }
 
-                if (tokenLength + 1 >= tokenCapacity) {
-                    size_t bufferLength = _tsearch_next_buf_len(&tokenCapacity, sizeof(uint32_t));
                     uint32_t *newToken = realloc(token, bufferLength);
                     if (newToken == NULL) { free(token); return failure; }
                     token = newToken;
                 }
+
+                token[tokenLength] = codePoint;
+                if (_tsearch_size_add_overflows(tokenLength, 1, &tokenLength) ||
+                    _tsearch_size_add_overflows(range.length, codePointByteLength, &range.length)) {
+                    free(token);
+                    return failure;
+                }
             }
+            codePointByteLength = 0;
+        }
 
+        if (_tsearch_size_add_overflows(offset, 1, &offset)) {
+            free(token);
+            return failure;
+        }
+    }
 
-        } else { range.length += 1; }
+    if (state != UTF8_ACCEPT) {
+        free(token);
+        return failure;
     }
 
     if (tokenLength > 0) {
-        tsearch_range tokenRange = {0, 0};
-        process(cstr, tokenRange, token, tokenLength, context);
+        process(cstr, range, token, tokenLength, context);
     }
 
     free(token);
@@ -198,6 +223,7 @@ int  tsearch_cstring_copy_code_points(const char *cString, uint32_t **outCodePoi
 	if (outCodePoints == NULL || outLength == NULL) { return failure; }
 	*outCodePoints = NULL;
 	*outLength = 0;
+    if (cString == NULL) { return failure; }
 	
 	size_t size = sizeof(uint32_t);
 	
@@ -209,22 +235,39 @@ int  tsearch_cstring_copy_code_points(const char *cString, uint32_t **outCodePoi
 	uint32_t *codePoints = calloc(capacity, size);
 	if (codePoints == NULL) { return failure; }
 	
-	while (length < SIZE_MAX && *cString != '\0') {
-		if (utf8_decode(&state, &codePoint, *cString) == UTF8_ACCEPT) {
-			codePoints[length] = codePoint;
-			length += 1;
-			
-			if (length == capacity) {
-                size_t bufferLength = _tsearch_next_buf_len(&capacity, size);
+	while (*cString != '\0') {
+        uint32_t decodeState = utf8_decode(&state, &codePoint, (uint8_t)*cString);
+        if (decodeState == UTF8_REJECT) {
+            free(codePoints);
+            return failure;
+        }
+
+		if (decodeState == UTF8_ACCEPT) {
+            if (length >= capacity) {
+                size_t bufferLength = 0;
+                if (_tsearch_next_buf_len(&capacity, size, &bufferLength) == failure) {
+                    free(codePoints);
+                    return failure;
+                }
+
 				uint32_t *newCodePoints = realloc(codePoints, bufferLength);
 				if (newCodePoints == NULL) { free(codePoints); return failure; }
 				codePoints = newCodePoints;
 			}
+
+			codePoints[length] = codePoint;
+            if (_tsearch_size_add_overflows(length, 1, &length)) {
+                free(codePoints);
+                return failure;
+            }
 		}
 		cString += 1;
 	}
 	
-	if (state != UTF8_ACCEPT) { return failure; }
+	if (state != UTF8_ACCEPT) {
+        free(codePoints);
+        return failure;
+    }
 
 	*outCodePoints = codePoints;
 	*outLength = length;
@@ -237,6 +280,7 @@ result tsearch_cstring_copy_utf16_code_points(const char *cString, uint32_t **ou
 	if (outCodePoints == NULL || outLength == NULL) { return failure; }
 	*outCodePoints = NULL;
 	*outLength = 0;
+    if (cString == NULL) { return failure; }
 	
 	size_t size = sizeof(uint32_t);
 	
@@ -251,9 +295,15 @@ result tsearch_cstring_copy_utf16_code_points(const char *cString, uint32_t **ou
 	uint32_t currentCodePoint[2] = {0, 0};
 	size_t currentLength = 0;
 	
-	for (; length < SIZE_MAX && *cString != '\0'; cString++) {
+	for (; *cString != '\0'; cString++) {
 
-		if (utf8_decode(&state, &codePoint, *cString) != UTF8_ACCEPT) { continue; }
+        uint32_t decodeState = utf8_decode(&state, &codePoint, (uint8_t)*cString);
+        if (decodeState == UTF8_REJECT) {
+            free(codePoints);
+            return failure;
+        }
+
+		if (decodeState != UTF8_ACCEPT) { continue; }
 
 		if (codePoint <= 0xFFFF) {
 			currentCodePoint[0] = codePoint;
@@ -264,18 +314,34 @@ result tsearch_cstring_copy_utf16_code_points(const char *cString, uint32_t **ou
 			currentLength = 2;
 		}
 		
-		for (size_t i = 0; i < currentLength; i++) {
-			codePoints[length] = currentCodePoint[i];
-			length += 1;
-		}
-		
-		if (length >= capacity - 1) {
-            size_t bufferLength = _tsearch_next_buf_len(&capacity, size);
-			uint32_t *newCodePoints = realloc(codePoints, bufferLength);
-			if (newCodePoints == NULL) { free(codePoints); return failure; }
-			codePoints = newCodePoints;
-		}
+        size_t requiredLength = 0;
+        if (_tsearch_size_add_overflows(length, currentLength, &requiredLength)) {
+            free(codePoints);
+            return failure;
+        }
+
+        while (requiredLength > capacity) {
+            size_t bufferLength = 0;
+            if (_tsearch_next_buf_len(&capacity, size, &bufferLength) == failure) {
+                free(codePoints);
+                return failure;
+            }
+
+            uint32_t *newCodePoints = realloc(codePoints, bufferLength);
+            if (newCodePoints == NULL) { free(codePoints); return failure; }
+            codePoints = newCodePoints;
+        }
+
+        for (size_t i = 0; i < currentLength; i++) {
+            codePoints[length] = currentCodePoint[i];
+            length += 1;
+        }
 	}
+
+    if (state != UTF8_ACCEPT) {
+        free(codePoints);
+        return failure;
+    }
 	
 	*outCodePoints = codePoints;
 	*outLength = length;

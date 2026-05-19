@@ -295,6 +295,24 @@ size_t _tsearch_stringbuf_get_max_char_count(tsearch_stringbuf_ptr ptr);
 }
 
 
+- (void)testAppending_WhenLengthWouldOverflow_FailureAndLengthUnchanged
+{
+    _mutableStringPtr->length = SIZE_MAX;
+
+    XCTAssertEqual(failure, tsearch_stringbuf_append_char(_mutableStringPtr, 'A'));
+    XCTAssertEqual((size_t)SIZE_MAX, _mutableStringPtr->length);
+}
+
+
+- (void)testAppendingCString_WhenLengthWouldOverflow_FailureAndLengthUnchanged
+{
+    _mutableStringPtr->length = SIZE_MAX - 1;
+
+    XCTAssertEqual(failure, tsearch_stringbuf_append_cstring(_mutableStringPtr, "AB", 2));
+    XCTAssertEqual((size_t)SIZE_MAX - 1, _mutableStringPtr->length);
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - Copy Contents
 // ------------------------------------------------------------------------------------------
@@ -325,6 +343,20 @@ size_t _tsearch_stringbuf_get_max_char_count(tsearch_stringbuf_ptr ptr);
     XCTAssertEqual('\0', copy[strlen(copy)]);
 
     free((void *)copy);
+}
+
+
+- (void)testCopyContents_WhenNullTerminatorLengthWouldOverflow_Null
+{
+    _mutableStringPtr->length = SIZE_MAX;
+
+    XCTAssertEqual(NULL, tsearch_stringbuf_copy_cstring(_mutableStringPtr));
+}
+
+
+- (void)testPrint_NullPointer_NoCrash
+{
+    XCTAssertNoThrow(tsearch_stringbuf_print(NULL));
 }
 
 

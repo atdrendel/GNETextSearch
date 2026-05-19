@@ -200,6 +200,17 @@ typedef struct tsearch_countedset
 // ------------------------------------------------------------------------------------------
 #pragma mark - Copy Integers
 // ------------------------------------------------------------------------------------------
+- (void)testCopyIntegers_EmptySet_SuccessWithNullArrayAndZeroCount
+{
+    GNEInteger *integers = (GNEInteger *)0x1;
+    size_t count = 999;
+
+    XCTAssertEqual(success, tsearch_countedset_copy_ints(_countedSet, &integers, &count));
+    XCTAssertEqual(NULL, integers);
+    XCTAssertEqual((size_t)0, count);
+}
+
+
 - (void)testCopyIntegers_FourUniqueIntegers_FourResultsInCorrectOrder
 {
     size_t count = 10;
@@ -378,6 +389,17 @@ typedef struct tsearch_countedset
 }
 
 
+- (void)testAddInteger_ExistingIntegerCountOverflow_FailureAndUnchangedCount
+{
+    XCTAssertEqual(success, tsearch_countedset_add_int(_countedSet, 10));
+    _countedSet->nodes[0].count = SIZE_MAX;
+
+    XCTAssertEqual(failure, tsearch_countedset_add_int(_countedSet, 10));
+    XCTAssertEqual((size_t)SIZE_MAX, _countedSet->nodes[0].count);
+    XCTAssertEqual((size_t)1, tsearch_countedset_get_count(_countedSet));
+}
+
+
 - (void)testAddIntegers_LeftLeftRotation_CorrectRotation
 {
     GNEInteger integers[] = {8, 7, 2};
@@ -420,14 +442,14 @@ typedef struct tsearch_countedset
     _tsearch_countedset_node *nodes = _countedSet->nodes;
 
     XCTAssertEqual(7, nodes[0].integer);
-    XCTAssertEqual(1, nodes[0].left);
-    XCTAssertEqual(2, nodes[0].right);
+    XCTAssertEqual(2, nodes[0].left);
+    XCTAssertEqual(1, nodes[0].right);
 
-    XCTAssertEqual(2, nodes[1].integer);
+    XCTAssertEqual(8, nodes[1].integer);
     XCTAssertEqual(SIZE_MAX, nodes[1].left);
     XCTAssertEqual(SIZE_MAX, nodes[1].right);
 
-    XCTAssertEqual(8, nodes[2].integer);
+    XCTAssertEqual(2, nodes[2].integer);
     XCTAssertEqual(SIZE_MAX, nodes[2].left);
     XCTAssertEqual(SIZE_MAX, nodes[2].right);
 
@@ -452,14 +474,14 @@ typedef struct tsearch_countedset
     _tsearch_countedset_node *nodes = _countedSet->nodes;
 
     XCTAssertEqual(7, nodes[0].integer);
-    XCTAssertEqual(2, nodes[0].left);
-    XCTAssertEqual(1, nodes[0].right);
+    XCTAssertEqual(1, nodes[0].left);
+    XCTAssertEqual(2, nodes[0].right);
 
-    XCTAssertEqual(8, nodes[1].integer);
+    XCTAssertEqual(2, nodes[1].integer);
     XCTAssertEqual(SIZE_MAX, nodes[1].left);
     XCTAssertEqual(SIZE_MAX, nodes[1].right);
 
-    XCTAssertEqual(2, nodes[2].integer);
+    XCTAssertEqual(8, nodes[2].integer);
     XCTAssertEqual(SIZE_MAX, nodes[2].left);
     XCTAssertEqual(SIZE_MAX, nodes[2].right);
 
@@ -696,6 +718,45 @@ typedef struct tsearch_countedset
     XCTAssertEqual(0, tsearch_countedset_get_count_for_int(_countedSet, 1));
     XCTAssertEqual(0, tsearch_countedset_get_count_for_int(_countedSet, 2));
     XCTAssertEqual(0, tsearch_countedset_get_count_for_int(_countedSet, 3));
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Fuzz Operations
+// ------------------------------------------------------------------------------------------
+- (void)testFuzz_RandomAddRemoveOperations_MatchesDictionaryModel
+{
+    NSMutableDictionary<NSNumber *, NSNumber *> *countsByInteger = [NSMutableDictionary dictionary];
+    uint32_t seed = 0x12345678;
+
+    for (NSUInteger iteration = 0; iteration < 1000; iteration++)
+    {
+        seed = (1103515245 * seed) + 12345;
+        NSUInteger op = (seed >> 16) % 3;
+        seed = (1103515245 * seed) + 12345;
+        GNEInteger integer = (GNEInteger)((seed >> 16) % 128);
+        NSNumber *key = @(integer);
+
+        if (op == 0)
+        {
+            XCTAssertEqual(success, tsearch_countedset_add_int(_countedSet, integer));
+            NSUInteger count = countsByInteger[key].unsignedIntegerValue;
+            countsByInteger[key] = @(count + 1);
+        }
+        else if (op == 1)
+        {
+            XCTAssertEqual(success, tsearch_countedset_remove_int(_countedSet, integer));
+            [countsByInteger removeObjectForKey:key];
+        }
+        else
+        {
+            XCTAssertEqual(countsByInteger[key] != nil, tsearch_countedset_contains_int(_countedSet, integer));
+            XCTAssertEqual(countsByInteger[key].unsignedIntegerValue,
+                           tsearch_countedset_get_count_for_int(_countedSet, integer));
+        }
+
+        XCTAssertEqual((size_t)countsByInteger.count, tsearch_countedset_get_count(_countedSet));
+    }
 }
 
 

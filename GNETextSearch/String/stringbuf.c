@@ -91,11 +91,13 @@ char tsearch_stringbuf_get_char_at_idx(const tsearch_stringbuf_ptr ptr, const si
 
 result tsearch_stringbuf_append_char(const tsearch_stringbuf_ptr ptr, const char character)
 {
-    if (ptr == NULL) { return  failure; }
-    size_t currentLength = ptr->length;
-    size_t newLength = currentLength + 1;
+    if (ptr == NULL || ptr->buffer == NULL) { return failure; }
+
+    size_t newLength = 0;
+    if (_tsearch_size_add_overflows(ptr->length, 1, &newLength)) { return failure; }
+
     if (_tsearch_stringbuf_increase_capacity(ptr, newLength) == failure) { return failure; }
-    ptr->buffer[currentLength] = character;
+    ptr->buffer[ptr->length] = character;
     ptr->length = newLength;
     return success;
 }
@@ -110,17 +112,15 @@ int tsearch_stringbuf_append_cstring(const tsearch_stringbuf_ptr ptr, const char
     }
 #endif
 
-    if (ptr == NULL || cString == NULL) { return failure; }
+    if (ptr == NULL || ptr->buffer == NULL || cString == NULL) { return failure; }
     if (length == 0) { return success; }
 
-    size_t currentLength = ptr->length;
-    size_t newLength = currentLength + length;
+    size_t newLength = 0;
+    if (_tsearch_size_add_overflows(ptr->length, length, &newLength)) { return failure; }
+
     if (_tsearch_stringbuf_increase_capacity(ptr, newLength) == failure) { return failure; }
 
-    char *buffer = ptr->buffer;
-    for (size_t i = 0; i < length; i++) {
-        buffer[currentLength + i] = cString[i];
-    }
+    memcpy(ptr->buffer + ptr->length, cString, length);
     ptr->length = newLength;
 
     return success;
@@ -133,13 +133,16 @@ const char * tsearch_stringbuf_copy_cstring(const tsearch_stringbuf_ptr ptr)
 
     size_t length = ptr->length;
 
-    char *ret = calloc(length + 1, sizeof(char));
+    size_t characterCount = 0;
+    if (_tsearch_size_add_overflows(length, 1, &characterCount)) { return NULL; }
+
+    size_t byteLength = 0;
+    if (_tsearch_size_mul_overflows(characterCount, sizeof(char), &byteLength)) { return NULL; }
+
+    char *ret = calloc(1, byteLength);
     if (ret == NULL) { return NULL; }
 
-    char *buffer = ptr->buffer;
-    for (size_t i = 0; i < length; i++) {
-        ret[i] = buffer[i];
-    }
+    memcpy(ret, ptr->buffer, length);
     ret[length] = '\0';
 
     return ret;
@@ -148,10 +151,13 @@ const char * tsearch_stringbuf_copy_cstring(const tsearch_stringbuf_ptr ptr)
 
 void tsearch_stringbuf_print(const tsearch_stringbuf_ptr ptr)
 {
-    if (ptr == NULL) { printf("%p is NULL\n", ptr); }
+    if (ptr == NULL) {
+        printf("<tsearch_stringbuf, %p> NULL\n", ptr);
+        return;
+    }
 
     const char *contents = tsearch_stringbuf_copy_cstring(ptr);
-    printf("<tsearch_stringbuf, %p> %s\n", ptr, contents);
+    printf("<tsearch_stringbuf, %p> %s\n", ptr, contents != NULL ? contents : "");
     free((void *)contents);
 }
 
@@ -164,16 +170,22 @@ int _tsearch_stringbuf_increase_capacity(const tsearch_stringbuf_ptr ptr, const 
     if (ptr == NULL || ptr->buffer == NULL) { return failure; }
 
     size_t maxCharacterCount = _tsearch_stringbuf_get_max_char_count(ptr);
-    if (newLength >= maxCharacterCount) {
-        size_t doubleCapacity = (2 * ptr->capacity);
-        size_t requestedCapacity = (newLength * sizeof(char));
-        size_t newCapacity = (doubleCapacity > requestedCapacity) ? doubleCapacity : requestedCapacity;
-        char *newBuffer = realloc(ptr->buffer, newCapacity);
-        if (newBuffer == NULL) { return failure; }
-        ptr->buffer = newBuffer;
-        ptr->capacity = newCapacity;
+    if (newLength < maxCharacterCount) {
+        return success;
     }
 
+    size_t doubleCapacity = 0;
+    if (_tsearch_size_mul_overflows(ptr->capacity, 2, &doubleCapacity)) { return failure; }
+
+    size_t requestedCapacity = 0;
+    if (_tsearch_size_mul_overflows(newLength, sizeof(char), &requestedCapacity)) { return failure; }
+
+    size_t newCapacity = (doubleCapacity > requestedCapacity) ? doubleCapacity : requestedCapacity;
+    char *newBuffer = realloc(ptr->buffer, newCapacity);
+    if (newBuffer == NULL) { return failure; }
+
+    ptr->buffer = newBuffer;
+    ptr->capacity = newCapacity;
     return success;
 }
 
