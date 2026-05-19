@@ -59,7 +59,8 @@ tsearch_countedset_ptr tsearch_ternarytree_copy_partial_search_results(const tse
                                                                        const size_t length);
 
 /// Returns a tsearch_countedset_ptr with the IDs of documents containing a word where the target
-/// appears as an ordered, non-contiguous subsequence. For example, "ETxc" matches "GNETextSearch".
+/// appears as an ordered subsequence, which may be contiguous or non-contiguous. For example,
+/// "ETxc" matches "GNETextSearch".
 /// The caller is responsible for calling tsearch_countedset_free().
 /// Returns NULL for NULL targets, a zero length, or no matches.
 tsearch_countedset_ptr tsearch_ternarytree_copy_subsequence_search_results(const tsearch_ternarytree_ptr ptr,
