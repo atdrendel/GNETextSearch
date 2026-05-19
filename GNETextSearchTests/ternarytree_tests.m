@@ -1392,8 +1392,14 @@
                                                              fromData:data
                                                                 error:&error];
         } else {
-            NSAssert(NO, @"Unarchiving with classes is only supported on macOS 10.13 and later");
-            dictionary = @{};
+            id unarchivedObject = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+            if ([unarchivedObject isKindOfClass:[NSDictionary class]]) {
+                dictionary = (NSDictionary *)unarchivedObject;
+            } else {
+                error = [NSError errorWithDomain:NSCocoaErrorDomain
+                                            code:NSFileReadCorruptFileError
+                                        userInfo:@{ NSLocalizedDescriptionKey : @"Could not unarchive bible archive as NSDictionary" }];
+            }
         }
         NSAssert2(error == nil, @"Could not unarchive %@: %@", path, error);
     });
