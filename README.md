@@ -1,6 +1,77 @@
 # GNETextSearch
 Full-text search engine using ternary trees written in C.
 
+# Swift Package Manager
+
+Add GNETextSearch to a Swift package with:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/atdrendel/GNETextSearch.git", from: "2.0.0"),
+]
+```
+
+Then add the C library product to a target:
+
+```swift
+.target(
+    name: "YourTarget",
+    dependencies: [
+        .product(name: "GNETextSearch", package: "GNETextSearch"),
+    ]
+)
+```
+
+C clients can include the public umbrella header:
+
+```c
+#include <GNETextSearch/GNETextSearch.h>
+```
+
+Swift code can import the C module directly through the package's explicit module map:
+
+```swift
+import GNETextSearch
+
+let tree = tsearch_ternarytree_init()
+_ = tsearch_ternarytree_insert(tree, "GNETextSearch", 1)
+```
+
+# Package Layout
+
+```text
+Sources/
+  GNETextSearch/
+    include/
+      module.modulemap
+      GNETextSearch/
+        GNETextSearch.h
+        CountedSet.h
+        TernaryTree.h
+        Types.h
+    CountedSet.c
+    StringBuffer.c
+    StringBuffer.h
+    TernaryTree.c
+    Tokenize.c
+    Tokenize.h
+    UTF8Utilities.h
+    GNETextSearchPrivate.h
+Tests/
+  GNETextSearchCTests/
+    countedset_tests.m
+    stringbuf_tests.m
+    ternarytree_tests.m
+    tokenize_tests.m
+    Resources/
+  GNETextSearchSwiftImportTests/
+```
+
+The package is a C library. The explicit `module.modulemap` makes that C API importable from
+Swift without adding a Swift wrapper layer. The public surface is limited to the ternary tree,
+counted-set, and shared type headers under `Sources/GNETextSearch/include/GNETextSearch`.
+Tokenizer and string-buffer headers remain implementation details.
+
 # License
 
 Copyright (c) 2026, Anthony Drendel

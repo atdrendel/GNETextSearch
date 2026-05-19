@@ -31,5 +31,5 @@
 # Debug files
 *.dSYM/
 .DS_Store
-GNETextSearch.xcodeproj/project.xcworkspace/xcuserdata
-GNETextSearch.xcodeproj/xcuserdata
+.build/
+.swiftpm/

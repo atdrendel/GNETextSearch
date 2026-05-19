@@ -20,19 +20,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Test macOS
-        run: >
-          xcodebuild test
-          -project GNETextSearch.xcodeproj
-          -scheme GNETextSearch
-          -destination 'platform=macOS'
-          -derivedDataPath "$RUNNER_TEMP/DerivedData"
-
-      - name: Build iOS
-        run: >
-          xcodebuild build
-          -project GNETextSearch.xcodeproj
-          -scheme 'GNETextSearch iOS'
-          -destination 'generic/platform=iOS'
-          -derivedDataPath "$RUNNER_TEMP/DerivedData"
-          CODE_SIGNING_ALLOWED=NO
+      - name: Test
+        run: swift test

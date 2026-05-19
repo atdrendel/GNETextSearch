@@ -1,0 +1,5 @@
+module GNETextSearch {
+    umbrella header "GNETextSearch/GNETextSearch.h"
+
+    export *
+}
