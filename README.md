@@ -3,7 +3,7 @@ Full-text search engine using ternary trees written in C.
 
 # License
 
-Copyright (c) 2016, Anthony Drendel
+Copyright (c) 2026, Anthony Drendel
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
