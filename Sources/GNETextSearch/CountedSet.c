@@ -292,6 +292,57 @@ result tsearch_countedset_minus(const tsearch_countedset_ptr ptr, const tsearch_
 }
 
 
+result _tsearch_countedset_copy_items(const tsearch_countedset_ptr ptr,
+                                      _tsearch_countedset_serialized_item **outItems,
+                                      size_t *outCount)
+{
+    if (outItems == NULL || outCount == NULL) { return failure; }
+    *outItems = NULL;
+    *outCount = 0;
+
+    if (ptr == NULL || ptr->nodes == NULL || ptr->count == 0) { return success; }
+
+    size_t byteLength = 0;
+    if (_tsearch_size_mul_overflows(ptr->count, sizeof(_tsearch_countedset_serialized_item), &byteLength)) {
+        return failure;
+    }
+
+    _tsearch_countedset_serialized_item *items = malloc(byteLength);
+    if (items == NULL) { return failure; }
+
+    size_t itemIndex = 0;
+    for (size_t i = 0; i < ptr->insertIndex; i++) {
+        _tsearch_countedset_node node = ptr->nodes[i];
+        if (node.count == 0) { continue; }
+        if (itemIndex >= ptr->count) {
+            free(items);
+            return failure;
+        }
+
+        items[itemIndex].integer = node.integer;
+        items[itemIndex].count = node.count;
+        itemIndex += 1;
+    }
+
+    if (itemIndex != ptr->count) {
+        free(items);
+        return failure;
+    }
+
+    *outItems = items;
+    *outCount = itemIndex;
+    return success;
+}
+
+
+result _tsearch_countedset_add_int_count(const tsearch_countedset_ptr ptr,
+                                         const GNEInteger integer,
+                                         const size_t count)
+{
+    return _tsearch_countedset_add_int(ptr, integer, count);
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private
 // ------------------------------------------------------------------------------------------

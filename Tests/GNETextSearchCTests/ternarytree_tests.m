@@ -632,6 +632,79 @@
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Serialization Tests
+// ------------------------------------------------------------------------------------------
+- (void)testSerialization_EmptyTree_RoundTrips
+{
+    NSString *path = [self temporarySerializationPath];
+
+    XCTAssertEqual(success, tsearch_ternarytree_save_to_file(_treePtr, path.fileSystemRepresentation));
+    tsearch_ternarytree_ptr loadedTree = tsearch_ternarytree_init_from_file(path.fileSystemRepresentation);
+
+    XCTAssertTrue(loadedTree != NULL);
+    XCTAssertEqual((NSUInteger)0, [self resultsInTree:loadedTree].count);
+    XCTAssertTrue(NULL == tsearch_ternarytree_copy_search_results(loadedTree, "missing"));
+
+    tsearch_ternarytree_free(loadedTree);
+    [self removeTemporarySerializationFileAtPath:path];
+}
+
+
+- (void)testSerialization_TreeWithMultipleDocumentCounts_RoundTrips
+{
+    NSString *path = [self temporarySerializationPath];
+    GNEInteger firstID = 42;
+    GNEInteger secondID = 7;
+
+    [self insertWords:@[@"prefix", @"suffix", @"other", @"prefecture", @"transfix"] intoTree:_treePtr];
+    XCTAssertTrue(NULL != tsearch_ternarytree_insert(_treePtr, "shared", firstID));
+    XCTAssertTrue(NULL != tsearch_ternarytree_insert(_treePtr, "shared", firstID));
+    XCTAssertTrue(NULL != tsearch_ternarytree_insert(_treePtr, "shared", secondID));
+
+    XCTAssertEqual(success, tsearch_ternarytree_save_to_file(_treePtr, path.fileSystemRepresentation));
+    tsearch_ternarytree_ptr loadedTree = tsearch_ternarytree_init_from_file(path.fileSystemRepresentation);
+
+    XCTAssertTrue(loadedTree != NULL);
+    [self assertResultsInTree:loadedTree equalWords:@[@"shared", @"prefix", @"suffix", @"other", @"prefecture", @"transfix"]];
+    [self assertResultsInTree:loadedTree matchingPrefix:@"pre" equalWords:@[@"prefix", @"prefecture"]];
+    [self assertResultsInTree:loadedTree matchingPartialTarget:@"fix" equalWords:@[@"prefix", @"suffix", @"transfix"]];
+    [self assertResultsInTree:loadedTree matchingSubsequenceTarget:@"sx" equalWords:@[@"suffix", @"transfix"]];
+    [self assertResultsInTree:loadedTree matchingSuffix:@"fix" equalWords:@[@"prefix", @"suffix", @"transfix"]];
+
+    tsearch_countedset_ptr resultsPtr = tsearch_ternarytree_copy_search_results(loadedTree, "shared");
+    XCTAssertTrue(resultsPtr != NULL);
+    XCTAssertEqual((size_t)2, tsearch_countedset_get_count(resultsPtr));
+    XCTAssertEqual((size_t)2, tsearch_countedset_get_count_for_int(resultsPtr, firstID));
+    XCTAssertEqual((size_t)1, tsearch_countedset_get_count_for_int(resultsPtr, secondID));
+    tsearch_countedset_free(resultsPtr);
+
+    XCTAssertEqual(success, tsearch_ternarytree_remove(loadedTree, firstID));
+    resultsPtr = tsearch_ternarytree_copy_search_results(loadedTree, "shared");
+    XCTAssertTrue(resultsPtr != NULL);
+    XCTAssertEqual(false, tsearch_countedset_contains_int(resultsPtr, firstID));
+    XCTAssertEqual(true, tsearch_countedset_contains_int(resultsPtr, secondID));
+    tsearch_countedset_free(resultsPtr);
+
+    tsearch_ternarytree_free(loadedTree);
+    [self removeTemporarySerializationFileAtPath:path];
+}
+
+
+- (void)testSerialization_InvalidFile_ReturnsNullTree
+{
+    NSString *path = [self temporarySerializationPath];
+    NSData *invalidData = [@"not a serialized tree" dataUsingEncoding:NSUTF8StringEncoding];
+    XCTAssertTrue([invalidData writeToFile:path atomically:YES]);
+
+    tsearch_ternarytree_ptr loadedTree = tsearch_ternarytree_init_from_file(path.fileSystemRepresentation);
+
+    XCTAssertTrue(loadedTree == NULL);
+    tsearch_ternarytree_free(loadedTree);
+    [self removeTemporarySerializationFileAtPath:path];
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Remove Tests
 // ------------------------------------------------------------------------------------------
 - (void)testRemove_RemoveIDFromEmptyTree_Success
@@ -876,6 +949,20 @@
 // ------------------------------------------------------------------------------------------
 #pragma mark - Helpers
 // ------------------------------------------------------------------------------------------
+- (NSString *)temporarySerializationPath
+{
+    NSString *filename = [NSString stringWithFormat:@"GNETextSearch-%@.idx", NSUUID.UUID.UUIDString];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
+}
+
+
+- (void)removeTemporarySerializationFileAtPath:(NSString *)path
+{
+    if (path == nil) { return; }
+    [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+}
+
+
 - (void)insertWords:(NSArray *)words intoTree:(tsearch_ternarytree_ptr)treePtr
 {
     if (treePtr == NULL)

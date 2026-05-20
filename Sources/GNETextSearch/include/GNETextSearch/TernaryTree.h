@@ -18,14 +18,28 @@ extern "C" {
 
 typedef struct tsearch_ternarytree_node *tsearch_ternarytree_ptr;
 
+/// Creates an empty ternary tree. The caller is responsible for calling tsearch_ternarytree_free().
 tsearch_ternarytree_ptr tsearch_ternarytree_init(void);
+
+/// Loads a tree previously written with tsearch_ternarytree_save_to_file().
+/// The caller is responsible for calling tsearch_ternarytree_free().
+/// Returns NULL for NULL paths, invalid files, unsupported file versions, or I/O errors.
+tsearch_ternarytree_ptr tsearch_ternarytree_init_from_file(const char *path);
+
+/// Frees a ternary tree created by this API. NULL is allowed.
 void tsearch_ternarytree_free(const tsearch_ternarytree_ptr ptr);
+
+/// Writes the tree to a binary file that can be loaded with tsearch_ternarytree_init_from_file().
+/// Returns failure for NULL trees, NULL paths, or I/O errors.
+result tsearch_ternarytree_save_to_file(const tsearch_ternarytree_ptr ptr, const char *path);
 
 /// Inserts a non-empty null-terminated string. NULL and empty strings are ignored and return ptr.
 /// Because the public API cannot report allocation failure, failed allocations leave the tree in
 /// a valid state and return the current root pointer.
 tsearch_ternarytree_ptr tsearch_ternarytree_insert(tsearch_ternarytree_ptr ptr,
                                                    const char *newCharacter, const GNEInteger documentID);
+
+/// Removes the document ID from every word in the tree. Success is unrelated to whether the document ID exists.
 result tsearch_ternarytree_remove(const tsearch_ternarytree_ptr ptr, const GNEInteger documentID);
 
 /// Returns a GNEIntegerCountedSet with the IDs of the documents containing the target. The caller is
@@ -65,6 +79,7 @@ tsearch_countedset_ptr tsearch_ternarytree_copy_suffix_search_results(const tsea
 /// On failure, writes NULL and 0.
 result tsearch_ternarytree_copy_contents(const tsearch_ternarytree_ptr ptr, char **outResults, size_t *outLength);
 
+/// Prints the tree's contents to stdout. NULL trees print an empty contents section.
 void tsearch_ternarytree_print(const tsearch_ternarytree_ptr ptr);
 
 #ifdef __cplusplus

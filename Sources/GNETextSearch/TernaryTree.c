@@ -10,6 +10,7 @@
 #include "StringBuffer.h"
 #include "GNETextSearchPrivate.h"
 #include <stdio.h>
+#include <string.h>
 
 // ------------------------------------------------------------------------------------------
 
@@ -32,10 +33,34 @@ typedef struct _tsearch_partial_search_item
     size_t currentIndex;
 } _tsearch_partial_search_item;
 
+typedef struct _tsearch_ternarytree_deserialize_item
+{
+    tsearch_ternarytree_ptr *slot;
+    tsearch_ternarytree_ptr parent;
+} _tsearch_ternarytree_deserialize_item;
+
 // ------------------------------------------------------------------------------------------
 
 static bool _tsearch_cstring_is_nonempty(const char *string);
 tsearch_ternarytree_ptr _tsearch_ternarytree_search(tsearch_ternarytree_ptr ptr, const char *target);
+static result _tsearch_ternarytree_write_header(FILE *file);
+static result _tsearch_ternarytree_read_header(FILE *file);
+static result _tsearch_ternarytree_write_node(FILE *file, const tsearch_ternarytree_ptr node);
+static tsearch_ternarytree_ptr _tsearch_ternarytree_read_from_file(FILE *file);
+static result _tsearch_ternarytree_read_node(FILE *file,
+                                             tsearch_ternarytree_ptr *outNode,
+                                             tsearch_ternarytree_ptr parent,
+                                             uint8_t *outChildFlags);
+static result _tsearch_ternarytree_file_is_at_end(FILE *file);
+static result _tsearch_write_u8(FILE *file, const uint8_t value);
+static result _tsearch_write_u32_le(FILE *file, const uint32_t value);
+static result _tsearch_write_u64_le(FILE *file, const uint64_t value);
+static result _tsearch_write_i64_le(FILE *file, const int64_t value);
+static result _tsearch_read_u8(FILE *file, uint8_t *outValue);
+static result _tsearch_read_u32_le(FILE *file, uint32_t *outValue);
+static result _tsearch_read_u64_le(FILE *file, uint64_t *outValue);
+static result _tsearch_read_i64_le(FILE *file, int64_t *outValue);
+static result _tsearch_u64_to_size(const uint64_t value, size_t *outValue);
 result _tsearch_ternarytree_copy_words_from_node(const tsearch_ternarytree_ptr ptr, tsearch_countedset_ptr results);
 static result _tsearch_build_prefix_table(const char *target, const size_t length, size_t **outTable);
 static size_t _tsearch_kmp_next_index(const char *target,
@@ -70,6 +95,26 @@ static result _tsearch_partial_search_stack_push(_tsearch_partial_search_item **
                                                  size_t *count,
                                                  size_t *capacity,
                                                  _tsearch_partial_search_item item);
+static result _tsearch_ternarytree_node_stack_push(tsearch_ternarytree_ptr **stack,
+                                                   size_t *count,
+                                                   size_t *capacity,
+                                                   tsearch_ternarytree_ptr item);
+static result _tsearch_ternarytree_deserialize_stack_push(_tsearch_ternarytree_deserialize_item **stack,
+                                                          size_t *count,
+                                                          size_t *capacity,
+                                                          _tsearch_ternarytree_deserialize_item item);
+
+static const uint8_t _tsearch_ternarytree_file_magic[] = {'G', 'N', 'E', 'T', 'S', 'I', 'D', 'X'};
+static const uint32_t _tsearch_ternarytree_file_version = 1;
+enum {
+    _tsearch_ternarytree_child_lower = 1 << 0,
+    _tsearch_ternarytree_child_same = 1 << 1,
+    _tsearch_ternarytree_child_higher = 1 << 2,
+    _tsearch_ternarytree_child_known_bits =
+        (_tsearch_ternarytree_child_lower |
+         _tsearch_ternarytree_child_same |
+         _tsearch_ternarytree_child_higher)
+};
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Tree
@@ -94,6 +139,23 @@ tsearch_ternarytree_ptr tsearch_ternarytree_init(void)
     ptr->same = NULL;
     ptr->higher = NULL;
     ptr->documentIDs = NULL;
+
+    return ptr;
+}
+
+
+tsearch_ternarytree_ptr tsearch_ternarytree_init_from_file(const char *path)
+{
+    if (!_tsearch_cstring_is_nonempty(path)) { return NULL; }
+
+    FILE *file = fopen(path, "rb");
+    if (file == NULL) { return NULL; }
+
+    tsearch_ternarytree_ptr ptr = _tsearch_ternarytree_read_from_file(file);
+    if (fclose(file) != 0) {
+        tsearch_ternarytree_free(ptr);
+        return NULL;
+    }
 
     return ptr;
 }
@@ -136,6 +198,49 @@ void tsearch_ternarytree_free(const tsearch_ternarytree_ptr ptr)
         }
         current = next;
     }
+}
+
+
+result tsearch_ternarytree_save_to_file(const tsearch_ternarytree_ptr ptr, const char *path)
+{
+    if (ptr == NULL || !_tsearch_cstring_is_nonempty(path)) { return failure; }
+
+    FILE *file = fopen(path, "wb");
+    if (file == NULL) { return failure; }
+
+    result ret = _tsearch_ternarytree_write_header(file);
+
+    tsearch_ternarytree_ptr *stack = NULL;
+    size_t stackCount = 0;
+    size_t stackCapacity = 0;
+    if (ret == success) {
+        ret = _tsearch_ternarytree_node_stack_push(&stack, &stackCount, &stackCapacity, ptr);
+    }
+
+    while (ret == success && stackCount > 0) {
+        tsearch_ternarytree_ptr node = stack[--stackCount];
+        ret = _tsearch_ternarytree_write_node(file, node);
+        if (ret == failure) { break; }
+
+        if (node->higher != NULL) {
+            ret = _tsearch_ternarytree_node_stack_push(&stack, &stackCount, &stackCapacity, node->higher);
+            if (ret == failure) { break; }
+        }
+
+        if (node->same != NULL) {
+            ret = _tsearch_ternarytree_node_stack_push(&stack, &stackCount, &stackCapacity, node->same);
+            if (ret == failure) { break; }
+        }
+
+        if (node->lower != NULL) {
+            ret = _tsearch_ternarytree_node_stack_push(&stack, &stackCount, &stackCapacity, node->lower);
+        }
+    }
+
+    free(stack);
+
+    if (fclose(file) != 0) { ret = failure; }
+    return ret;
 }
 
 
@@ -407,6 +512,298 @@ void tsearch_ternarytree_print(tsearch_ternarytree_ptr ptr)
 static bool _tsearch_cstring_is_nonempty(const char *string)
 {
     return (string != NULL && string[0] != '\0');
+}
+
+
+static result _tsearch_ternarytree_write_header(FILE *file)
+{
+    if (file == NULL) { return failure; }
+    if (fwrite(_tsearch_ternarytree_file_magic,
+               sizeof(_tsearch_ternarytree_file_magic),
+               1,
+               file) != 1) {
+        return failure;
+    }
+
+    return _tsearch_write_u32_le(file, _tsearch_ternarytree_file_version);
+}
+
+
+static result _tsearch_ternarytree_read_header(FILE *file)
+{
+    if (file == NULL) { return failure; }
+
+    uint8_t magic[sizeof(_tsearch_ternarytree_file_magic)] = {0};
+    if (fread(magic, sizeof(magic), 1, file) != 1) { return failure; }
+    for (size_t i = 0; i < sizeof(_tsearch_ternarytree_file_magic); i++) {
+        if (magic[i] != _tsearch_ternarytree_file_magic[i]) { return failure; }
+    }
+
+    uint32_t version = 0;
+    if (_tsearch_read_u32_le(file, &version) == failure) { return failure; }
+    return (version == _tsearch_ternarytree_file_version) ? success : failure;
+}
+
+
+static result _tsearch_ternarytree_write_node(FILE *file, const tsearch_ternarytree_ptr node)
+{
+    if (file == NULL || node == NULL) { return failure; }
+
+    uint8_t childFlags = 0;
+    if (node->lower != NULL) { childFlags |= _tsearch_ternarytree_child_lower; }
+    if (node->same != NULL) { childFlags |= _tsearch_ternarytree_child_same; }
+    if (node->higher != NULL) { childFlags |= _tsearch_ternarytree_child_higher; }
+
+    _tsearch_countedset_serialized_item *items = NULL;
+    size_t itemCount = 0;
+    if (_tsearch_countedset_copy_items(node->documentIDs, &items, &itemCount) == failure) {
+        return failure;
+    }
+
+    result ret = _tsearch_write_u8(file, (uint8_t)node->character);
+    if (ret == success) { ret = _tsearch_write_u8(file, childFlags); }
+    if (ret == success) { ret = _tsearch_write_u64_le(file, (uint64_t)itemCount); }
+
+    for (size_t i = 0; ret == success && i < itemCount; i++) {
+        ret = _tsearch_write_i64_le(file, items[i].integer);
+        if (ret == success) { ret = _tsearch_write_u64_le(file, (uint64_t)items[i].count); }
+    }
+
+    free(items);
+    return ret;
+}
+
+
+static tsearch_ternarytree_ptr _tsearch_ternarytree_read_from_file(FILE *file)
+{
+    if (_tsearch_ternarytree_read_header(file) == failure) { return NULL; }
+
+    tsearch_ternarytree_ptr root = NULL;
+    _tsearch_ternarytree_deserialize_item *stack = NULL;
+    size_t stackCount = 0;
+    size_t stackCapacity = 0;
+
+    result ret = _tsearch_ternarytree_deserialize_stack_push(&stack,
+                                                             &stackCount,
+                                                             &stackCapacity,
+                                                             (_tsearch_ternarytree_deserialize_item){&root, NULL});
+
+    while (ret == success && stackCount > 0) {
+        _tsearch_ternarytree_deserialize_item item = stack[--stackCount];
+        uint8_t childFlags = 0;
+        tsearch_ternarytree_ptr node = NULL;
+        ret = _tsearch_ternarytree_read_node(file, &node, item.parent, &childFlags);
+        if (ret == failure) { break; }
+        *item.slot = node;
+
+        if ((childFlags & _tsearch_ternarytree_child_higher) != 0) {
+            ret = _tsearch_ternarytree_deserialize_stack_push(&stack,
+                                                              &stackCount,
+                                                              &stackCapacity,
+                                                              (_tsearch_ternarytree_deserialize_item){&(node->higher), node});
+            if (ret == failure) { break; }
+        }
+
+        if ((childFlags & _tsearch_ternarytree_child_same) != 0) {
+            ret = _tsearch_ternarytree_deserialize_stack_push(&stack,
+                                                              &stackCount,
+                                                              &stackCapacity,
+                                                              (_tsearch_ternarytree_deserialize_item){&(node->same), node});
+            if (ret == failure) { break; }
+        }
+
+        if ((childFlags & _tsearch_ternarytree_child_lower) != 0) {
+            ret = _tsearch_ternarytree_deserialize_stack_push(&stack,
+                                                              &stackCount,
+                                                              &stackCapacity,
+                                                              (_tsearch_ternarytree_deserialize_item){&(node->lower), node});
+        }
+    }
+
+    if (ret == success) { ret = _tsearch_ternarytree_file_is_at_end(file); }
+
+    free(stack);
+
+    if (ret == failure) {
+        tsearch_ternarytree_free(root);
+        root = NULL;
+    }
+
+    return root;
+}
+
+
+static result _tsearch_ternarytree_read_node(FILE *file,
+                                             tsearch_ternarytree_ptr *outNode,
+                                             tsearch_ternarytree_ptr parent,
+                                             uint8_t *outChildFlags)
+{
+    if (file == NULL || outNode == NULL || outChildFlags == NULL) { return failure; }
+    *outNode = NULL;
+    *outChildFlags = 0;
+
+    uint8_t character = 0;
+    uint8_t childFlags = 0;
+    uint64_t itemCount64 = 0;
+    if (_tsearch_read_u8(file, &character) == failure ||
+        _tsearch_read_u8(file, &childFlags) == failure ||
+        _tsearch_read_u64_le(file, &itemCount64) == failure) {
+        return failure;
+    }
+
+    if ((childFlags & ~_tsearch_ternarytree_child_known_bits) != 0) {
+        return failure;
+    }
+
+    size_t itemCount = 0;
+    if (_tsearch_u64_to_size(itemCount64, &itemCount) == failure) { return failure; }
+
+    tsearch_ternarytree_ptr node = tsearch_ternarytree_init();
+    if (node == NULL) { return failure; }
+    node->character = (char)character;
+    node->parent = parent;
+
+    if (itemCount > 0) {
+        node->documentIDs = tsearch_countedset_init();
+        if (node->documentIDs == NULL) {
+            tsearch_ternarytree_free(node);
+            return failure;
+        }
+    }
+
+    for (size_t i = 0; i < itemCount; i++) {
+        int64_t integer = 0;
+        uint64_t count64 = 0;
+        size_t count = 0;
+        if (_tsearch_read_i64_le(file, &integer) == failure ||
+            _tsearch_read_u64_le(file, &count64) == failure ||
+            _tsearch_u64_to_size(count64, &count) == failure ||
+            count == 0 ||
+            _tsearch_countedset_add_int_count(node->documentIDs, integer, count) == failure) {
+            tsearch_ternarytree_free(node);
+            return failure;
+        }
+    }
+
+    *outNode = node;
+    *outChildFlags = childFlags;
+    return success;
+}
+
+
+static result _tsearch_ternarytree_file_is_at_end(FILE *file)
+{
+    if (file == NULL) { return failure; }
+    int character = fgetc(file);
+    if (character == EOF) {
+        return feof(file) ? success : failure;
+    }
+
+    return failure;
+}
+
+
+static result _tsearch_write_u8(FILE *file, const uint8_t value)
+{
+    if (file == NULL) { return failure; }
+    return (fwrite(&value, sizeof(value), 1, file) == 1) ? success : failure;
+}
+
+
+static result _tsearch_write_u32_le(FILE *file, const uint32_t value)
+{
+    if (file == NULL) { return failure; }
+    uint8_t bytes[4] = {
+        (uint8_t)(value & 0xff),
+        (uint8_t)((value >> 8) & 0xff),
+        (uint8_t)((value >> 16) & 0xff),
+        (uint8_t)((value >> 24) & 0xff)
+    };
+    return (fwrite(bytes, sizeof(bytes), 1, file) == 1) ? success : failure;
+}
+
+
+static result _tsearch_write_u64_le(FILE *file, const uint64_t value)
+{
+    if (file == NULL) { return failure; }
+    uint8_t bytes[8] = {
+        (uint8_t)(value & 0xff),
+        (uint8_t)((value >> 8) & 0xff),
+        (uint8_t)((value >> 16) & 0xff),
+        (uint8_t)((value >> 24) & 0xff),
+        (uint8_t)((value >> 32) & 0xff),
+        (uint8_t)((value >> 40) & 0xff),
+        (uint8_t)((value >> 48) & 0xff),
+        (uint8_t)((value >> 56) & 0xff)
+    };
+    return (fwrite(bytes, sizeof(bytes), 1, file) == 1) ? success : failure;
+}
+
+
+static result _tsearch_write_i64_le(FILE *file, const int64_t value)
+{
+    uint64_t unsignedValue = 0;
+    memcpy(&unsignedValue, &value, sizeof(unsignedValue));
+    return _tsearch_write_u64_le(file, unsignedValue);
+}
+
+
+static result _tsearch_read_u8(FILE *file, uint8_t *outValue)
+{
+    if (file == NULL || outValue == NULL) { return failure; }
+    return (fread(outValue, sizeof(*outValue), 1, file) == 1) ? success : failure;
+}
+
+
+static result _tsearch_read_u32_le(FILE *file, uint32_t *outValue)
+{
+    if (file == NULL || outValue == NULL) { return failure; }
+
+    uint8_t bytes[4] = {0};
+    if (fread(bytes, sizeof(bytes), 1, file) != 1) { return failure; }
+
+    *outValue = ((uint32_t)bytes[0] |
+                 ((uint32_t)bytes[1] << 8) |
+                 ((uint32_t)bytes[2] << 16) |
+                 ((uint32_t)bytes[3] << 24));
+    return success;
+}
+
+
+static result _tsearch_read_u64_le(FILE *file, uint64_t *outValue)
+{
+    if (file == NULL || outValue == NULL) { return failure; }
+
+    uint8_t bytes[8] = {0};
+    if (fread(bytes, sizeof(bytes), 1, file) != 1) { return failure; }
+
+    *outValue = ((uint64_t)bytes[0] |
+                 ((uint64_t)bytes[1] << 8) |
+                 ((uint64_t)bytes[2] << 16) |
+                 ((uint64_t)bytes[3] << 24) |
+                 ((uint64_t)bytes[4] << 32) |
+                 ((uint64_t)bytes[5] << 40) |
+                 ((uint64_t)bytes[6] << 48) |
+                 ((uint64_t)bytes[7] << 56));
+    return success;
+}
+
+
+static result _tsearch_read_i64_le(FILE *file, int64_t *outValue)
+{
+    if (outValue == NULL) { return failure; }
+    uint64_t unsignedValue = 0;
+    if (_tsearch_read_u64_le(file, &unsignedValue) == failure) { return failure; }
+    memcpy(outValue, &unsignedValue, sizeof(*outValue));
+    return success;
+}
+
+
+static result _tsearch_u64_to_size(const uint64_t value, size_t *outValue)
+{
+    if (outValue == NULL || value > SIZE_MAX) { return failure; }
+    *outValue = (size_t)value;
+    return success;
 }
 
 
@@ -916,6 +1313,79 @@ static result _tsearch_partial_search_stack_push(_tsearch_partial_search_item **
         }
 
         _tsearch_partial_search_item *newStack = realloc(*stack, byteLength);
+        if (newStack == NULL) { return failure; }
+
+        *stack = newStack;
+        *capacity = newCapacity;
+    }
+
+    (*stack)[*count] = item;
+    *count += 1;
+    return success;
+}
+
+
+static result _tsearch_ternarytree_node_stack_push(tsearch_ternarytree_ptr **stack,
+                                                   size_t *count,
+                                                   size_t *capacity,
+                                                   tsearch_ternarytree_ptr item)
+{
+    if (stack == NULL || count == NULL || capacity == NULL) { return failure; }
+
+    if (*count >= *capacity) {
+        size_t newCapacity = 0;
+        size_t byteLength = 0;
+
+        if (*capacity == 0) {
+            newCapacity = 64;
+            if (_tsearch_size_mul_overflows(newCapacity, sizeof(tsearch_ternarytree_ptr), &byteLength)) {
+                return failure;
+            }
+        } else {
+            newCapacity = *capacity;
+            if (_tsearch_next_buf_len(&newCapacity, sizeof(tsearch_ternarytree_ptr), &byteLength) == failure) {
+                return failure;
+            }
+        }
+
+        tsearch_ternarytree_ptr *newStack = realloc(*stack, byteLength);
+        if (newStack == NULL) { return failure; }
+
+        *stack = newStack;
+        *capacity = newCapacity;
+    }
+
+    (*stack)[*count] = item;
+    *count += 1;
+    return success;
+}
+
+
+static result _tsearch_ternarytree_deserialize_stack_push(_tsearch_ternarytree_deserialize_item **stack,
+                                                          size_t *count,
+                                                          size_t *capacity,
+                                                          _tsearch_ternarytree_deserialize_item item)
+{
+    if (stack == NULL || count == NULL || capacity == NULL) { return failure; }
+    if (item.slot == NULL) { return failure; }
+
+    if (*count >= *capacity) {
+        size_t newCapacity = 0;
+        size_t byteLength = 0;
+
+        if (*capacity == 0) {
+            newCapacity = 64;
+            if (_tsearch_size_mul_overflows(newCapacity, sizeof(_tsearch_ternarytree_deserialize_item), &byteLength)) {
+                return failure;
+            }
+        } else {
+            newCapacity = *capacity;
+            if (_tsearch_next_buf_len(&newCapacity, sizeof(_tsearch_ternarytree_deserialize_item), &byteLength) == failure) {
+                return failure;
+            }
+        }
+
+        _tsearch_ternarytree_deserialize_item *newStack = realloc(*stack, byteLength);
         if (newStack == NULL) { return failure; }
 
         *stack = newStack;

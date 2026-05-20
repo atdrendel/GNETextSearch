@@ -17,10 +17,17 @@ extern "C" {
 
 typedef struct tsearch_countedset * tsearch_countedset_ptr;
 
+/// Creates an empty counted set. The caller is responsible for calling tsearch_countedset_free().
 tsearch_countedset_ptr tsearch_countedset_init(void);
+
+/// Creates an independent copy of the counted set. The caller is responsible for calling tsearch_countedset_free().
+/// Returns NULL for NULL counted sets or allocation failure.
 tsearch_countedset_ptr tsearch_countedset_copy(const tsearch_countedset_ptr ptr);
+
+/// Frees a counted set created by this API. NULL is allowed.
 void tsearch_countedset_free(const tsearch_countedset_ptr ptr);
 
+/// Returns the number of unique integers currently in the counted set. Returns 0 for NULL counted sets.
 size_t tsearch_countedset_get_count(tsearch_countedset_ptr ptr);
 
 /// Returns 1 if the counted set includes the integer, otherwise 0.

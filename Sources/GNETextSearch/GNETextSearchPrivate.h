@@ -10,6 +10,7 @@
 #define GNETextSearchPrivate_h
 
 #include <GNETextSearch/Types.h>
+#include <GNETextSearch/CountedSet.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +23,19 @@ extern "C" {
         #define TSEARCH_INLINE static inline
     #endif
 #endif
+
+typedef struct _tsearch_countedset_serialized_item
+{
+    GNEInteger integer;
+    size_t count;
+} _tsearch_countedset_serialized_item;
+
+result _tsearch_countedset_copy_items(const tsearch_countedset_ptr ptr,
+                                      _tsearch_countedset_serialized_item **outItems,
+                                      size_t *outCount);
+result _tsearch_countedset_add_int_count(const tsearch_countedset_ptr ptr,
+                                         const GNEInteger integer,
+                                         const size_t count);
 
 TSEARCH_INLINE bool _tsearch_size_add_overflows(size_t a, size_t b, size_t *out)
 {
