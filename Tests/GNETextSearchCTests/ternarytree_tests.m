@@ -690,6 +690,70 @@
 }
 
 
+- (void)testSerialization_BytesRoundTripThroughNSData
+{
+    GNEInteger firstID = 42;
+    GNEInteger secondID = 7;
+
+    XCTAssertTrue(NULL != tsearch_ternarytree_insert(_treePtr, "shared", firstID));
+    XCTAssertTrue(NULL != tsearch_ternarytree_insert(_treePtr, "shared", firstID));
+    XCTAssertTrue(NULL != tsearch_ternarytree_insert(_treePtr, "shared", secondID));
+    XCTAssertTrue(NULL != tsearch_ternarytree_insert(_treePtr, "prefix", firstID));
+    XCTAssertTrue(NULL != tsearch_ternarytree_insert(_treePtr, "suffix", secondID));
+
+    uint8_t *bytes = NULL;
+    size_t length = 0;
+    XCTAssertEqual(success, tsearch_ternarytree_copy_serialized_bytes(_treePtr, &bytes, &length));
+    XCTAssertTrue(bytes != NULL);
+    XCTAssertTrue(length > 0);
+
+    NSData *data = [NSData dataWithBytesNoCopy:bytes length:length freeWhenDone:YES];
+    bytes = NULL;
+    XCTAssertNotNil(data);
+
+    tsearch_ternarytree_ptr loadedTree = tsearch_ternarytree_init_from_serialized_bytes(data.bytes, data.length);
+
+    XCTAssertTrue(loadedTree != NULL);
+    [self assertResultsInTree:loadedTree equalWords:@[@"shared", @"prefix", @"suffix"]];
+
+    tsearch_countedset_ptr resultsPtr = tsearch_ternarytree_copy_search_results(loadedTree, "shared");
+    XCTAssertTrue(resultsPtr != NULL);
+    XCTAssertEqual((size_t)2, tsearch_countedset_get_count(resultsPtr));
+    XCTAssertEqual((size_t)2, tsearch_countedset_get_count_for_int(resultsPtr, firstID));
+    XCTAssertEqual((size_t)1, tsearch_countedset_get_count_for_int(resultsPtr, secondID));
+    tsearch_countedset_free(resultsPtr);
+
+    tsearch_ternarytree_free(loadedTree);
+}
+
+
+- (void)testSerialization_InvalidBytes_ReturnsNullTree
+{
+    uint8_t invalidBytes[] = {'n', 'o', 't'};
+
+    XCTAssertTrue(NULL == tsearch_ternarytree_init_from_serialized_bytes(invalidBytes, sizeof(invalidBytes)));
+    XCTAssertTrue(NULL == tsearch_ternarytree_init_from_serialized_bytes(NULL, 0));
+    XCTAssertTrue(NULL == tsearch_ternarytree_init_from_serialized_bytes(invalidBytes, 0));
+}
+
+
+- (void)testSerialization_CopySerializedBytesWithInvalidInputsFails
+{
+    uint8_t *bytes = NULL;
+    size_t length = 123;
+
+    XCTAssertEqual(failure, tsearch_ternarytree_copy_serialized_bytes(NULL, &bytes, &length));
+    XCTAssertEqual(NULL, bytes);
+    XCTAssertEqual((size_t)0, length);
+
+    XCTAssertEqual(failure, tsearch_ternarytree_copy_serialized_bytes(_treePtr, NULL, &length));
+    XCTAssertEqual((size_t)0, length);
+
+    XCTAssertEqual(failure, tsearch_ternarytree_copy_serialized_bytes(_treePtr, &bytes, NULL));
+    XCTAssertEqual(NULL, bytes);
+}
+
+
 - (void)testSerialization_InvalidFile_ReturnsNullTree
 {
     NSString *path = [self temporarySerializationPath];

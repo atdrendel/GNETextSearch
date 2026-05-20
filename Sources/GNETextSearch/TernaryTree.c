@@ -39,27 +39,67 @@ typedef struct _tsearch_ternarytree_deserialize_item
     tsearch_ternarytree_ptr parent;
 } _tsearch_ternarytree_deserialize_item;
 
+typedef struct _tsearch_ternarytree_writer
+{
+    void *context;
+    result (*write)(void *context, const void *bytes, size_t length);
+} _tsearch_ternarytree_writer;
+
+typedef struct _tsearch_ternarytree_reader
+{
+    void *context;
+    result (*read)(void *context, void *bytes, size_t length);
+    result (*is_at_end)(void *context);
+} _tsearch_ternarytree_reader;
+
+typedef struct _tsearch_ternarytree_memory_writer
+{
+    uint8_t *bytes;
+    size_t length;
+    size_t capacity;
+} _tsearch_ternarytree_memory_writer;
+
+typedef struct _tsearch_ternarytree_memory_reader
+{
+    const uint8_t *bytes;
+    size_t length;
+    size_t position;
+} _tsearch_ternarytree_memory_reader;
+
 // ------------------------------------------------------------------------------------------
 
 static bool _tsearch_cstring_is_nonempty(const char *string);
 tsearch_ternarytree_ptr _tsearch_ternarytree_search(tsearch_ternarytree_ptr ptr, const char *target);
-static result _tsearch_ternarytree_write_header(FILE *file);
-static result _tsearch_ternarytree_read_header(FILE *file);
-static result _tsearch_ternarytree_write_node(FILE *file, const tsearch_ternarytree_ptr node);
-static tsearch_ternarytree_ptr _tsearch_ternarytree_read_from_file(FILE *file);
-static result _tsearch_ternarytree_read_node(FILE *file,
+static result _tsearch_ternarytree_write(const tsearch_ternarytree_ptr ptr, _tsearch_ternarytree_writer *writer);
+static result _tsearch_ternarytree_write_header(_tsearch_ternarytree_writer *writer);
+static result _tsearch_ternarytree_read_header(_tsearch_ternarytree_reader *reader);
+static result _tsearch_ternarytree_write_node(_tsearch_ternarytree_writer *writer, const tsearch_ternarytree_ptr node);
+static tsearch_ternarytree_ptr _tsearch_ternarytree_read(_tsearch_ternarytree_reader *reader);
+static result _tsearch_ternarytree_read_node(_tsearch_ternarytree_reader *reader,
                                              tsearch_ternarytree_ptr *outNode,
                                              tsearch_ternarytree_ptr parent,
                                              uint8_t *outChildFlags);
-static result _tsearch_ternarytree_file_is_at_end(FILE *file);
-static result _tsearch_write_u8(FILE *file, const uint8_t value);
-static result _tsearch_write_u32_le(FILE *file, const uint32_t value);
-static result _tsearch_write_u64_le(FILE *file, const uint64_t value);
-static result _tsearch_write_i64_le(FILE *file, const int64_t value);
-static result _tsearch_read_u8(FILE *file, uint8_t *outValue);
-static result _tsearch_read_u32_le(FILE *file, uint32_t *outValue);
-static result _tsearch_read_u64_le(FILE *file, uint64_t *outValue);
-static result _tsearch_read_i64_le(FILE *file, int64_t *outValue);
+static result _tsearch_ternarytree_reader_is_at_end(_tsearch_ternarytree_reader *reader);
+static result _tsearch_ternarytree_write_bytes(_tsearch_ternarytree_writer *writer,
+                                               const void *bytes,
+                                               const size_t length);
+static result _tsearch_ternarytree_read_bytes(_tsearch_ternarytree_reader *reader,
+                                              void *bytes,
+                                              const size_t length);
+static result _tsearch_write_u8(_tsearch_ternarytree_writer *writer, const uint8_t value);
+static result _tsearch_write_u32_le(_tsearch_ternarytree_writer *writer, const uint32_t value);
+static result _tsearch_write_u64_le(_tsearch_ternarytree_writer *writer, const uint64_t value);
+static result _tsearch_write_i64_le(_tsearch_ternarytree_writer *writer, const int64_t value);
+static result _tsearch_read_u8(_tsearch_ternarytree_reader *reader, uint8_t *outValue);
+static result _tsearch_read_u32_le(_tsearch_ternarytree_reader *reader, uint32_t *outValue);
+static result _tsearch_read_u64_le(_tsearch_ternarytree_reader *reader, uint64_t *outValue);
+static result _tsearch_read_i64_le(_tsearch_ternarytree_reader *reader, int64_t *outValue);
+static result _tsearch_ternarytree_file_write(void *context, const void *bytes, size_t length);
+static result _tsearch_ternarytree_file_read(void *context, void *bytes, size_t length);
+static result _tsearch_ternarytree_file_is_at_end(void *context);
+static result _tsearch_ternarytree_memory_write(void *context, const void *bytes, size_t length);
+static result _tsearch_ternarytree_memory_read(void *context, void *bytes, size_t length);
+static result _tsearch_ternarytree_memory_is_at_end(void *context);
 static result _tsearch_u64_to_size(const uint64_t value, size_t *outValue);
 result _tsearch_ternarytree_copy_words_from_node(const tsearch_ternarytree_ptr ptr, tsearch_countedset_ptr results);
 static result _tsearch_build_prefix_table(const char *target, const size_t length, size_t **outTable);
@@ -151,13 +191,28 @@ tsearch_ternarytree_ptr tsearch_ternarytree_init_from_file(const char *path)
     FILE *file = fopen(path, "rb");
     if (file == NULL) { return NULL; }
 
-    tsearch_ternarytree_ptr ptr = _tsearch_ternarytree_read_from_file(file);
+    _tsearch_ternarytree_reader reader = {file, _tsearch_ternarytree_file_read, _tsearch_ternarytree_file_is_at_end};
+    tsearch_ternarytree_ptr ptr = _tsearch_ternarytree_read(&reader);
     if (fclose(file) != 0) {
         tsearch_ternarytree_free(ptr);
         return NULL;
     }
 
     return ptr;
+}
+
+
+tsearch_ternarytree_ptr tsearch_ternarytree_init_from_serialized_bytes(const uint8_t *bytes, const size_t length)
+{
+    if (bytes == NULL || length == 0) { return NULL; }
+
+    _tsearch_ternarytree_memory_reader memoryReader = {bytes, length, 0};
+    _tsearch_ternarytree_reader reader = {
+        &memoryReader,
+        _tsearch_ternarytree_memory_read,
+        _tsearch_ternarytree_memory_is_at_end
+    };
+    return _tsearch_ternarytree_read(&reader);
 }
 
 
@@ -201,6 +256,28 @@ void tsearch_ternarytree_free(const tsearch_ternarytree_ptr ptr)
 }
 
 
+result tsearch_ternarytree_copy_serialized_bytes(const tsearch_ternarytree_ptr ptr,
+                                                uint8_t **outBytes,
+                                                size_t *outLength)
+{
+    if (outBytes != NULL) { *outBytes = NULL; }
+    if (outLength != NULL) { *outLength = 0; }
+    if (ptr == NULL || outBytes == NULL || outLength == NULL) { return failure; }
+
+    _tsearch_ternarytree_memory_writer memoryWriter = {NULL, 0, 0};
+    _tsearch_ternarytree_writer writer = {&memoryWriter, _tsearch_ternarytree_memory_write};
+    result ret = _tsearch_ternarytree_write(ptr, &writer);
+    if (ret == failure) {
+        free(memoryWriter.bytes);
+        return failure;
+    }
+
+    *outBytes = memoryWriter.bytes;
+    *outLength = memoryWriter.length;
+    return success;
+}
+
+
 result tsearch_ternarytree_save_to_file(const tsearch_ternarytree_ptr ptr, const char *path)
 {
     if (ptr == NULL || !_tsearch_cstring_is_nonempty(path)) { return failure; }
@@ -208,36 +285,8 @@ result tsearch_ternarytree_save_to_file(const tsearch_ternarytree_ptr ptr, const
     FILE *file = fopen(path, "wb");
     if (file == NULL) { return failure; }
 
-    result ret = _tsearch_ternarytree_write_header(file);
-
-    tsearch_ternarytree_ptr *stack = NULL;
-    size_t stackCount = 0;
-    size_t stackCapacity = 0;
-    if (ret == success) {
-        ret = _tsearch_ternarytree_node_stack_push(&stack, &stackCount, &stackCapacity, ptr);
-    }
-
-    while (ret == success && stackCount > 0) {
-        tsearch_ternarytree_ptr node = stack[--stackCount];
-        ret = _tsearch_ternarytree_write_node(file, node);
-        if (ret == failure) { break; }
-
-        if (node->higher != NULL) {
-            ret = _tsearch_ternarytree_node_stack_push(&stack, &stackCount, &stackCapacity, node->higher);
-            if (ret == failure) { break; }
-        }
-
-        if (node->same != NULL) {
-            ret = _tsearch_ternarytree_node_stack_push(&stack, &stackCount, &stackCapacity, node->same);
-            if (ret == failure) { break; }
-        }
-
-        if (node->lower != NULL) {
-            ret = _tsearch_ternarytree_node_stack_push(&stack, &stackCount, &stackCapacity, node->lower);
-        }
-    }
-
-    free(stack);
+    _tsearch_ternarytree_writer writer = {file, _tsearch_ternarytree_file_write};
+    result ret = _tsearch_ternarytree_write(ptr, &writer);
 
     if (fclose(file) != 0) { ret = failure; }
     return ret;
@@ -515,39 +564,76 @@ static bool _tsearch_cstring_is_nonempty(const char *string)
 }
 
 
-static result _tsearch_ternarytree_write_header(FILE *file)
+static result _tsearch_ternarytree_write(const tsearch_ternarytree_ptr ptr, _tsearch_ternarytree_writer *writer)
 {
-    if (file == NULL) { return failure; }
-    if (fwrite(_tsearch_ternarytree_file_magic,
-               sizeof(_tsearch_ternarytree_file_magic),
-               1,
-               file) != 1) {
-        return failure;
+    if (ptr == NULL || writer == NULL || writer->write == NULL) { return failure; }
+
+    result ret = _tsearch_ternarytree_write_header(writer);
+
+    tsearch_ternarytree_ptr *stack = NULL;
+    size_t stackCount = 0;
+    size_t stackCapacity = 0;
+    if (ret == success) {
+        ret = _tsearch_ternarytree_node_stack_push(&stack, &stackCount, &stackCapacity, ptr);
     }
 
-    return _tsearch_write_u32_le(file, _tsearch_ternarytree_file_version);
+    while (ret == success && stackCount > 0) {
+        tsearch_ternarytree_ptr node = stack[--stackCount];
+        ret = _tsearch_ternarytree_write_node(writer, node);
+        if (ret == failure) { break; }
+
+        if (node->higher != NULL) {
+            ret = _tsearch_ternarytree_node_stack_push(&stack, &stackCount, &stackCapacity, node->higher);
+            if (ret == failure) { break; }
+        }
+
+        if (node->same != NULL) {
+            ret = _tsearch_ternarytree_node_stack_push(&stack, &stackCount, &stackCapacity, node->same);
+            if (ret == failure) { break; }
+        }
+
+        if (node->lower != NULL) {
+            ret = _tsearch_ternarytree_node_stack_push(&stack, &stackCount, &stackCapacity, node->lower);
+        }
+    }
+
+    free(stack);
+    return ret;
 }
 
 
-static result _tsearch_ternarytree_read_header(FILE *file)
+static result _tsearch_ternarytree_write_header(_tsearch_ternarytree_writer *writer)
 {
-    if (file == NULL) { return failure; }
+    if (writer == NULL) { return failure; }
+    if (_tsearch_ternarytree_write_bytes(writer,
+                                         _tsearch_ternarytree_file_magic,
+                                         sizeof(_tsearch_ternarytree_file_magic)) == failure) {
+        return failure;
+    }
+
+    return _tsearch_write_u32_le(writer, _tsearch_ternarytree_file_version);
+}
+
+
+static result _tsearch_ternarytree_read_header(_tsearch_ternarytree_reader *reader)
+{
+    if (reader == NULL) { return failure; }
 
     uint8_t magic[sizeof(_tsearch_ternarytree_file_magic)] = {0};
-    if (fread(magic, sizeof(magic), 1, file) != 1) { return failure; }
+    if (_tsearch_ternarytree_read_bytes(reader, magic, sizeof(magic)) == failure) { return failure; }
     for (size_t i = 0; i < sizeof(_tsearch_ternarytree_file_magic); i++) {
         if (magic[i] != _tsearch_ternarytree_file_magic[i]) { return failure; }
     }
 
     uint32_t version = 0;
-    if (_tsearch_read_u32_le(file, &version) == failure) { return failure; }
+    if (_tsearch_read_u32_le(reader, &version) == failure) { return failure; }
     return (version == _tsearch_ternarytree_file_version) ? success : failure;
 }
 
 
-static result _tsearch_ternarytree_write_node(FILE *file, const tsearch_ternarytree_ptr node)
+static result _tsearch_ternarytree_write_node(_tsearch_ternarytree_writer *writer, const tsearch_ternarytree_ptr node)
 {
-    if (file == NULL || node == NULL) { return failure; }
+    if (writer == NULL || node == NULL) { return failure; }
 
     uint8_t childFlags = 0;
     if (node->lower != NULL) { childFlags |= _tsearch_ternarytree_child_lower; }
@@ -560,13 +646,13 @@ static result _tsearch_ternarytree_write_node(FILE *file, const tsearch_ternaryt
         return failure;
     }
 
-    result ret = _tsearch_write_u8(file, (uint8_t)node->character);
-    if (ret == success) { ret = _tsearch_write_u8(file, childFlags); }
-    if (ret == success) { ret = _tsearch_write_u64_le(file, (uint64_t)itemCount); }
+    result ret = _tsearch_write_u8(writer, (uint8_t)node->character);
+    if (ret == success) { ret = _tsearch_write_u8(writer, childFlags); }
+    if (ret == success) { ret = _tsearch_write_u64_le(writer, (uint64_t)itemCount); }
 
     for (size_t i = 0; ret == success && i < itemCount; i++) {
-        ret = _tsearch_write_i64_le(file, items[i].integer);
-        if (ret == success) { ret = _tsearch_write_u64_le(file, (uint64_t)items[i].count); }
+        ret = _tsearch_write_i64_le(writer, items[i].integer);
+        if (ret == success) { ret = _tsearch_write_u64_le(writer, (uint64_t)items[i].count); }
     }
 
     free(items);
@@ -574,9 +660,9 @@ static result _tsearch_ternarytree_write_node(FILE *file, const tsearch_ternaryt
 }
 
 
-static tsearch_ternarytree_ptr _tsearch_ternarytree_read_from_file(FILE *file)
+static tsearch_ternarytree_ptr _tsearch_ternarytree_read(_tsearch_ternarytree_reader *reader)
 {
-    if (_tsearch_ternarytree_read_header(file) == failure) { return NULL; }
+    if (_tsearch_ternarytree_read_header(reader) == failure) { return NULL; }
 
     tsearch_ternarytree_ptr root = NULL;
     _tsearch_ternarytree_deserialize_item *stack = NULL;
@@ -592,7 +678,7 @@ static tsearch_ternarytree_ptr _tsearch_ternarytree_read_from_file(FILE *file)
         _tsearch_ternarytree_deserialize_item item = stack[--stackCount];
         uint8_t childFlags = 0;
         tsearch_ternarytree_ptr node = NULL;
-        ret = _tsearch_ternarytree_read_node(file, &node, item.parent, &childFlags);
+        ret = _tsearch_ternarytree_read_node(reader, &node, item.parent, &childFlags);
         if (ret == failure) { break; }
         *item.slot = node;
 
@@ -620,7 +706,7 @@ static tsearch_ternarytree_ptr _tsearch_ternarytree_read_from_file(FILE *file)
         }
     }
 
-    if (ret == success) { ret = _tsearch_ternarytree_file_is_at_end(file); }
+    if (ret == success) { ret = _tsearch_ternarytree_reader_is_at_end(reader); }
 
     free(stack);
 
@@ -633,21 +719,21 @@ static tsearch_ternarytree_ptr _tsearch_ternarytree_read_from_file(FILE *file)
 }
 
 
-static result _tsearch_ternarytree_read_node(FILE *file,
+static result _tsearch_ternarytree_read_node(_tsearch_ternarytree_reader *reader,
                                              tsearch_ternarytree_ptr *outNode,
                                              tsearch_ternarytree_ptr parent,
                                              uint8_t *outChildFlags)
 {
-    if (file == NULL || outNode == NULL || outChildFlags == NULL) { return failure; }
+    if (reader == NULL || outNode == NULL || outChildFlags == NULL) { return failure; }
     *outNode = NULL;
     *outChildFlags = 0;
 
     uint8_t character = 0;
     uint8_t childFlags = 0;
     uint64_t itemCount64 = 0;
-    if (_tsearch_read_u8(file, &character) == failure ||
-        _tsearch_read_u8(file, &childFlags) == failure ||
-        _tsearch_read_u64_le(file, &itemCount64) == failure) {
+    if (_tsearch_read_u8(reader, &character) == failure ||
+        _tsearch_read_u8(reader, &childFlags) == failure ||
+        _tsearch_read_u64_le(reader, &itemCount64) == failure) {
         return failure;
     }
 
@@ -675,8 +761,8 @@ static result _tsearch_ternarytree_read_node(FILE *file,
         int64_t integer = 0;
         uint64_t count64 = 0;
         size_t count = 0;
-        if (_tsearch_read_i64_le(file, &integer) == failure ||
-            _tsearch_read_u64_le(file, &count64) == failure ||
+        if (_tsearch_read_i64_le(reader, &integer) == failure ||
+            _tsearch_read_u64_le(reader, &count64) == failure ||
             _tsearch_u64_to_size(count64, &count) == failure ||
             count == 0 ||
             _tsearch_countedset_add_int_count(node->documentIDs, integer, count) == failure) {
@@ -691,8 +777,56 @@ static result _tsearch_ternarytree_read_node(FILE *file,
 }
 
 
-static result _tsearch_ternarytree_file_is_at_end(FILE *file)
+static result _tsearch_ternarytree_reader_is_at_end(_tsearch_ternarytree_reader *reader)
 {
+    if (reader == NULL || reader->is_at_end == NULL) { return failure; }
+    return reader->is_at_end(reader->context);
+}
+
+
+static result _tsearch_ternarytree_write_bytes(_tsearch_ternarytree_writer *writer,
+                                               const void *bytes,
+                                               const size_t length)
+{
+    if (writer == NULL || writer->write == NULL) { return failure; }
+    if (length > 0 && bytes == NULL) { return failure; }
+    if (length == 0) { return success; }
+
+    return writer->write(writer->context, bytes, length);
+}
+
+
+static result _tsearch_ternarytree_read_bytes(_tsearch_ternarytree_reader *reader,
+                                              void *bytes,
+                                              const size_t length)
+{
+    if (reader == NULL || reader->read == NULL) { return failure; }
+    if (length > 0 && bytes == NULL) { return failure; }
+    if (length == 0) { return success; }
+
+    return reader->read(reader->context, bytes, length);
+}
+
+
+static result _tsearch_ternarytree_file_write(void *context, const void *bytes, size_t length)
+{
+    FILE *file = context;
+    if (file == NULL || (length > 0 && bytes == NULL)) { return failure; }
+    return (fwrite(bytes, 1, length, file) == length) ? success : failure;
+}
+
+
+static result _tsearch_ternarytree_file_read(void *context, void *bytes, size_t length)
+{
+    FILE *file = context;
+    if (file == NULL || (length > 0 && bytes == NULL)) { return failure; }
+    return (fread(bytes, 1, length, file) == length) ? success : failure;
+}
+
+
+static result _tsearch_ternarytree_file_is_at_end(void *context)
+{
+    FILE *file = context;
     if (file == NULL) { return failure; }
     int character = fgetc(file);
     if (character == EOF) {
@@ -703,29 +837,81 @@ static result _tsearch_ternarytree_file_is_at_end(FILE *file)
 }
 
 
-static result _tsearch_write_u8(FILE *file, const uint8_t value)
+static result _tsearch_ternarytree_memory_write(void *context, const void *bytes, size_t length)
 {
-    if (file == NULL) { return failure; }
-    return (fwrite(&value, sizeof(value), 1, file) == 1) ? success : failure;
+    _tsearch_ternarytree_memory_writer *writer = context;
+    if (writer == NULL || (length > 0 && bytes == NULL)) { return failure; }
+    if (length == 0) { return success; }
+
+    size_t newLength = 0;
+    if (_tsearch_size_add_overflows(writer->length, length, &newLength)) { return failure; }
+
+    if (newLength > writer->capacity) {
+        size_t newCapacity = writer->capacity;
+        if (newCapacity == 0) { newCapacity = 256; }
+
+        while (newCapacity < newLength) {
+            if (_tsearch_size_mul_overflows(newCapacity, 2, &newCapacity)) { return failure; }
+        }
+
+        uint8_t *newBytes = realloc(writer->bytes, newCapacity);
+        if (newBytes == NULL) { return failure; }
+
+        writer->bytes = newBytes;
+        writer->capacity = newCapacity;
+    }
+
+    memcpy(writer->bytes + writer->length, bytes, length);
+    writer->length = newLength;
+    return success;
 }
 
 
-static result _tsearch_write_u32_le(FILE *file, const uint32_t value)
+static result _tsearch_ternarytree_memory_read(void *context, void *bytes, size_t length)
 {
-    if (file == NULL) { return failure; }
+    _tsearch_ternarytree_memory_reader *reader = context;
+    if (reader == NULL || (length > 0 && bytes == NULL)) { return failure; }
+    if (length == 0) { return success; }
+
+    if (reader->position > reader->length) { return failure; }
+    size_t remainingLength = reader->length - reader->position;
+    if (length > remainingLength) { return failure; }
+    if (reader->bytes == NULL) { return failure; }
+
+    memcpy(bytes, reader->bytes + reader->position, length);
+    reader->position += length;
+    return success;
+}
+
+
+static result _tsearch_ternarytree_memory_is_at_end(void *context)
+{
+    _tsearch_ternarytree_memory_reader *reader = context;
+    if (reader == NULL || reader->position > reader->length) { return failure; }
+    return (reader->position == reader->length) ? success : failure;
+}
+
+
+static result _tsearch_write_u8(_tsearch_ternarytree_writer *writer, const uint8_t value)
+{
+    return _tsearch_ternarytree_write_bytes(writer, &value, sizeof(value));
+}
+
+
+static result _tsearch_write_u32_le(_tsearch_ternarytree_writer *writer, const uint32_t value)
+{
     uint8_t bytes[4] = {
         (uint8_t)(value & 0xff),
         (uint8_t)((value >> 8) & 0xff),
         (uint8_t)((value >> 16) & 0xff),
         (uint8_t)((value >> 24) & 0xff)
     };
-    return (fwrite(bytes, sizeof(bytes), 1, file) == 1) ? success : failure;
+    return _tsearch_ternarytree_write_bytes(writer, bytes, sizeof(bytes));
 }
 
 
-static result _tsearch_write_u64_le(FILE *file, const uint64_t value)
+static result _tsearch_write_u64_le(_tsearch_ternarytree_writer *writer, const uint64_t value)
 {
-    if (file == NULL) { return failure; }
     uint8_t bytes[8] = {
         (uint8_t)(value & 0xff),
         (uint8_t)((value >> 8) & 0xff),
@@ -736,31 +922,31 @@ static result _tsearch_write_u64_le(FILE *file, const uint64_t value)
         (uint8_t)((value >> 48) & 0xff),
         (uint8_t)((value >> 56) & 0xff)
     };
-    return (fwrite(bytes, sizeof(bytes), 1, file) == 1) ? success : failure;
+    return _tsearch_ternarytree_write_bytes(writer, bytes, sizeof(bytes));
 }
 
 
-static result _tsearch_write_i64_le(FILE *file, const int64_t value)
+static result _tsearch_write_i64_le(_tsearch_ternarytree_writer *writer, const int64_t value)
 {
     uint64_t unsignedValue = 0;
     memcpy(&unsignedValue, &value, sizeof(unsignedValue));
-    return _tsearch_write_u64_le(file, unsignedValue);
+    return _tsearch_write_u64_le(writer, unsignedValue);
 }
 
 
-static result _tsearch_read_u8(FILE *file, uint8_t *outValue)
+static result _tsearch_read_u8(_tsearch_ternarytree_reader *reader, uint8_t *outValue)
 {
-    if (file == NULL || outValue == NULL) { return failure; }
-    return (fread(outValue, sizeof(*outValue), 1, file) == 1) ? success : failure;
+    if (outValue == NULL) { return failure; }
+    return _tsearch_ternarytree_read_bytes(reader, outValue, sizeof(*outValue));
 }
 
 
-static result _tsearch_read_u32_le(FILE *file, uint32_t *outValue)
+static result _tsearch_read_u32_le(_tsearch_ternarytree_reader *reader, uint32_t *outValue)
 {
-    if (file == NULL || outValue == NULL) { return failure; }
+    if (outValue == NULL) { return failure; }
 
     uint8_t bytes[4] = {0};
-    if (fread(bytes, sizeof(bytes), 1, file) != 1) { return failure; }
+    if (_tsearch_ternarytree_read_bytes(reader, bytes, sizeof(bytes)) == failure) { return failure; }
 
     *outValue = ((uint32_t)bytes[0] |
                  ((uint32_t)bytes[1] << 8) |
@@ -770,12 +956,12 @@ static result _tsearch_read_u32_le(FILE *file, uint32_t *outValue)
 }
 
 
-static result _tsearch_read_u64_le(FILE *file, uint64_t *outValue)
+static result _tsearch_read_u64_le(_tsearch_ternarytree_reader *reader, uint64_t *outValue)
 {
-    if (file == NULL || outValue == NULL) { return failure; }
+    if (outValue == NULL) { return failure; }
 
     uint8_t bytes[8] = {0};
-    if (fread(bytes, sizeof(bytes), 1, file) != 1) { return failure; }
+    if (_tsearch_ternarytree_read_bytes(reader, bytes, sizeof(bytes)) == failure) { return failure; }
 
     *outValue = ((uint64_t)bytes[0] |
                  ((uint64_t)bytes[1] << 8) |
@@ -789,11 +975,11 @@ static result _tsearch_read_u64_le(FILE *file, uint64_t *outValue)
 }
 
 
-static result _tsearch_read_i64_le(FILE *file, int64_t *outValue)
+static result _tsearch_read_i64_le(_tsearch_ternarytree_reader *reader, int64_t *outValue)
 {
     if (outValue == NULL) { return failure; }
     uint64_t unsignedValue = 0;
-    if (_tsearch_read_u64_le(file, &unsignedValue) == failure) { return failure; }
+    if (_tsearch_read_u64_le(reader, &unsignedValue) == failure) { return failure; }
     memcpy(outValue, &unsignedValue, sizeof(*outValue));
     return success;
 }
