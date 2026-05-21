@@ -293,7 +293,7 @@ result tsearch_countedset_minus(const tsearch_countedset_ptr ptr, const tsearch_
 
 
 result _tsearch_countedset_copy_items(const tsearch_countedset_ptr ptr,
-                                      _tsearch_countedset_serialized_item **outItems,
+                                      _tsearch_countedset_item **outItems,
                                       size_t *outCount)
 {
     if (outItems == NULL || outCount == NULL) { return failure; }
@@ -303,11 +303,11 @@ result _tsearch_countedset_copy_items(const tsearch_countedset_ptr ptr,
     if (ptr == NULL || ptr->nodes == NULL || ptr->count == 0) { return success; }
 
     size_t byteLength = 0;
-    if (_tsearch_size_mul_overflows(ptr->count, sizeof(_tsearch_countedset_serialized_item), &byteLength)) {
+    if (_tsearch_size_mul_overflows(ptr->count, sizeof(_tsearch_countedset_item), &byteLength)) {
         return failure;
     }
 
-    _tsearch_countedset_serialized_item *items = malloc(byteLength);
+    _tsearch_countedset_item *items = malloc(byteLength);
     if (items == NULL) { return failure; }
 
     size_t itemIndex = 0;

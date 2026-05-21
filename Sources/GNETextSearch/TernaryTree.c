@@ -202,7 +202,7 @@ tsearch_ternarytree_ptr tsearch_ternarytree_init_from_file(const char *path)
 }
 
 
-tsearch_ternarytree_ptr tsearch_ternarytree_init_from_serialized_bytes(const uint8_t *bytes, const size_t length)
+tsearch_ternarytree_ptr tsearch_ternarytree_init_from_bytes(const uint8_t *bytes, const size_t length)
 {
     if (bytes == NULL || length == 0) { return NULL; }
 
@@ -256,9 +256,9 @@ void tsearch_ternarytree_free(const tsearch_ternarytree_ptr ptr)
 }
 
 
-result tsearch_ternarytree_copy_serialized_bytes(const tsearch_ternarytree_ptr ptr,
-                                                uint8_t **outBytes,
-                                                size_t *outLength)
+result tsearch_ternarytree_copy_bytes(const tsearch_ternarytree_ptr ptr,
+                                      uint8_t **outBytes,
+                                      size_t *outLength)
 {
     if (outBytes != NULL) { *outBytes = NULL; }
     if (outLength != NULL) { *outLength = 0; }
@@ -640,7 +640,7 @@ static result _tsearch_ternarytree_write_node(_tsearch_ternarytree_writer *write
     if (node->same != NULL) { childFlags |= _tsearch_ternarytree_child_same; }
     if (node->higher != NULL) { childFlags |= _tsearch_ternarytree_child_higher; }
 
-    _tsearch_countedset_serialized_item *items = NULL;
+    _tsearch_countedset_item *items = NULL;
     size_t itemCount = 0;
     if (_tsearch_countedset_copy_items(node->documentIDs, &items, &itemCount) == failure) {
         return failure;

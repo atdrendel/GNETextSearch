@@ -24,14 +24,14 @@ extern "C" {
     #endif
 #endif
 
-typedef struct _tsearch_countedset_serialized_item
+typedef struct _tsearch_countedset_item
 {
     GNEInteger integer;
     size_t count;
-} _tsearch_countedset_serialized_item;
+} _tsearch_countedset_item;
 
 result _tsearch_countedset_copy_items(const tsearch_countedset_ptr ptr,
-                                      _tsearch_countedset_serialized_item **outItems,
+                                      _tsearch_countedset_item **outItems,
                                       size_t *outCount);
 result _tsearch_countedset_add_int_count(const tsearch_countedset_ptr ptr,
                                          const GNEInteger integer,

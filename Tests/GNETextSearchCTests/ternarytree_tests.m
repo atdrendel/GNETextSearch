@@ -703,7 +703,7 @@
 
     uint8_t *bytes = NULL;
     size_t length = 0;
-    XCTAssertEqual(success, tsearch_ternarytree_copy_serialized_bytes(_treePtr, &bytes, &length));
+    XCTAssertEqual(success, tsearch_ternarytree_copy_bytes(_treePtr, &bytes, &length));
     XCTAssertTrue(bytes != NULL);
     XCTAssertTrue(length > 0);
 
@@ -711,7 +711,7 @@
     bytes = NULL;
     XCTAssertNotNil(data);
 
-    tsearch_ternarytree_ptr loadedTree = tsearch_ternarytree_init_from_serialized_bytes(data.bytes, data.length);
+    tsearch_ternarytree_ptr loadedTree = tsearch_ternarytree_init_from_bytes(data.bytes, data.length);
 
     XCTAssertTrue(loadedTree != NULL);
     [self assertResultsInTree:loadedTree equalWords:@[@"shared", @"prefix", @"suffix"]];
@@ -731,9 +731,9 @@
 {
     uint8_t invalidBytes[] = {'n', 'o', 't'};
 
-    XCTAssertTrue(NULL == tsearch_ternarytree_init_from_serialized_bytes(invalidBytes, sizeof(invalidBytes)));
-    XCTAssertTrue(NULL == tsearch_ternarytree_init_from_serialized_bytes(NULL, 0));
-    XCTAssertTrue(NULL == tsearch_ternarytree_init_from_serialized_bytes(invalidBytes, 0));
+    XCTAssertTrue(NULL == tsearch_ternarytree_init_from_bytes(invalidBytes, sizeof(invalidBytes)));
+    XCTAssertTrue(NULL == tsearch_ternarytree_init_from_bytes(NULL, 0));
+    XCTAssertTrue(NULL == tsearch_ternarytree_init_from_bytes(invalidBytes, 0));
 }
 
 
@@ -742,14 +742,14 @@
     uint8_t *bytes = NULL;
     size_t length = 123;
 
-    XCTAssertEqual(failure, tsearch_ternarytree_copy_serialized_bytes(NULL, &bytes, &length));
+    XCTAssertEqual(failure, tsearch_ternarytree_copy_bytes(NULL, &bytes, &length));
     XCTAssertEqual(NULL, bytes);
     XCTAssertEqual((size_t)0, length);
 
-    XCTAssertEqual(failure, tsearch_ternarytree_copy_serialized_bytes(_treePtr, NULL, &length));
+    XCTAssertEqual(failure, tsearch_ternarytree_copy_bytes(_treePtr, NULL, &length));
     XCTAssertEqual((size_t)0, length);
 
-    XCTAssertEqual(failure, tsearch_ternarytree_copy_serialized_bytes(_treePtr, &bytes, NULL));
+    XCTAssertEqual(failure, tsearch_ternarytree_copy_bytes(_treePtr, &bytes, NULL));
     XCTAssertEqual(NULL, bytes);
 }
 

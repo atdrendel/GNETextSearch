@@ -26,20 +26,20 @@ tsearch_ternarytree_ptr tsearch_ternarytree_init(void);
 /// Returns NULL for NULL paths, invalid files, unsupported file versions, or I/O errors.
 tsearch_ternarytree_ptr tsearch_ternarytree_init_from_file(const char *path);
 
-/// Loads a tree from bytes previously written with tsearch_ternarytree_copy_serialized_bytes().
+/// Loads a tree from bytes previously written with tsearch_ternarytree_copy_bytes().
 /// The caller is responsible for calling tsearch_ternarytree_free().
 /// Returns NULL for NULL bytes, zero lengths, invalid bytes, or unsupported serialization versions.
-tsearch_ternarytree_ptr tsearch_ternarytree_init_from_serialized_bytes(const uint8_t *bytes, const size_t length);
+tsearch_ternarytree_ptr tsearch_ternarytree_init_from_bytes(const uint8_t *bytes, const size_t length);
 
 /// Frees a ternary tree created by this API. NULL is allowed.
 void tsearch_ternarytree_free(const tsearch_ternarytree_ptr ptr);
 
-/// Copies the tree to a binary representation that can be loaded with tsearch_ternarytree_init_from_serialized_bytes().
+/// Copies the tree to a binary representation that can be loaded with tsearch_ternarytree_init_from_bytes().
 /// On success, writes newly allocated bytes to outBytes and their length to outLength. The caller must free() outBytes.
 /// On failure, writes NULL and 0. Returns failure for NULL trees, NULL outputs, or allocation failure.
-result tsearch_ternarytree_copy_serialized_bytes(const tsearch_ternarytree_ptr ptr,
-                                                uint8_t **outBytes,
-                                                size_t *outLength);
+result tsearch_ternarytree_copy_bytes(const tsearch_ternarytree_ptr ptr,
+                                      uint8_t **outBytes,
+                                      size_t *outLength);
 
 /// Writes the tree to a binary file that can be loaded with tsearch_ternarytree_init_from_file().
 /// Returns failure for NULL trees, NULL paths, or I/O errors.

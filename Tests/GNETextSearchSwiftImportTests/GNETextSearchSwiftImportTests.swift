@@ -34,7 +34,7 @@ final class GNETextSearchSwiftImportTests: XCTestCase {
 
         var bytes: UnsafeMutablePointer<UInt8>?
         var length = 0
-        XCTAssertEqual(tsearch_ternarytree_copy_serialized_bytes(tree, &bytes, &length), 1)
+        XCTAssertEqual(tsearch_ternarytree_copy_bytes(tree, &bytes, &length), 1)
 
         guard let rawBytes = bytes else {
             XCTFail("Expected serialized bytes")
@@ -45,8 +45,8 @@ final class GNETextSearchSwiftImportTests: XCTestCase {
         bytes = nil
 
         let loadedTree = data.withUnsafeBytes { rawBuffer in
-            tsearch_ternarytree_init_from_serialized_bytes(rawBuffer.bindMemory(to: UInt8.self).baseAddress,
-                                                           rawBuffer.count)
+            tsearch_ternarytree_init_from_bytes(rawBuffer.bindMemory(to: UInt8.self).baseAddress,
+                                                rawBuffer.count)
         }
 
         guard let loadedTree else {
